@@ -7,14 +7,26 @@ A. **Parse User Path Configurations:**
     *   If any path (other than `Main Iteration Folder`) is missing from the `[[USER PATH CONFIGURATION]]` block, you may use a logical default *relative to the determined Main Iteration Folder*, but state this assumption clearly in any main output file you generate (e.g., `00_task_launch_plan.md`, if the active add-on generates such a file).
     All paths you generate in task prompts and plans must be constructed clearly, typically relative to the repository root, and reflect these user-specified locations. When resolving path placeholders like `[Actual Path to Prompts Folder]`, if `Main Iteration Folder` was `.` and `Prompts Folder` was `prompts/tasks`, then `[Actual Path to Prompts Folder]` resolves to `prompts/tasks`.
 
-B. **Parse User Add-on Selections:**
+B. **Parse User Add-on Selections and Prepare Content:**
     1.  Scan the `[[USER_ADDON_SELECTION]]` block found near the beginning of *this Master Prompt Segment* (typically just after the `[[USER PATH CONFIGURATION]]` block).
     2.  If this block is found, parse each line within it.
     3.  Identify lines that begin with `[x]` (case-insensitive for 'x'). For these lines, extract the subsequent filename (e.g., `my_addon.txt`). Trim any leading/trailing whitespace from the filename.
-    4.  Compile an ordered list of these selected add-on filenames. The order should match their appearance in the selection block. This list is referred to as `Selected_Addons_List`.
-    5.  For each filename in `Selected_Addons_List`, the path to find the add-on text file (which the user should have provided in their repository) will be `/prompts/add_ons/[addon_filename.txt]` (this path is relative to the repository root where you are operating; it is in the repo). You will need to read the content of these files. Store these contents, associated with their filenames.
-    6.  If the `[[USER_ADDON_SELECTION]]` block is not found, or if no add-ons are marked with `[x]`, `Selected_Addons_List` will be empty.
-    7.  If an add-on file in `Selected_Addons_List` is not found at its expected path (e.g., `/prompts/add_ons/non_existent_addon.txt`), you **must** prepare a clear warning message listing which selected add-ons could not be found. This warning should be suitable for inclusion in a main planning document (like `00_task_launch_plan.md`, if the `task_spawning_addon.txt` or another add-on generates one). Then, proceed using only the add-ons that were successfully located and read. Remove unfound filenames from `Selected_Addons_List` and do not attempt to process them further. Store the successfully read add-on contents for processing as per Section II.
+    4.  Compile an ordered list of these selected add-on filenames. This list is referred to as `Selected_Addons_Filenames_Ordered`.
+    5.  Initialize two collections:
+        *   `All_Selected_Addons_Content_Map`: A map to store `filename: content` for all successfully read add-ons.
+        *   `Inheritable_Addons_Content_Ordered_List`: An ordered list to store the *content* of add-ons intended for inheritance by Task AIs (this list will exclude `task_spawning_addon.txt` content).
+    6.  For each `filename` in `Selected_Addons_Filenames_Ordered`:
+        a.  The path to find the add-on text file will be `/prompts/add_ons/[filename]` (this path is relative to the repository root where you are operating; it is in the repo).
+        b.  Attempt to read the content of this file.
+        c.  If the file is successfully read:
+            i.  Store its content in `All_Selected_Addons_Content_Map` with the `filename` as the key.
+            ii. If the `filename` is NOT `task_spawning_addon.txt`, add its content to the `Inheritable_Addons_Content_Ordered_List`, maintaining the order from `Selected_Addons_Filenames_Ordered`.
+        d.  If an add-on file is not found at its expected path:
+            i.  You **must** prepare a clear warning message listing which selected add-on could not be found. This warning should be suitable for inclusion in a main planning document (like `00_task_launch_plan.md`, if the `task_spawning_addon.txt` or another add-on generates one).
+            ii. Do not add this filename or its potential content to `All_Selected_Addons_Content_Map` or `Inheritable_Addons_Content_Ordered_List`. Effectively, it should be removed from `Selected_Addons_Filenames_Ordered` for further processing steps that rely on iterating through successfully loaded add-ons.
+    7.  If the `[[USER_ADDON_SELECTION]]` block is not found, or if no add-ons are marked with `[x]`, then `Selected_Addons_Filenames_Ordered`, `All_Selected_Addons_Content_Map`, and `Inheritable_Addons_Content_Ordered_List` will be empty or null.
+    8.  The `All_Selected_Addons_Content_Map` (containing all selected and successfully read add-ons, identified by their filenames) is used for executing the add-ons themselves within the Planning AI, as detailed in Section II.
+    9.  The `Inheritable_Addons_Content_Ordered_List` is specifically what the `task_spawning_addon.txt` (or other similar primary directive add-ons that generate sub-prompts) should use when it refers to "appending selected add-ons to task prompts". This ensures that `task_spawning_addon.txt` itself is not redundantly appended to the prompts it generates for Task AIs.
 
 C. **Input Definition Files (Base IEP):**
     You will also need to read certain definition files provided by the user. Specifically, the Base IEP content is expected at `/prompts/iep/Base_IEP.txt` (this path is relative to the repository root where you are invoked; it is in the repo). This will be referenced in Section III.C.1 below.
@@ -22,23 +34,23 @@ C. **Input Definition Files (Base IEP):**
 **II. ADD-ON EXECUTION AND CONDITIONAL LOGIC:**
 
 A. **Identify Primary Task Spawning Add-on:**
-    1. After parsing add-ons as per Section I.B, check if `task_spawning_addon.txt` is present in the `Selected_Addons_List`.
+    1. After parsing add-ons as per Section I.B, check if `task_spawning_addon.txt` is present as a key in `All_Selected_Addons_Content_Map` (meaning it was selected and successfully read).
 
 B. **Execution Path based on `task_spawning_addon.txt` Selection:**
-    1.  **If `task_spawning_addon.txt` IS SELECTED:**
-        a.  You should treat `task_spawning_addon.txt` as the primary directive for project planning and task generation. Execute its instructions. This will typically lead to the generation of a main development plan, a `00_task_launch_plan.md`, and individual task prompt files.
-        b.  The instructions within `task_spawning_addon.txt` will guide you on how to structure these outputs and may refer to path configurations you parsed in Section I.A.
-        c.  Other selected add-ons (e.g., `task_resumption_addon.txt`, coding standards) should be considered supplementary. Their content is typically appended to the task prompts generated by `task_spawning_addon.txt`, as detailed in `task_spawning_addon.txt` itself (see its Section III.B.11).
+    1.  **If `task_spawning_addon.txt` IS SELECTED (i.e., present in `All_Selected_Addons_Content_Map`):**
+        a.  You should treat the content of `task_spawning_addon.txt` (from `All_Selected_Addons_Content_Map`) as the primary directive for project planning and task generation. Execute its instructions. This will typically lead to the generation of a main development plan, a `00_task_launch_plan.md`, and individual task prompt files.
+        b.  The instructions within `task_spawning_addon.txt` will guide you on how to structure these outputs and may refer to path configurations you parsed in Section I.A. It will use the `Inheritable_Addons_Content_Ordered_List` (from I.B.9) when appending supplementary add-ons to task prompts.
+        c.  Other selected add-ons (those in `Inheritable_Addons_Content_Ordered_List`) are typically processed by being appended to task prompts by `task_spawning_addon.txt`.
     2.  **If `task_spawning_addon.txt` IS NOT SELECTED:**
         a.  You **must** state clearly in your primary output or log (e.g., if you are asked to create a general status report, or in the commit message if no other file output is requested) that `task_spawning_addon.txt` was not selected and therefore, no main project development plan, `00_task_launch_plan.md`, or specific task prompts will be generated *by default core logic*.
-        b.  Proceed to process any other add-ons present in the `Selected_Addons_List`. These add-ons might provide alternative primary directives or utility functions. Execute their instructions accordingly.
-        c.  If no other selected add-ons provide primary operational directives (i.e., they are only utility add-ons or there are no other add-ons), you should:
+        b.  Proceed to process any other add-ons whose content is in `All_Selected_Addons_Content_Map` (and thus also in `Inheritable_Addons_Content_Ordered_List`). These add-ons might provide alternative primary directives or utility functions. Execute their instructions accordingly, in the order they appear in `Selected_Addons_Filenames_Ordered`.
+        c.  If `Inheritable_Addons_Content_Ordered_List` is empty (meaning no other add-ons were selected or successfully read besides potentially a missing `task_spawning_addon.txt`), you should:
             i.  Generate the `Information_Exchange_Protocol.md` as per Section III.C.1 below.
-            ii. State that you have completed processing available utility instructions and are awaiting further specific directives or will conclude operations. Include any warnings generated (e.g., about missing add-ons from I.B.7).
+            ii. State that you have completed processing available utility instructions (or that no add-ons were selected/found) and are awaiting further specific directives or will conclude operations. Include any warnings generated (e.g., about missing add-ons from I.B.6.d.i).
             iii. Your commit message (Section IV.B) should reflect this operational status.
 
 C. **General Add-on Processing:**
-    For any selected add-on that is not `task_spawning_addon.txt` (or for `task_spawning_addon.txt` itself if it's selected), its instructions should be followed. Add-ons are processed in the order they appear in the `Selected_Addons_List`. The nature of "appending" add-on content is typically relevant when `task_spawning_addon.txt` is active and generating task prompts. If other add-ons are active without `task_spawning_addon.txt`, they must be self-contained or define how they interact.
+    The primary execution of an add-on's instructions happens when the Planning AI processes the content associated with a filename from `All_Selected_Addons_Content_Map`. The `Inheritable_Addons_Content_Ordered_List` is a filtered list of contents specifically for inclusion/appending into sub-prompts generated by a primary add-on like `task_spawning_addon.txt`. If `task_spawning_addon.txt` is not active, other add-ons are executed based on their content in `All_Selected_Addons_Content_Map` and must be self-contained or define their own inter-add-on interactions.
 
 **III. OUTPUT GENERATION REQUIREMENTS (Core Utilities):**
 
@@ -57,7 +69,7 @@ B. **Final Commit Message by Planning AI:**
     *   Task-ID should reflect the main operation (e.g., "INITIAL_PROJECT_PLANNING_ITER_XX" if `task_spawning_addon.txt` was processed, or "CORE_PROCESSING_ONLY" or similar if it was not and no other primary add-on was active).
     *   Notes must state:
         *   Whether `task_spawning_addon.txt` was selected and processed.
-        *   A summary of other add-ons processed.
+        *   A summary of other add-ons processed (referencing `Selected_Addons_Filenames_Ordered` and noting any that failed to load).
         *   Self-checks performed (as per active add-on(s), if any).
         *   Include `[PLANNING_CONFIDENCE]` block (if applicable, typically generated when `task_spawning_addon.txt` is active).
         *   Any warnings (e.g. missing add-ons).
