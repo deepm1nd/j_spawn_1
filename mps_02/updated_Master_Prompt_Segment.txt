@@ -1,4 +1,4 @@
-[[START OF MASTER PROMPT SEGMENT (v0.2.1 - incorporates Knowledge Capture, Sanity Checks): AI Project Planning & Task Generation Instructions]]
+[[START OF MASTER PROMPT SEGMENT (v0.2.2 - incorporates Confidence Score, Visual Overview): AI Project Planning & Task Generation Instructions]]
 
 ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided immediately preceding this segment) and generate a comprehensive, phased execution plan. This involves creating detailed task prompts for subsequent AI instances ("Task AIs") and all necessary supporting documentation. Adhere strictly to the following instructions and output requirements.
 
@@ -37,10 +37,45 @@ classes, or sections of code to be modified, the nature of the changes, and any 
     *   Task Launch Plan: `00_task_launch_plan.md`.
     *   Submodule Dev Plans (created by Task AIs): `<prompt_filename_base>_dev_plan.md` (e.g., `p1_t1_database_schema_dev_plan.md`).
     *   Next Steps Docs (created by Task AIs): `<prompt_filename_base>_next_steps.md`.
-6.  **NEW: Task Effort Estimation (Heuristic):**
+6.  **Task Effort Estimation (Heuristic):**
     *   For each task you define, provide a heuristic estimate of its effort/complexity. Use T-shirt sizes: S (Small), M (Medium), L (Large), XL (Extra Large).
     *   Base your estimate on factors like the perceived amount of work, number of components involved, apparent complexity of logic, and potential dependencies or unknowns.
     *   Your goal is to break down work such that most tasks are S or M. If a task seems L, ensure it's well-defined. **Avoid generating XL tasks; if a part of the plan seems XL, you must attempt to decompose it further into smaller, more manageable tasks (S, M, L).** If decomposition of an XL item isn't feasible while meeting other constraints, clearly flag it as XL in the `00_task_launch_plan.md` and suggest user review for that specific item.
+7.  **Planning Confidence Assessment & Reporting:**
+    *   After generating the complete plan (including all task prompts and the `00_task_launch_plan.md`), you must perform a self-assessment of your confidence in the quality and executability of the generated plan.
+    *   Determine a confidence level: **High, Medium, or Low.**
+    *   Base this on factors such as: the clarity and completeness of the user's initial request, your ability to effectively decompose tasks into manageable sizes (S/M/L, avoiding XL), the number of tasks requiring serialization due to potential merge conflicts, and the overall perceived completeness of information available to you.
+    *   You must report this confidence score and a brief rationale in two places:
+        1.  At the very top of the `00_task_launch_plan.md` you generate (see Section III.C.2 template update).
+        2.  In your final commit message for this planning task, using a `[PLANNING_CONFIDENCE]` block within the `Notes-To-Next-Jules` field of the IEP (see Section IV.B).
+8.  **Visual Plan Overview Generation (Mermaid Syntax):**
+    *   After defining all phases and tasks, you must generate a visual overview of the plan using Mermaid JS flowchart syntax.
+    *   This diagram should depict:
+        *   Phases as distinct groups or subgraphs.
+        *   Key tasks (using their Task IDs/short descriptions) within each phase.
+        *   Dependencies between tasks (especially serialized tasks) as arrows.
+        *   Dependencies between phases (sequential flow).
+    *   You will embed this Mermaid diagram code block at the top of the `00_task_launch_plan.md` file (after the Planning Confidence Score section, see Section III.C.2 template update).
+    *   Example of simple Mermaid flowchart syntax for a plan:
+        \`\`\`mermaid
+        graph TD
+            subgraph Phase 1
+                P1_T1["Task 1.1: Init Setup"]
+                P1_T2["Task 1.2: Define Schema"]
+            end
+            subgraph Phase 2
+                P2_T1["Task 2.1: Build Core"]
+                P2_T2["Task 2.2: Develop API"]
+            end
+            P1_T1 --> P2_T1
+            P1_T2 --> P2_T1
+            P2_T1 --> P2_T2
+            Phase1_End["Phase 1 Complete"]
+            P1_T1 --> Phase1_End
+            P1_T2 --> Phase1_End
+            Phase1_End --> P2_T1
+        \`\`\`
+        (Adapt the diagram's complexity to the plan. For very complex plans, focus on major tasks and phase flows.)
 
 **III. OUTPUT GENERATION REQUIREMENTS:**
 
@@ -81,74 +116,89 @@ All file paths below are relative to the "Main Iteration Folder" identified from
                 *   `- Risk-Level: <Your assessed Low/Medium/High level>`
                 *   `- Justification: <Your brief explanation for choosing this risk level, highlighting key factors.>`"
 
-**C. Supporting Documentation (in the designated "Prompts Folder" for the target project):**
+    **C. Supporting Documentation (in the designated "Prompts Folder" for the target project):**
 
-1.  **`Information_Exchange_Protocol.md`:**
-    *   Read the content from the user-provided Base IEP file located at `/prompts/ipc/Base_IEP.txt` (this path is relative to the repository root where you, the Planning AI, are operating; it is in the repo).
-    *   You **must** create a file named `Information_Exchange_Protocol.md` in the 'Prompts Folder' you are generating for the target project (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md`).
-    *   Write the exact, unmodified content read from `/prompts/ipc/Base_IEP.txt` into this new file.
-    *   **NEW: Ensure the example `Notes-To-Next-Jules` within the IEP content you write includes an illustration of the `[RISK_ASSESSMENT]` block (e.g., by adding it to the existing example or providing a dedicated small example).** This ensures Task AIs see how to format it. (This means the Base_IEP.txt provided by user should ideally already have this example).
+    1.  **`Information_Exchange_Protocol.md`:**
+        *   Read the content from the user-provided Base IEP file located at `/prompts/ipc/Base_IEP.txt` (this path is relative to the repository root where you, the Planning AI, are operating; it is in the repo).
+        *   You **must** create a file named `Information_Exchange_Protocol.md` in the 'Prompts Folder' you are generating for the target project (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md`).
+        *   Write the exact, unmodified content read from `/prompts/ipc/Base_IEP.txt` into this new file.
+        *   **Ensure the example `Notes-To-Next-Jules` within the IEP content you write includes an illustration of the `[RISK_ASSESSMENT]` block (e.g., by adding it to the existing example or providing a dedicated small example).** This ensures Task AIs see how to format it. (This means the Base_IEP.txt provided by user should ideally already have this example).
 
-2.  **`00_task_launch_plan.md`:**
-    *   Create this file. Its content **must be based on the following template.** You **must** dynamically replace placeholders like `[Project Name Placeholder]`, `[Iteration Placeholder XX]`, `[Actual Main Iteration Folder Path]`, `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, and `[Actual User-Specified Task Output Base Path]` with the actual values derived from the user's request and the `[[USER PATH CONFIGURATION]]` block. You must also dynamically generate the task listing.
-    *   **CRITICAL FOR LAUNCH COMMANDS:** Ensure the launch paths in `00_task_launch_plan.md` are always correctly formed relative to the repository root. For example, if 'Main Iteration Folder' is `.` and 'Prompts Folder' is `prompts`, a launch path will be `prompts/p1_t1_task.txt is the prompt, it is in the repo.`. If 'Main Iteration Folder' is `iter_outputs` and 'Prompts Folder' is `iter_outputs/prompts`, the path will be `iter_outputs/prompts/p1_t1_task.txt is the prompt, it is in the repo.`.
-    *   **UPDATED TLP TEMPLATE (incorporates "Estimated Effort" and "Dependencies" fields):**
-        ```markdown
-        # Task Launch Plan for [Project Name Placeholder] - Iteration [Iteration Placeholder XX]
+    2.  **`00_task_launch_plan.md`:**
+        *   Create this file. Its content **must be based on the following template.** You **must** dynamically replace placeholders like `[Project Name Placeholder]`, `[Iteration Placeholder XX]`, `[Actual Main Iteration Folder Path]`, `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, and `[Actual User-Specified Task Output Base Path]` with the actual values derived from the user's request and the `[[USER PATH CONFIGURATION]]` block. You must also dynamically generate the task listing.
+        *   **CRITICAL FOR LAUNCH COMMANDS:** Ensure the launch paths in `00_task_launch_plan.md` are always correctly formed relative to the repository root. For example, if 'Main Iteration Folder' is `.` and 'Prompts Folder' is `prompts`, a launch path will be `prompts/p1_t1_task.txt is the prompt, it is in the repo.`. If 'Main Iteration Folder' is `iter_outputs` and 'Prompts Folder' is `iter_outputs/prompts`, the path will be `iter_outputs/prompts/p1_t1_task.txt is the prompt, it is in the repo.`.
+        *   **UPDATED TLP TEMPLATE (incorporates Confidence Score, Visual Overview, Effort, Dependencies):**
+            ```markdown
+            # Task Launch Plan for [Project Name Placeholder] - Iteration [Iteration Placeholder XX]
 
-        ## 1. Overview
-        Welcome to the Task Launch Plan for **[Project Name Placeholder]**, Iteration **[Iteration Placeholder XX]**! This document provides all the necessary information to launch and manage the development tasks generated for this project.
-        The project has been decomposed into several phases. Each phase contains one or more tasks designed by the Planning AI. Tasks within the same phase can often be executed in parallel by different AI instances (e.g., Jules instances) *unless a specific order is indicated below due to dependencies*.
+            **Overall Planning Confidence:** <High | Medium | Low (P-AI to populate)>
+            **Confidence Rationale:** <P-AI to provide a brief explanation for its confidence score, highlighting key factors considered during planning.>
 
-        **Key Files & Folders (relative to this iteration's root folder, e.g., `[Actual Main Iteration Folder Path]/`):**
-        *   `[Actual Path to Prompts Folder]/`: Contains this launch plan, all individual task prompt files (`.txt`), and the Information Exchange Protocol.
-        *   `[Actual Path to Prompts Folder]/ipc/`: A dedicated space for inter-AI instance communication.
-        *   `[Actual User-Specified Path for Submodule Plans]`: The location Task AIs will store their `_dev_plan.md` and `_next_steps.md` files.
-        *   `[Actual User-Specified Task Output Base Path]`: The base directory where Task AIs will place their primary deliverables (e.g., code). Task-specific subdirectories will be created within this path.
+            ---
+            ## Visual Plan Overview
 
-        ## 2. Execution Workflow
-        1.  **Review Phases:** Understand the sequential nature of phases. All tasks in a preceding phase should be completed and verified before starting tasks in a subsequent phase.
-        2.  **Parallel Task Execution:** Tasks listed *within the same phase* below can be assigned to different AI instances simultaneously, *unless a **"Dependencies"** field explicitly indicates a required sequential order for particular tasks*. Respect any specified sequential ordering for such dependent tasks.
-        3.  **Provide Prompts to AI Instances:** For each task, copy the "Initial Launch" command and provide it to an AI instance.
-        4.  **Monitor Progress:**
-            *   Regularly check commit messages (see `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`).
-            *   Review `_dev_plan.md` files in `[Actual User-Specified Path for Submodule Plans]`.
-            *   Check `[Actual Path to Prompts Folder]/ipc/` for inter-AI communications.
-        5.  **Handle Crashes:** If an AI instance crashes, use the "Retry if Crashed" command for that task.
-
-        ## 3. Launching Tasks
-        Below are the tasks, organized by phase.
-        ---
-        [[YOU MUST DYNAMICALLY GENERATE THE TASK LISTING BELOW BASED ON THE PROMPT FILES YOU CREATED]]
-        [[FOR EACH PHASE:]]
-        ### **Phase <PhaseNumber> Tasks**
-        *(Tasks listed below can generally be run in parallel. However, if a task includes a **"Dependencies"** field, it **must not** be started until all listed prerequisite tasks are complete. Respect any specified sequential ordering for such dependent tasks.)*
-
-        [[FOR EACH TASK IN THE PHASE:]]
-        #### **Task: `<Full Prompt Filename e.g., p2_t1_process_data.txt>`**
-        *   **Description:** <A brief, 1-2 sentence user-friendly description of this task's objective, derived from your Main Development Plan.>
-        *   **Estimated Effort:** <S | M | L | XL (P-AI to populate this. Strive for S or M. Flag XL for user review if unavoidable)>
-        *   **Dependencies:** <(P-AI Populates if Applicable) e.g., "Depends on: `p2_t0_fetch_data.txt` - Requires output file `raw_data.csv`." OR "Depends on: `p2_t2_update_config.txt` - Serialized due to shared access to `config.xml`." >
-        *   **Initial Launch:**
+            \`\`\`mermaid
+            [[[P-AI TO GENERATE MERMAID FLOWCHART DIAGRAM HERE]]]
+            graph TD
+                A["Example Task A"] --> B["Example Task B"];
+                B --> C["Example Task C"];
             \`\`\`
-            [Path to Prompt File relative to Repo Root] is the prompt, it is in the repo.
-            \`\`\`
-        *   **Retry if Crashed:**
-            \`\`\`
-            [Path to Prompt File relative to Repo Root] is the prompt, it is in the repo, but a previous Jules instance crashed. Your task is to determine what the previous instance was able to complete before crashing, and to continue and complete the task.
-            \`\`\`
-        ---
-        [[END OF DYNAMICALLY GENERATED TASK LISTING]]
+            *(The diagram above is a placeholder and will be replaced by the Planning AI with a representation of the actual plan phases, tasks, and dependencies.)*
 
-        ## 4. Iteration Completion
-        Once all tasks in all phases are reported as `Tested` or `Completed` satisfactorily, this project iteration can be considered complete. Review `_next_steps.md` documents in `[Actual User-Specified Path for Submodule Plans]`.
-        Good luck with project **[Project Name Placeholder]**!
-        ```
-        (End of 00_task_launch_plan.md template)
+            ---
+            ## 1. Overview
+            Welcome to the Task Launch Plan for **[Project Name Placeholder]**, Iteration **[Iteration Placeholder XX]**! This document provides all the necessary information to launch and manage the development tasks generated for this project.
+            The project has been decomposed into several phases. Each phase contains one or more tasks designed by the Planning AI. Tasks within the same phase can often be executed in parallel by different AI instances (e.g., Jules instances) *unless a specific order is indicated below due to dependencies*.
+
+            **Key Files & Folders (relative to this iteration's root folder, e.g., `[Actual Main Iteration Folder Path]/`):**
+            *   `[Actual Path to Prompts Folder]/`: Contains this launch plan, all individual task prompt files (`.txt`), and the Information Exchange Protocol.
+            *   `[Actual Path to Prompts Folder]/ipc/`: A dedicated space for inter-AI instance communication.
+            *   `[Actual User-Specified Path for Submodule Plans]`: The location Task AIs will store their `_dev_plan.md` and `_next_steps.md` files.
+            *   `[Actual User-Specified Task Output Base Path]`: The base directory where Task AIs will place their primary deliverables (e.g., code). Task-specific subdirectories will be created within this path.
+
+            ## 2. Execution Workflow
+            1.  **Review Phases:** Understand the sequential nature of phases. All tasks in a preceding phase should be completed and verified before starting tasks in a subsequent phase.
+            2.  **Parallel Task Execution:** Tasks listed *within the same phase* below can be assigned to different AI instances simultaneously, *unless a **"Dependencies"** field explicitly indicates a required sequential order for particular tasks*. Respect any specified sequential ordering for such dependent tasks.
+            3.  **Provide Prompts to AI Instances:** For each task, copy the "Initial Launch" command and provide it to an AI instance.
+            4.  **Monitor Progress:**
+                *   Regularly check commit messages (see `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`).
+                *   Review `_dev_plan.md` files in `[Actual User-Specified Path for Submodule Plans]`.
+                *   Check `[Actual Path to Prompts Folder]/ipc/` for inter-AI communications.
+            5.  **Handle Crashes:** If an AI instance crashes, use the "Retry if Crashed" command for that task.
+
+            ## 3. Launching Tasks
+            Below are the tasks, organized by phase.
+            ---
+            [[YOU MUST DYNAMICALLY GENERATE THE TASK LISTING BELOW BASED ON THE PROMPT FILES YOU CREATED]]
+            [[FOR EACH PHASE:]]
+            ### **Phase <PhaseNumber> Tasks**
+            *(Tasks listed below can generally be run in parallel. However, if a task includes a **"Dependencies"** field, it **must not** be started until all listed prerequisite tasks are complete. Respect any specified sequential ordering for such dependent tasks.)*
+
+            [[FOR EACH TASK IN THE PHASE:]]
+            #### **Task: `<Full Prompt Filename e.g., p2_t1_process_data.txt>`**
+            *   **Description:** <A brief, 1-2 sentence user-friendly description of this task's objective, derived from your Main Development Plan.>
+            *   **Estimated Effort:** <S | M | L | XL (P-AI to populate this. Strive for S or M. Flag XL for user review if unavoidable)>
+            *   **Dependencies:** <(P-AI Populates if Applicable) e.g., "Depends on: `p2_t0_fetch_data.txt` - Requires output file `raw_data.csv`." OR "Depends on: `p2_t2_update_config.txt` - Serialized due to shared access to `config.xml`." >
+            *   **Initial Launch:**
+                \`\`\`
+                [Path to Prompt File relative to Repo Root] is the prompt, it is in the repo.
+                \`\`\`
+            *   **Retry if Crashed:**
+                \`\`\`
+                [Path to Prompt File relative to Repo Root] is the prompt, it is in the repo, but a previous Jules instance crashed. Your task is to determine what the previous instance was able to complete before crashing, and to continue and complete the task.
+                \`\`\`
+            ---
+            [[END OF DYNAMICALLY GENERATED TASK LISTING]]
+
+            ## 4. Iteration Completion
+            Once all tasks in all phases are reported as `Tested` or `Completed` satisfactorily, this project iteration can be considered complete. Review `_next_steps.md` documents in `[Actual User-Specified Path for Submodule Plans]`.
+            Good luck with project **[Project Name Placeholder]**!
+            ```
+            (End of 00_task_launch_plan.md template)
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION:**
 
-**A. NEW: Planning AI Self-Correction and Verification Checks (MANDATORY):**
+**A. Planning AI Self-Correction and Verification Checks (MANDATORY):**
 Before you finalize the generation of all task prompts and supporting documents, you **must** perform the following sanity checks on *each individual task prompt* you have generated:
 
 1.  **Verify Core Directives:**
@@ -170,7 +220,12 @@ Before you finalize the generation of all task prompts and supporting documents,
 If you find any discrepancies during these checks, you **must** correct the generated task prompt before concluding your overall process. Your goal is to produce high-quality, consistent, and actionable prompts for the Task AIs.
 
 **B. Final Commit Message by Planning AI:**
-Your own final commit message for completing *this planning and generation task* must also adhere to the `Information_Exchange_Protocol.md` (the one you copied from `/prompts/ipc/Base_IEP.txt`). Use a relevant Task-ID like "INITIAL_PROJECT_PLANNING_ITER_XX" (replace XX with the iteration number from `Main Iteration Folder` if it's not '.'). **In this commit message, under `Notes-To-Next-Jules`, briefly state that the self-correction and verification checks (Section IV.A) were performed on all generated task prompts.**
+Your own final commit message for completing *this planning and generation task* must also adhere to the `Information_Exchange_Protocol.md` (the one you copied from `/prompts/ipc/Base_IEP.txt`). Use a relevant Task-ID like "INITIAL_PROJECT_PLANNING_ITER_XX" (replace XX with the iteration number from `Main Iteration Folder` if it's not '.'). **In this commit message, under `Notes-To-Next-Jules`, briefly state that the self-correction and verification checks (Section IV.A) were performed on all generated task prompts, and include your Planning Confidence assessment using a block like:**
+ \`\`\`
+ [PLANNING_CONFIDENCE]
+ - Score: <High/Medium/Low>
+ - Rationale: <Brief summary of rationale>
+ \`\`\`
 
 **V. TASK RESUMPTION ADD-ON INCORPORATION (MANDATORY, if specified by user setup):**
 The user may provide a "Task Resumption Add-on" to enhance task robustness.
@@ -178,4 +233,4 @@ The user may provide a "Task Resumption Add-on" to enhance task robustness.
 2.  **If Present, Incorporate:** If this file exists, for every task prompt you generate as per Section III.B above, you **must append** the complete and unmodified content of this "Task Resumption Add-on".
 3.  **Resolve Placeholders:** You are responsible for reading this file and including its content in each generated task prompt. Critically, ensure all path placeholders within the add-on text itself (e.g., `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, `[Actual User-Specified Task Output Base Path]`, `<ExactOriginalTaskPromptFilenameBase>`) are correctly resolved by you with the values from the `[[USER PATH CONFIGURATION]]` block (or your defaults) when you embed the add-on into the final task prompts for the target project.
 
-[[END OF MASTER PROMPT SEGMENT (v0.2.1 - incorporates Knowledge Capture, Sanity Checks)]]
+[[END OF MASTER PROMPT SEGMENT (v0.2.2 - incorporates Confidence Score, Visual Overview)]]
