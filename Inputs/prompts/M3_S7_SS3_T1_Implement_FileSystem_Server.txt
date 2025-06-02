@@ -1,0 +1,59 @@
+Subject: Design and Implement User-Space File System Server for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.3. File System Service":
+"Task: Design and implement a user-space file system server. (SoP 2.2.2, GRITOS-REQ-FNC-SVC-FS-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing the core logic of the user-space File System (FS) Server.
+    *   This plan should detail:
+        *   **FS Server Architecture:**
+            *   How the FS server will manage different file system types (e.g., a VFS-like layer that can dispatch to specific file system implementations).
+            *   Internal data structures for managing mounted file systems, open file descriptors/handles, file metadata (inodes), and directory structures.
+            *   Caching strategies for file data and metadata to improve performance.
+        *   **Core Logic (initially for a simple FS type like RAMFS or a basic on-disk FS like FAT):**
+            *   Translating client IPC requests (open, read, write, etc.) into operations on underlying block devices (via IPC to storage drivers `M3_S7_SS2_T3`) or in-memory data structures.
+            *   Managing file allocation (e.g., block allocation for on-disk FS).
+            *   Handling directory operations (create, delete, list entries).
+            *   Managing file metadata (size, timestamps, permissions - though initial permission model might be very simple).
+        *   **IPC Interface Implementation:** The server-side implementation for the IPC interface defined in `M3_S7_SS3_T2` (e.g., handling `FS_METHOD_OPEN`, `FS_METHOD_READ` requests).
+        *   **Component Manifest:** Define the manifest for the FS Server component.
+        *   **Crash Consistency (Consideration):** Initial thoughts on how to achieve crash consistency for on-disk file systems (e.g., journaling, copy-on-write techniques), even if full implementation is deferred.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T1_Implement_FileSystem_Server_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the core File System Server logic as a gRiTOS user-space component, based on your sub-development plan.
+    *   Start with a simple file system type (e.g., an in-memory RAMFS, or a very basic FAT implementation if a storage driver is available and stable).
+    *   The FS Server will receive requests via IPC, process them, and interact with storage drivers (also via IPC) if necessary.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.2 (File System).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-FS-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementing more advanced file system types (e.g., ext2-like, a more robust FAT).
+        *   Full implementation of crash consistency mechanisms.
+        *   Support for file permissions and ownership.
+        *   Performance optimization (caching, read-ahead/write-behind).
+        *   Testing with a variety of file operations and workloads.
+    *   Save this document as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T1_Implement_FileSystem_Server_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.2.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-FS-00001`.
+-   The File System Server is a fundamental service for data storage and management.
+
+**Dependencies:**
+-   Requires the IPC interfaces for file operations to be defined (`M3_S7_SS3_T2`, though this task implements the server side). Ideally, use IDL (`M3_S5_T4`).
+-   Will interact with storage controller drivers (`M3_S7_SS2_T3`) for on-disk file systems.
+-   Requires the Component Framework (`M3_S5`) for running as a component.
+-   Relies on kernel IPC (`M3_S3`) and memory management services.
+
+Focus on a modular design that can support different file system types and prioritize data integrity.
+Good luck, Jules!

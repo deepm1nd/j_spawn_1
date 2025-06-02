@@ -1,0 +1,58 @@
+Subject: Implement User-Space Monitoring Service and IPC Interfaces for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.6. System Monitoring & Logging Service":
+"Task: Implement a user-space monitoring service with IPC interfaces for querying CPU/memory usage and subscribing to events. (SoP 2.2.6, GRITOS-REQ-FNC-SVC-LOG-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the user-space Monitoring Service and its IPC interface.
+    *   This plan should detail:
+        *   **Monitoring Service Core Logic:**
+            *   How the service gathers data:
+                *   CPU Usage: Potentially by querying kernel scheduler statistics (if the kernel exposes such info via privileged IPC or special kernel objects) or by estimation based on component activity.
+                *   Memory Usage: Querying a Memory Manager service or the kernel for component memory allocations.
+                *   System Events: How it receives event notifications from other components or the kernel.
+            *   Data aggregation and storage (if any historical data is kept, or if it's primarily for real-time queries).
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):**
+            *   Define methods like:
+                *   `MONITOR_METHOD_GET_CPU_USAGE(component_id_cap_or_all) -> (error_code, usage_stats_buffer_cap)`
+                *   `MONITOR_METHOD_GET_MEMORY_STATS(component_id_cap_or_all) -> (error_code, memory_stats_buffer_cap)`
+                *   `MONITOR_METHOD_SUBSCRIBE_EVENT(event_type, notification_cap) -> error_code` (Client provides a `gRiTOS_NotificationObject` capability for the service to signal when the specified event type occurs).
+            *   Define data structures for statistics and event types.
+        *   **Component Manifest:** Define the manifest for the Monitoring Service component.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/system_monitoring_logging/M3_S7_SS6_T2_Implement_Monitoring_Service_And_IPC_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Monitoring Service as a gRiTOS user-space component, including its IPC interface (server-side from IDL) and core logic, based on your sub-development plan.
+    *   This may require privileged capabilities to access information from the kernel or other services.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.6 (System Monitoring & Logging).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-LOG-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Defining specific kernel mechanisms or interfaces if needed to expose CPU/memory usage data securely.
+        *   Implementing a wider range of queryable statistics and subscribable events.
+        *   Testing the monitoring service with various system loads and event patterns.
+        *   Integration with health monitoring systems for safety (`M3_S9_T2`).
+    *   Save this document as `/plan/generated_subplans/user_space_services/system_monitoring_logging/M3_S7_SS6_T2_Implement_Monitoring_Service_And_IPC_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.6.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-LOG-00001`.
+-   A monitoring service is vital for observing system behavior, performance tuning, and detecting anomalies.
+
+**Dependencies:**
+-   Requires IDL and tooling (`M3_S5_T4`) for defining the IPC interface.
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`), including `gRiTOS_NotificationObject` capabilities for event subscriptions.
+-   Requires the Component Framework (`M3_S5`).
+-   May require new kernel interfaces or privileged access to gather some statistics.
+
+Focus on providing useful and accurate system metrics in a secure manner.
+Good luck, Jules!

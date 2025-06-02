@@ -1,0 +1,52 @@
+Subject: Implement Static Memory Allocation for gRiTOS Kernel Data Structures
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement static memory allocation for all kernel data structures; no dynamic kernel memory post-init. (SoP 1.4.3, GRITOS-REQ-CON-KERNEL-NODYNAMICMEM-00001, GRITOS-REQ-FNC-KERNEL-MEM-00003)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the static memory allocation strategy for all kernel data structures.
+    *   This plan should:
+        *   Identify all types of kernel objects and data structures that need to be managed (e.g., TCBs, CNodes, Endpoints, Notification objects, kernel stacks, page table structures if managed by generic kernel code before HAL).
+        *   Define fixed-size pools or arrays for each type of object, with sizes determined at compile-time (e.g., via Kconfig options).
+        *   Specify the memory region(s) from which these pools will be allocated (e.g., a dedicated `.bss` or `.data` section for the kernel).
+        *   Design a mechanism for allocating from and freeing to these fixed-size pools during kernel initialization (for initial setup) and potentially for any internal reuse if strictly necessary and proven safe (though the primary goal is pre-allocation).
+        *   Ensure that NO dynamic memory allocation (like `malloc`/`free` from a general kernel heap) is possible after the kernel's early initialization phase.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T4_Implement_Static_Kernel_Memory_Allocation_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the static memory allocation mechanisms based on your sub-development plan.
+    *   This involves:
+        *   Defining the static arrays or pool structures for kernel objects.
+        *   Writing initialization routines that set up these pools at kernel boot time.
+        *   Modifying the creation path for kernel objects (from `M3_S2_T2` and `M3_S2_T3`) to use these static allocators.
+        *   Ensuring that all kernel memory is accounted for and managed through these static mechanisms.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 1.4.3 (No Dynamic Kernel Memory Allocation constraint), 2.1.2 (No dynamic kernel memory allocation).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-CON-KERNEL-NODYNAMICMEM-00001` and `GRITOS-REQ-FNC-KERNEL-MEM-00003`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Configuration options (e.g., Kconfig) to define the number of static objects (e.g., max TCBs, max CNodes).
+        *   Testing to ensure no dynamic allocation occurs past init and that pool boundaries are respected.
+        *   Strategies for handling exhaustion of static pools (e.g., kernel panic, predefined error).
+        *   Impact on WCET analysis due to deterministic memory allocation.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T4_Implement_Static_Kernel_Memory_Allocation_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4.3 (Key Constraints), 2.1.2 (Memory Management).
+-   **ReqFull IDs:** `GRITOS-REQ-CON-KERNEL-NODYNAMICMEM-00001`, `GRITOS-REQ-FNC-KERNEL-MEM-00003`.
+-   This is a critical constraint for safety, security, and determinism, eliminating heap-related vulnerabilities and unpredictable latencies in the kernel.
+
+**Dependencies:**
+-   This task underpins the implementation of all kernel objects (`M3_S2_T2`) and their management.
+-   It will influence how `UntypedMemory` is initially partitioned and what remains for user-space management.
+
+Focus on creating a robust and strictly enforced static allocation scheme.
+Good luck, Jules!

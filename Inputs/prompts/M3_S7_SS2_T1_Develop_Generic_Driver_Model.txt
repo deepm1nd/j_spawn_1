@@ -1,0 +1,58 @@
+Subject: Develop Generic Device Driver Model/Framework for gRiTOS User-Space Drivers
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.2. Device Drivers (User-Space)":
+"Task: Develop a generic device driver model/framework for user-space drivers. (SoP 2.2.1, GRITOS-REQ-FNC-SVC-DRIVER-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for creating a generic device driver model/framework for gRiTOS user-space drivers.
+    *   This plan should define:
+        *   **Driver as a Component:** How a user-space driver is structured as a gRiTOS component (manifest requirements, `M3_S5_T1`).
+        *   **Initialization Sequence:** Standard way a driver initializes itself, discovers its hardware (e.g., using Devicetree data `M3_S6_T4`, or resources passed by a bus manager/driver manager).
+        *   **Resource Acquisition:** How drivers request and receive capabilities for hardware resources (memory-mapped I/O regions, interrupt lines, DMA channels). This involves interaction with the kernel (for IRQ handler objects, mapping memory) and potentially a resource manager service.
+        *   **IPC Interface Standards:**
+            *   Recommended patterns for driver IPC interfaces (e.g., common methods for read, write, ioctl-like operations as exemplified in SoP 2.2.1 for serial and block devices).
+            *   How these interfaces will be defined (e.g., using the system IDL `M3_S5_T4`).
+        *   **Interrupt Handling:** How user-space drivers receive and handle interrupt notifications from the kernel (using `IRQHandlerObject` and IPC/Notifications, as per `M3_S2_T10`). Standard flow for acknowledging interrupts.
+        *   **Memory Management for I/O:**
+            *   How drivers manage memory buffers for DMA or direct device access (e.g., mapping `gRiTOS_MemoryObject`s, ensuring physical contiguity if needed).
+            *   Cache coherence considerations for I/O buffers.
+        *   **Driver Lifecycle:** How drivers are started, stopped, and potentially restarted by a driver manager or the Component Manager.
+        *   **Standard Libraries/Utilities:** Any common libraries or utility functions that will be provided to simplify driver development (e.g., for MMIO access, interrupt handling boilerplate).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T1_Develop_Generic_Driver_Model_dev_plan.md`.
+
+2.  **Implement the Task (Framework Core & Documentation):**
+    *   Based on your sub-development plan, implement any core framework components (e.g., common libraries, base driver traits/structs in Rust if applicable).
+    *   Create a comprehensive specification document for the gRiTOS Driver Model. This document will guide all future driver development.
+    *   Provide examples of how a simple driver would be structured according to this model.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.1 (Device Drivers).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-DRIVER-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of specific drivers using this model (`M3_S7_SS2_T2`, `M3_S7_SS2_T3`).
+        *   Development of a "Driver Manager" service if a more centralized management approach (beyond Component Manager) is desired for drivers.
+        *   Testing the driver model with actual hardware.
+        *   Refinement of the model based on experience developing initial drivers.
+    *   Save this document as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T1_Develop_Generic_Driver_Model_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.3 (User-space drivers for fault isolation), 2.2.1.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-DRIVER-00001`, `GRITOS-REQ-ARC-PRINCIPLE-USERSPACESVC-00001`.
+-   A well-defined driver model is essential for modularity, portability, and maintainability of device support.
+
+**Dependencies:**
+-   Requires the Component Framework (`M3_S5`) as drivers are components.
+-   Requires kernel support for mapping memory into user-space (`M3_S4_T4`), interrupt handling by user-space components (`M3_S2_T10`), and IPC (`M3_S3`).
+-   Will use Devicetree for configuration (`M3_S6_T4`).
+-   May use the IDL (`M3_S5_T4`) for defining driver IPC interfaces.
+
+Focus on creating a clear and robust model that simplifies driver development while maintaining system security and stability.
+Good luck, Jules!

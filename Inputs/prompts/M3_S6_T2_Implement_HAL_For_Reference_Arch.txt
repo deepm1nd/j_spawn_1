@@ -1,0 +1,50 @@
+Subject: Implement HAL for Primary Reference Architecture in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.6. HAL & BSP (Hardware Abstraction Layer & Board Support Package)":
+"Task: Implement HAL for the primary reference architecture (e.g., ARMv8-A or RISC-V 64-bit). (SoP 3.7.1)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the Hardware Abstraction Layer (HAL) functions for the chosen primary reference architecture (e.g., ARMv8-A 64-bit or RISC-V 64-bit with MMU).
+    *   This plan should:
+        *   Take each function defined in the HAL API (`M3_S6_T1_Define_HAL_API.txt`) and detail its specific implementation strategy for the chosen architecture.
+        *   For CPU specifics (context switching, MMU/MPU control, atomics, CPU clocks, CPU ID): Specify registers to be used, assembly instructions required, and low-level C coding techniques.
+        *   For core peripherals (system timer, interrupt controller, console): Detail how the HAL will interact with the specific peripheral hardware registers on the reference platform/SoC.
+        *   For the boot interface: Detail how `hal_get_boot_info()` will access the SBL-provided structure and how `hal_kernel_entry_setup()` will perform final CPU setup (e.g., enabling caches, FPU, setting up initial stack pointer for kernel main).
+        *   Identify any board-specific details from the reference BSP that might influence HAL implementation (though HAL aims to be board-agnostic within an architecture).
+    *   Save this plan as `/plan/generated_subplans/hal_bsp/M3_S6_T2_Implement_HAL_For_Reference_Arch_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement all HAL API functions for the primary reference architecture, based on your sub-development plan and the API definition from `M3_S6_T1`.
+    *   This will involve writing architecture-specific C code and potentially assembly language for performance-critical or privileged operations (e.g., context switch, MMU register manipulation, interrupt entry points).
+    *   Ensure the implementation is efficient, correct, and adheres to the documented behavior of the HAL API.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 3.7.1 (Supported Architectures), 4.6 (HAL/BSP Strategy).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-PORT-ARCHSUPPORT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Development of a HAL test suite to verify each HAL function on the reference hardware or an accurate emulator (e.g., QEMU).
+        *   Integration with the kernel core, which will call these HAL functions.
+        *   Performance benchmarking of critical HAL functions (context switch, MMU operations).
+        *   Refinement of the HAL API based on implementation experience.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S6_T2_Implement_HAL_For_Reference_Arch_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 3.7.1, 3.7.2, 4.6.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PORT-ARCHSUPPORT-00001`, `GRITOS-REQ-NFR-PORT-HALBSP-00001`.
+-   This implementation provides the concrete low-level functions that bridge the gap between the portable kernel and the specific hardware.
+
+**Dependencies:**
+-   Requires the defined HAL API (`M3_S6_T1_Define_HAL_API.txt`).
+-   Requires detailed knowledge of the chosen primary reference architecture and its programming model.
+-   The boot interface part (`hal_get_boot_info`) depends on the SBL correctly placing the boot info structure (`M3_S1_T5`).
+
+Focus on creating a correct, robust, and efficient HAL implementation for the chosen architecture.
+Good luck, Jules!

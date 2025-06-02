@@ -1,0 +1,48 @@
+Subject: Implement SBL Kernel Image Verification for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Implement cryptographic verification (hashing, signature check) in SBL for the kernel image. (SoP 2.3.1, GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the kernel image verification logic within the SBL.
+    *   This plan should specify:
+        *   Selected cryptographic algorithms for hashing (e.g., SHA-256/SHA-384) and digital signatures (e.g., ECDSA P-256/P-384 or EdDSA).
+        *   How and where the public key for kernel verification will be stored/accessed by the SBL.
+        *   The exact process of reading the kernel image, hashing it, and verifying its signature.
+        *   Memory management for these operations within the SBL's constraints.
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T3_Implement_SBL_Kernel_Verification_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the SBL kernel image verification logic based on your sub-development plan.
+    *   This involves:
+        *   Integrating cryptographic libraries (or implementing primitives if necessary and carefully reviewed) for hashing and signature verification.
+        *   Reading the gRiTOS kernel image from its storage location.
+        *   Performing the hash calculation on the kernel image.
+        *   Verifying the calculated hash against the signed hash/signature embedded with or accompanying the kernel image, using the appropriate public key.
+        *   Defining behavior on successful verification (proceed to kernel loading) and failed verification (error state, potential recovery or alert).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.1 (Secure Boot Chain) and 4.5 (Bootloader Design Specification).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001` and `GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including integration with the kernel loading mechanism, performance of cryptographic operations (use of hardware acceleration if available), and strategies for public key updates for the SBL (if ever needed and permissible by security policy).
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T3_Implement_SBL_Kernel_Verification_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4 (Architectural Foundations), 2.3.1 (Secure Boot Chain), 3.4.2 (Cryptographic Algorithm Compliance), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`, `GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001`.
+-   This step is crucial for ensuring the integrity and authenticity of the kernel before execution.
+
+**Dependencies:**
+-   This task depends on `M3_S1_T2_Develop_SBL_With_HW_Init.txt` as the SBL needs to have initialized necessary hardware (e.g., to access flash where the kernel image and its signature are stored).
+-   The choice of cryptographic algorithms must be consistent with those used for signing the kernel images during the build process.
+
+Focus on a secure and robust implementation of the verification process.
+Good luck, Jules!

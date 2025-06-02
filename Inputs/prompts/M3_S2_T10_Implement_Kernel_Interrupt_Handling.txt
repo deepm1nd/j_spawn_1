@@ -1,0 +1,55 @@
+Subject: Implement Kernel Interrupt Handling and User-Space Delivery for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement kernel interrupt handling: minimal initial handling, IRQ object management, delivery of interrupt events to user-space handlers via IPC/Notifications. (SoP 2.1.4, 4.1.4, GRITOS-REQ-FNC-KERNEL-IRQ-00001, GRITOS-REQ-FNC-KERNEL-IRQ-00002, GRITOS-REQ-ARC-KERNEL-IRQ-TWO-STAGE-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing kernel interrupt handling and event delivery to user-space.
+    *   This plan should:
+        *   Describe the kernel's role in the initial interrupt path (after HAL's low-level entry): identifying IRQ source, minimal processing.
+        *   Detail the management of `IRQHandlerObject` capabilities:
+            *   Creation (e.g., via `CNODE_METHOD_CREATE_IRQ_HANDLER_CAP` as per SoP 2.1.4, or from UntypedMemory).
+            *   Association of an IRQ number and a user-space `Endpoint` capability (and badge) with an `IRQHandlerObject`.
+        *   Specify the mechanism for delivering interrupt events: sending an IPC message (containing IRQ number, timestamp, badge) to the registered `Endpoint` or signaling a `Notification` object associated with the `IRQHandlerObject`.
+        *   Address interrupt masking/unmasking logic coordinated by the kernel based on user-space handler readiness or explicit requests (e.g., method on IRQHandlerObject).
+        *   Define prioritization if applicable (SoP 2.1.4, GRITOS-REQ-FNC-KERNEL-IRQ-00003).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T10_Implement_Kernel_Interrupt_Handling_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the kernel-side interrupt handling logic based on your sub-development plan.
+    *   This involves:
+        *   Creating the `IRQHandlerObject` type and its associated management functions (creation, configuration methods via `gRiTOS_KernelObject_Invoke`).
+        *   Developing the kernel dispatch logic that, upon an interrupt (after HAL processing), identifies the registered `IRQHandlerObject` and sends a notification/message via IPC to the user-space handler's endpoint.
+        *   Implementing kernel-side logic for managing interrupt masks at the controller, potentially based on requests from user-space drivers via methods on the `IRQHandlerObject`.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.4 (Interrupt Management) and 4.1.4 (Interrupt Handling).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IRQ-00001`, `GRITOS-REQ-FNC-KERNEL-IRQ-00002`, and `GRITOS-REQ-ARC-KERNEL-IRQ-TWO-STAGE-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of interrupt delivery, including various IRQ sources, handler interactions, and masking/unmasking.
+        *   Performance analysis of interrupt latency (kernel portion).
+        *   Handling of shared interrupts if the hardware supports them.
+        *   Integration with user-space device drivers that will consume these interrupts.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T10_Implement_Kernel_Interrupt_Handling_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.4 (Interrupt Management), 4.1.2 (IRQHandlerObject), 4.1.4 (Interrupt Handling detailed flow).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IRQ-00001`, `GRITOS-REQ-FNC-KERNEL-IRQ-00002`, `GRITOS-REQ-ARC-KERNEL-IRQ-TWO-STAGE-00001`, `GRITOS-REQ-FNC-KERNEL-IRQ-00003`.
+-   This mechanism is key to allowing user-space drivers to handle hardware events while maintaining kernel protection and determinism.
+
+**Dependencies:**
+-   Requires `IRQHandlerObject`, `Endpoint`, and `Notification` object definitions (`M3_S2_T2`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`) for managing IRQHandlerObjects.
+-   Depends on HAL providing low-level interrupt entry points and basic interrupt controller interaction (`M3_S6_T1` or similar HAL task).
+-   Interacts with the IPC subsystem (`M3_S3`) for delivering notifications.
+
+Focus on a deterministic, low-latency path for interrupt event delivery to user-space.
+Good luck, Jules!

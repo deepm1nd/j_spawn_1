@@ -1,0 +1,58 @@
+Subject: Implement Secure Capability Transfer via IPC for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Implement secure capability transfer via IPC, including kernel validation and CSpace management. (SoP 2.1.3, GRITOS-REQ-FNC-KERNEL-IPC-00003)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing secure capability transfer via IPC.
+    *   This plan should detail:
+        *   The process by which the kernel extracts capability slot information (`gRiTOS_CapSlot_t`) from the `msg_info` structure during an IPC send operation (`gRiTOS_Call`, `gRiTOS_SendAsync`).
+        *   Kernel validation of the source capability:
+            *   Ensuring the source CNode and slot index are valid for the sending thread's CSpace.
+            *   Verifying that the capability being sent actually exists and the sender has rights to transfer it (e.g., `RIGHT_GRANT` or implicit transfer rights).
+        *   Kernel actions for transferring the capability to the receiver's CSpace:
+            *   Looking up the receiver's target CNode and slot (this might be pre-configured for `gRiTOS_Recv` or specified in a more complex IPC call).
+            *   Copying the capability data (object reference, type) to the receiver's CNode slot.
+            *   Deriving new rights for the received capability based on the `cap_rights_mask` in `gRiTOS_CapSlot_t` (must be a subset of original rights and any sender-imposed mask).
+            *   Setting the badge for the new capability in the receiver's CNode slot from `gRiTOS_CapSlot_t`.
+        *   How the receiver is informed about received capabilities (e.g., the `msg_info` structure populated by `gRiTOS_Recv` or `gRiTOS_Call` reply path should indicate new capabilities in its slots).
+        *   Error handling for failed capability transfers (e.g., invalid source slot, insufficient rights, invalid target slot, CNode full).
+        *   Atomicity considerations to ensure CSpace consistency during transfers.
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T4_Implement_Secure_Capability_Transfer_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the capability transfer logic within the kernel's IPC handling paths based on your sub-development plan.
+    *   This involves modifying IPC syscall handlers (`gRiTOS_Call`, `gRiTOS_SendAsync`, `gRiTOS_Recv`, `gRiTOS_Reply`) to process the `cap_slots` in the `msg_info` structure.
+    *   Integrate closely with CNode management functions (e.g., for looking up, deleting, minting/copying capabilities, as developed in `M3_S2_T11` and `M3_S2_T3`).
+    *   Ensure all capability transfers are mediated and validated by the kernel to maintain system security.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.3 (Inter-Process Communication, capability transfer details).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IPC-00003` and `GRITOS-REQ-ARC-SEC-CAPABILITY-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Extensive testing of various capability transfer scenarios: different rights derivations, badging, error conditions (invalid slots, no grant rights, etc.).
+        *   Security auditing of the capability transfer logic.
+        *   Performance implications of capability transfer overhead in IPC.
+        *   Support for more complex CSpace operations if needed (e.g., moving capabilities).
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T4_Implement_Secure_Capability_Transfer_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 2.3.3 (PoLP), 4.1.2 (Capability, CNode objects), 4.2 (IPC Message Structure).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00003`, `GRITOS-REQ-ARC-SEC-CAPABILITY-00001`, `GRITOS-REQ-ARC-PRINCIPLE-CAPABILITYSEC-00001`.
+-   Secure capability transfer is fundamental to gRiTOS's security model, allowing controlled delegation of authority between components.
+
+**Dependencies:**
+-   Requires the defined `msg_info` and `gRiTOS_CapSlot_t` structures (`M3_S3_T3`).
+-   Requires a functional capability system, including CNode structures and basic management methods (`M3_S2_T11`, `M3_S2_T2`, `M3_S2_T3`).
+-   Applies to all IPC mechanisms that can transfer capabilities (`M3_S3_T1`, `M3_S3_T2`).
+
+Focus on the security and correctness of every step in the capability transfer process.
+Good luck, Jules!

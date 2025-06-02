@@ -1,0 +1,55 @@
+Subject: Develop Deterministic Context Switching Mechanisms for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Develop deterministic context switching mechanisms. (SoP 2.1.1, GRITOS-REQ-FNC-KERNEL-PROCESS-00002)"
+(Note: While listed under Kernel Core, the core context switch routine is highly architecture-specific and thus primarily a HAL task.)
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the architecture-specific context switching mechanisms.
+    *   This plan should:
+        *   Define the exact set of CPU registers that need to be saved and restored for a full context switch (general-purpose registers, FPU/vector registers if supported and used by user-space, stack pointer, program counter, status register).
+        *   Specify the memory layout for storing the saved context (typically within the TCB or on the kernel stack of the outgoing thread).
+        *   Detail the assembly language routines or low-level C (with inline assembly) for performing the context save of the current thread and context restore of the next thread.
+        *   Address atomicity and interrupt handling during the context switch to prevent corruption.
+        *   Ensure the context switching process is deterministic and has a bounded Worst-Case Execution Time (WCET).
+        *   Define the interface (function signature) the kernel scheduler will use to invoke the context switch, passing pointers to the TCBs of the outgoing and incoming threads.
+    *   This plan should be saved in a HAL-relevant location, e.g., `/plan/generated_subplans/hal_bsp/M3_S2_T7_Develop_Deterministic_Context_Switching_dev_plan.md`. (Adjust module path if Kernel Core is deemed more suitable for the plan itself, but implementation is HAL).
+
+2.  **Implement the Task (HAL Component):**
+    *   Implement the context switching routines as part of the Hardware Abstraction Layer (HAL) for the primary reference architecture, based on your sub-development plan.
+    *   This involves:
+        *   Writing highly optimized and architecture-specific code (likely assembly or C with inline assembly) for saving and restoring the full CPU context.
+        *   Ensuring minimal overhead and bounded execution time.
+        *   Providing a clear C function callable by the kernel's scheduler.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.1 (Deterministic context switching), 3.1.3 (Context Switch Time target < 1 µs), 4.6 (HAL scope including context switching).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-PROCESS-00002` and `GRITOS-REQ-NFR-PERF-CTXSWITCH-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with the kernel scheduler (`M3_S2_T5`).
+        *   Rigorous testing of context switching, including stress tests and verification of register state preservation.
+        *   WCET analysis and optimization of the context switch path.
+        *   Lazy FPU context saving strategies if applicable and beneficial for performance.
+        *   Adaptation for other CPU architectures if this task is being done for the first reference architecture.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S2_T7_Develop_Deterministic_Context_Switching_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.1 (Process/Thread Management), 3.1.3 (Context Switch Time NFR), 4.6 (HAL/BSP Strategy).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-PROCESS-00002`, `GRITOS-REQ-NFR-PERF-CTXSWITCH-00001`, `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`.
+-   Efficient and deterministic context switching is fundamental for a real-time operating system.
+
+**Dependencies:**
+-   This task requires the definition of the TCB structure (`M3_S2_T2`) to know where to save/restore context information.
+-   It is a prerequisite for a functional scheduler (`M3_S2_T5`).
+-   It is part of the HAL, which supports the Kernel Core.
+
+Focus on a highly optimized, correct, and architecture-specific implementation.
+Good luck, Jules!

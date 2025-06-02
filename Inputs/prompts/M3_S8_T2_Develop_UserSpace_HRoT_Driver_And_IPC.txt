@@ -1,0 +1,61 @@
+Subject: Develop User-Space Driver and IPC Interface for HRoT Integration in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.8. Security Services":
+"Task: Develop user-space driver and IPC interface for Hardware Root of Trust (HRoT) integration (secure key storage, crypto operations, TRNG). (SoP 2.3.2, GRITOS-REQ-SEC-HROT-INTEGRATION-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for creating a user-space driver and IPC interface for interacting with Hardware Root of Trust (HRoT) features like TPM, HSM, or Secure Element.
+    *   This plan should:
+        *   **HRoT Hardware Abstraction:** Identify the specific HRoT hardware on the reference platform. Define a minimal set of functions the HRoT driver needs to perform, such as:
+            *   Initializing the HRoT.
+            *   Accessing True Random Number Generator (TRNG).
+            *   Secure key generation (if supported by HRoT).
+            *   Secure key storage (loading/using keys stored in HRoT's protected memory).
+            *   Offloading cryptographic operations (e.g., signing, decryption using HRoT-managed keys).
+            *   Secure attestation (if supported).
+        *   **User-Space Driver Logic:** Detail the driver's interaction with the HRoT hardware via MMIO, I2C, SPI, or other bus. This includes command/response protocols specific to the HRoT.
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):** Define the IPC interface that this HRoT driver component will expose to other trusted user-space services. Example methods (from SoP 2.3.2):
+            *   `HROT_TRNG_METHOD_GET_RANDOM_BYTES(num_bytes_requested, buffer_cap) -> (error_code, bytes_written)`
+            *   `HROT_SIGN_DATA(key_id_cap, data_to_sign_cap, signature_buffer_cap) -> error_code`
+            *   `HROT_DECRYPT_DATA(key_id_cap, encrypted_data_cap, decrypted_buffer_cap) -> error_code`
+            *   Define capabilities for keys (`key_id_cap`) if the HRoT manages multiple keys.
+        *   **Capability Management:** How capabilities to the HRoT driver service and specific key handles (if any) are managed and distributed to authorized clients.
+        *   **Security:** Emphasize that this driver and its interface are security-critical. It must be minimal and rigorously tested.
+        *   **Component Manifest:** Define the manifest for the HRoT driver component.
+    *   Save this plan as `/plan/generated_subplans/security_services/hrot_driver/M3_S8_T2_Develop_UserSpace_HRoT_Driver_And_IPC_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the user-space HRoT driver component and its IPC interface (server-side from IDL) based on your sub-development plan.
+    *   This driver will require privileged hardware access, likely configured via Devicetree and granted by the kernel/RRM.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.2 (Hardware Root of Trust Integration).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing each HRoT function exposed via IPC (TRNG, crypto operations, key management) with the actual hardware.
+        *   Integration with other services that will use the HRoT driver (e.g., Secure Storage Service `M3_S8_T3`, SBL `M3_S1_T7` if SBL uses a user-space HRoT service during a more complex boot, though less common).
+        *   Performance testing of HRoT operations.
+        *   Developing a comprehensive security model for HRoT access and key management.
+    *   Save this document as `/plan/generated_subplans/security_services/hrot_driver/M3_S8_T2_Develop_UserSpace_HRoT_Driver_And_IPC_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.2.
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`.
+-   The HRoT driver provides a secure interface to hardware-backed security features, crucial for protecting sensitive keys and performing trusted cryptographic operations.
+
+**Dependencies:**
+-   Requires the generic user-space driver model (`M3_S7_SS2_T1`) and Component Framework (`M3_S5`).
+-   Requires IDL and tooling (`M3_S5_T4`) for the IPC interface.
+-   Depends on the specific HRoT hardware available in the reference BSP (`M3_S6_T5`).
+-   Requires kernel services for hardware access (MMIO mapping, interrupt handling if HRoT uses interrupts).
+
+Focus on creating a minimal, secure, and reliable driver for the HRoT.
+Good luck, Jules!

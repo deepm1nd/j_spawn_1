@@ -1,0 +1,48 @@
+Subject: Implement KernelObject_Invoke Methods for gRiTOS Core Kernel Objects
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement `gRiTOS_KernelObject_Invoke` methods for each kernel object type. (SoP 2.1.1, 2.1.2, 2.1.3, 2.1.4)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the methods invoked via `gRiTOS_KernelObject_Invoke` for each core kernel object.
+    *   This plan should:
+        *   List each kernel object type (Capability, CNode, TCB, Endpoint, Notification, AddressSpace, UntypedMemory, IRQ Handler Object, Memory Object).
+        *   For each object, define the specific methods that can be invoked on it (e.g., `TCB_Configure`, `TCB_SetPriority`, `Untyped_Retype`, `CNode_CopyCap`, `AddressSpace_MapObject`, `Notification_Signal`, etc., drawing from SoP sections 2.1.1, 2.1.2, 2.1.3, 2.1.4, 4.1.1, 4.1.2).
+        *   Specify the arguments, expected behavior, and return values (including error codes) for each method.
+        *   Detail the capability checks that must be performed before executing each method (e.g., does the calling capability have the required rights for this operation?).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T3_Implement_KernelObject_Invoke_Methods_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the dispatch logic within the `gRiTOS_KernelObject_Invoke` system call handler to route invocations to the correct kernel object and method.
+    *   Implement the actual logic for each defined method for each kernel object type, based on your sub-development plan.
+    *   Ensure rigorous capability rights validation for every operation.
+    *   Operations should modify the state of the kernel objects defined in `M3_S2_T2`.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.1, 2.1.2 (Memory Management methods like `ADDRSPACE_METHOD_MAP_OBJECT`, `Untyped_Retype`), 2.1.3 (IPC object methods like `NOTIF_METHOD_SIGNAL`), 2.1.4 (IRQ object methods), 4.1.1 (Syscall interface), 4.1.2 (Kernel objects).
+        *   `/gritos_product_requirements_full.md` (various `GRITOS-REQ-FNC-KERNEL-*` and `GRITOS-REQ-ARC-KERNEL-*` requirements detailing object interactions).
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Comprehensive unit and integration testing for each method, including positive and negative test cases (e.g., insufficient rights, invalid arguments).
+        *   Performance analysis of frequently invoked methods.
+        *   Security review of the implementation, particularly capability validation logic.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T3_Implement_KernelObject_Invoke_Methods_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** Relevant parts of 2.1.1, 2.1.2, 2.1.3, 2.1.4, 4.1.1, 4.1.2.
+-   **ReqFull IDs:** Many functional requirements for kernel services will be implemented via these object methods.
+-   `gRiTOS_KernelObject_Invoke` is the primary way user-space interacts with and manages kernel resources after initial capabilities are granted.
+
+**Dependencies:**
+-   This task directly builds upon `M3_S2_T1_Implement_Syscall_Interface.txt` (for the `gRiTOS_KernelObject_Invoke` syscall entry point) and `M3_S2_T2_Implement_Core_Kernel_Objects.txt` (for the definitions of the objects themselves).
+-   Specific method implementations will interact with other kernel subsystems (e.g., scheduler methods for TCBs, MMU methods for AddressSpaces).
+
+Focus on secure, correct, and efficient implementation of these fundamental operations.
+Good luck, Jules!

@@ -1,0 +1,63 @@
+Subject: Implement IPC Interfaces for Socket-Like Operations for gRiTOS Networking Stack
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.4. Networking Stack Service":
+"Task: Implement IPC interfaces for socket-like operations (socket, bind, listen, accept, connect, send, recv, close), using capabilities for data buffers. (SoP 2.2.3, GRITOS-REQ-FNC-SVC-NET-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (IDL Definition & Client Library Design):**
+    *   Develop a detailed sub-development plan for defining and implementing the IPC interfaces for socket-like network operations.
+    *   This plan should:
+        *   **IDL Definition:** Define the networking service interface using the system IDL (`M3_S5_T4`). This includes specifying methods analogous to standard socket calls:
+            *   `NET_METHOD_SOCKET(domain, type, protocol) -> (error_code, socket_cap)`
+            *   `NET_METHOD_BIND(socket_cap, address_cap, address_len) -> error_code` (address_cap is cap to memory with sockaddr structure)
+            *   `NET_METHOD_LISTEN(socket_cap, backlog) -> error_code`
+            *   `NET_METHOD_ACCEPT(socket_cap) -> (error_code, new_socket_cap, client_address_cap, client_address_len)`
+            *   `NET_METHOD_CONNECT(socket_cap, address_cap, address_len) -> error_code`
+            *   `NET_METHOD_SEND(socket_cap, buffer_cap, length, flags) -> (error_code, bytes_sent)`
+            *   `NET_METHOD_RECV(socket_cap, buffer_cap, length, flags) -> (error_code, bytes_recv)`
+            *   `NET_METHOD_CLOSE(socket_cap) -> error_code`
+            *   `NET_METHOD_GETSOCKOPT`, `NET_METHOD_SETSOCKOPT` (optional, for more advanced config).
+            *   Define necessary data structures for parameters (e.g., socket address structures, flags) and return values.
+        *   **Capability Usage:**
+            *   `socket_cap`: A new type of capability representing an active network socket, managed by the Networking Stack. It grants rights for subsequent operations like send/recv/close.
+            *   `address_cap`: Capability to shared memory holding socket address information.
+            *   `buffer_cap`: Capability to shared memory for send/receive packet data.
+        *   **Client Library (Optional but Recommended):** Plan for a user-space client library that wraps these IPC calls, providing a more traditional socket API to applications. This library would handle capability management for shared buffers and marshalling/unmarshalling.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T2_Implement_NetStack_IPC_Interfaces_dev_plan.md`.
+
+2.  **Implement the Task (IDL and Client Library Stubs):**
+    *   Create the IDL definition file for the networking service.
+    *   Use the IDL tool (`M3_S5_T4`) to generate the client-side stubs and server-side skeletons.
+    *   If a client library is planned, implement its basic structure and wrapper functions using the generated client stubs.
+    *   The server-side implementation of these interfaces (within the Networking Stack component) will be part of `M3_S7_SS4_T1`. This task focuses on defining the contract and enabling client access.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.3 (Networking Stack - IPC interface examples).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-NET-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Full implementation of the Networking Stack logic (`M3_S7_SS4_T1`) that serves these IPC requests.
+        *   Testing client-server network communication using these interfaces.
+        *   Refinement of the interfaces and client library.
+        *   Support for non-blocking socket operations or asynchronous notifications for network events.
+    *   Save this document as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T2_Implement_NetStack_IPC_Interfaces_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-NET-00001`.
+-   These IPC interfaces are how user-space applications will request and use networking services.
+
+**Dependencies:**
+-   Requires the system IDL and tooling (`M3_S5_T4`).
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`).
+-   The Networking Stack component (`M3_S7_SS4_T1`) will implement the server side of these interfaces.
+-   Client applications will use these defined interfaces (or client library).
+
+Focus on defining clear, robust, and capability-secure IPC interfaces for all standard network socket operations.
+Good luck, Jules!

@@ -1,0 +1,58 @@
+Subject: Design and Implement User-Space Networking Stack Component for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.4. Networking Stack Service":
+"Task: Design and implement a user-space networking stack component. (SoP 2.2.3, GRITOS-REQ-FNC-SVC-NET-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing the core logic of the user-space Networking Stack component.
+    *   This plan should detail:
+        *   **Choice of Protocols:** Specify the initial set of network protocols to be implemented (e.g., UDP/IP and TCP/IP as core, ARP, ICMP, DHCP client).
+        *   **Architecture:**
+            *   Internal structure of the networking stack (e.g., layers for link, network, transport).
+            *   Packet buffer management: How network packets are stored and managed (e.g., using `gRiTOS_MemoryObject`s).
+            *   Interface with the Ethernet Driver (`M3_S7_SS2_T3`): How the stack sends and receives raw Ethernet frames via IPC to/from the driver.
+            *   Processing pipeline for incoming and outgoing packets.
+        *   **Core Protocol Logic (e.g., for IP, UDP, TCP):**
+            *   IP: Routing table (initially simple, e.g., static routes or gateway), IP address configuration, packet forwarding (if gRiTOS acts as a router, though not primary focus initially), fragmentation/reassembly.
+            *   UDP: Socket management, demultiplexing incoming UDP datagrams to sockets.
+            *   TCP: Connection state machine, socket management, sequence numbers, acknowledgments, flow control, congestion control (initially basic).
+        *   **Component Manifest:** Define the manifest for the Networking Stack component.
+        *   **Security Considerations:** Initial thoughts on protecting the stack from network-based attacks (e.g., input validation, resource exhaustion prevention). This will be enhanced by `M3_S7_SS4_T4`.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T1_Implement_Networking_Stack_Component_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the core Networking Stack logic as a gRiTOS user-space component, based on your sub-development plan.
+    *   This component will receive raw frames from an Ethernet driver, process them through the protocol layers, and deliver data to applications via its IPC interface (defined in `M3_S7_SS4_T2`). It will also take application data, encapsulate it in packets, and send it via the Ethernet driver.
+    *   Consider using existing open-source networking stack code (e.g., lwIP, smoltcp) if its license is compatible and it can be adapted to gRiTOS's user-space component model and IPC mechanisms. This adaptation would still be a significant task.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.3 (Networking Stack).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-NET-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of more advanced features for chosen protocols (e.g., full TCP congestion control, DHCP server).
+        *   Support for other network interfaces or link layers.
+        *   Performance optimization and benchmarking.
+        *   Extensive testing, including interoperability tests and protocol compliance tests.
+    *   Save this document as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T1_Implement_Networking_Stack_Component_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-NET-00001`.
+-   A user-space networking stack enhances security and modularity compared to an in-kernel stack.
+
+**Dependencies:**
+-   Requires the IPC interfaces for network operations to be defined (`M3_S7_SS4_T2`, though this task implements the server side). Ideally, use IDL (`M3_S5_T4`).
+-   Requires a functional user-space Ethernet driver (`M3_S7_SS2_T3`) and its IPC interface.
+-   Requires the Component Framework (`M3_S5`) for running as a component.
+-   Relies on kernel IPC (`M3_S3`) and memory management services (for packet buffers).
+
+Focus on a clear, layered architecture for the networking stack and correct protocol implementation.
+Good luck, Jules!

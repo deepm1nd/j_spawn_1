@@ -1,0 +1,58 @@
+Subject: Implement Root Resource Manager (RRM) IPC Interfaces for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.1. Root Resource Manager":
+"Task: Implement IPC interfaces for creating components, service discovery (getting capabilities), allocating untyped memory, and creating IRQ handlers. (SoP 2.2.5, GRITOS-REQ-FNC-SVC-RSCMGMT-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the Inter-Process Communication (IPC) interfaces for the Root Resource Manager (RRM). While the RRM's primary role is early boot, it may expose interfaces for very fundamental resource operations or to the Component Manager.
+    *   This plan should define the specific IPC methods, their parameters, and return values for:
+        *   **`RM_METHOD_CREATE_COMPONENT(manifest_cap, &component_id_cap, &initial_tcb_cap)`:**
+            *   Used by: Potentially an early system supervisor or debugger if the main Component Manager is not yet running or needs assistance.
+            *   Action: RRM would perform actions similar to the Component Manager for this specific request (parsing manifest, allocating resources, starting).
+        *   **`RM_METHOD_GET_CAPABILITY(service_name_cap, &service_endpoint_cap)`:**
+            *   Used by: Early components needing fundamental service capabilities (e.g., a capability to the Component Manager itself, or a logging service endpoint if started by RRM).
+            *   Action: RRM looks up a pre-registered/known capability from its internal store.
+        *   **`RM_METHOD_ALLOCATE_UNTYPED_MEMORY(size, alignment, &untyped_cap)`:**
+            *   Used by: Highly privileged components that need to manage large chunks of raw memory (e.g., the Component Manager itself, or specialized driver managers).
+            *   Action: RRM carves out a portion of its own `UntypedMemory` (if it holds the global pool) and delegates a capability to the new, smaller `UntypedMemory` object.
+        *   **`RM_METHOD_CREATE_IRQ_HANDLER(irq_num, endpoint_cap, &irq_handler_cap)`:**
+            *   Used by: Privileged components needing to register interrupt handlers directly (e.g., core device drivers started by RRM before a full driver framework is up).
+            *   Action: RRM invokes kernel primitives to create an `IRQHandlerObject` and associates it with the provided endpoint.
+        *   Consider if these interfaces will be defined using the system IDL (`M3_S5_T4`).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/root_resource_manager/M3_S7_SS1_T2_Implement_RRM_IPC_Interfaces_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the defined IPC interface methods within the Root Resource Manager component based on your sub-development plan.
+    *   This involves setting up an IPC endpoint for the RRM, listening for requests, dispatching to the appropriate method logic, and sending replies.
+    *   The RRM will use its own capabilities and kernel syscalls to fulfill these requests.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.5 (Resource Management).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing each IPC interface method thoroughly.
+        *   Security review: Ensuring only authorized components can call these privileged RRM interfaces and receive the requested resources/capabilities.
+        *   Clarifying the division of responsibilities if a separate Component Manager (`M3_S5_T2`) also provides similar interfaces (e.g., RRM provides them only during earliest boot stages).
+    *   Save this document as `/plan/generated_subplans/user_space_services/root_resource_manager/M3_S7_SS1_T2_Implement_RRM_IPC_Interfaces_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.5.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+-   These interfaces provide fundamental mechanisms for system bootstrapping and initial resource delegation.
+
+**Dependencies:**
+-   Requires the core logic of the RRM to be implemented (`M3_S7_SS1_T1`).
+-   Requires a functional IPC subsystem (`M3_S3`) and the ability for the RRM to create and manage endpoints.
+-   Requires kernel primitives for all actions the RRM performs on behalf of requests (e.g., `Untyped_Retype`, process creation, capability manipulation).
+-   May use the IDL (`M3_S5_T4`) for interface definition.
+
+Focus on secure and well-defined interfaces for these powerful RRM operations.
+Good luck, Jules!

@@ -1,0 +1,58 @@
+Subject: Implement Cryptographic Algorithm Compliance for gRiTOS Security Services
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.8. Security Services":
+"Task: Implement cryptographic algorithm compliance (FIPS 140-2/3 or equivalent) for all security services. (SoP 3.4.2, GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for ensuring and demonstrating cryptographic algorithm compliance (e.g., FIPS 140-2/3, NIST recommendations) across all relevant gRiTOS components.
+    *   This plan should:
+        *   **Inventory of Cryptographic Algorithms:** Identify all cryptographic algorithms used in gRiTOS (e.g., for secure boot, OTA updates, secure storage, HRoT operations, IPC security if any). List algorithms for hashing (SHA-256/384), signatures (ECDSA, EdDSA), encryption (AES), key derivation, random number generation, etc.
+        *   **Standard Selection:** For each algorithm type, confirm the specific standard to adhere to (e.g., NIST SP 800-series, FIPS PUB 186 for signatures, FIPS PUB 197 for AES). Specify required key sizes, modes of operation (e.g., AES-GCM, SHA-384).
+        *   **Library/Implementation Strategy:**
+            *   Identify the source of cryptographic implementations:
+                *   Hardware-backed via HRoT (`M3_S8_T2`).
+                *   Software libraries (e.g., a chosen, well-vetted Rust crypto library, or a C library like mbedTLS/OpenSSL if adapted and its use is justified).
+            *   For software libraries, ensure they have options for FIPS validated modules or can be built/configured in a compliant manner.
+        *   **Validation Plan:**
+            *   Outline the process for validating compliance. This might involve:
+                *   Using NIST's Cryptographic Algorithm Validation Program (CAVP) test vectors for software implementations.
+                *   Ensuring HRoT components have their own FIPS certifications if applicable.
+                *   Documenting all algorithm choices, key sizes, modes, and their sources.
+        *   **Process Integration:** How compliance is checked and maintained as code evolves.
+    *   Save this plan as `/plan/generated_subplans/security_services/M3_S8_T5_Implement_Crypto_Algorithm_Compliance_dev_plan.md`.
+
+2.  **Implement the Task (Algorithm Selection, Configuration, Validation Documentation):**
+    *   Based on your sub-development plan:
+        *   Ensure all security-sensitive components (SBL, OTA Update Manager, Secure Storage, HRoT driver) are configured to use the chosen standard algorithms, key sizes, and modes.
+        *   If using software libraries, integrate them and configure them for compliance (e.g., enabling FIPS modes if available).
+        *   Execute CAVP tests (or similar) against software implementations where feasible.
+        *   Compile documentation that details each cryptographic algorithm used, its purpose, the standard it adheres to, key management procedures related to it, and evidence of validation (e.g., test results, HRoT certification details). This documentation will be part of the overall security certification evidence.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 3.4.2 (Cryptographic Algorithm Compliance).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   The process for formal FIPS 140-2/3 certification of gRiTOS cryptographic modules if this is a project goal (this is a much larger effort usually involving accredited labs).
+        *   Regular review of algorithm choices against evolving standards and best practices.
+        *   Procedures for responding to vulnerabilities discovered in chosen algorithms or libraries.
+    *   Save this document as `/plan/generated_subplans/security_services/M3_S8_T5_Implement_Crypto_Algorithm_Compliance_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to cryptographic configurations or validation documentation.
+
+**Context & References:**
+-   **SoP Sections:** 3.4.2.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001`.
+-   Using standard, validated cryptographic algorithms is fundamental for system security and often a prerequisite for certifications.
+
+**Dependencies:**
+-   Applies to all components that use cryptography: SBL (`M3_S1`), OTA Update Manager (`M3_S8_T1`), HRoT Driver (`M3_S8_T2`), Secure Storage Service (`M3_S8_T3`).
+-   Depends on the selection of specific HRoT hardware and its capabilities.
+
+Focus on ensuring all cryptography aligns with established standards and is correctly implemented/configured.
+Good luck, Jules!

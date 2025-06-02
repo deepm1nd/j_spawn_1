@@ -1,0 +1,55 @@
+Subject: Ensure All Kernel Operations Have Bounded Worst-Case Execution Time (WCET)
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Ensure all kernel operations have bounded WCET. (SoP 1.4.3, GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Analysis & Design Review):**
+    *   Develop a detailed sub-development plan focused on ensuring and verifying that all kernel operations (system calls, internal kernel functions on critical paths, interrupt handlers) have bounded Worst-Case Execution Time (WCET).
+    *   This plan should:
+        *   Identify all critical kernel operations that require WCET analysis.
+        *   Review the design and implementation of these operations to identify any constructs that could lead to unbounded execution times (e.g., unbounded loops, complex recursion (generally disallowed in kernel), reliance on probabilistic data structures in critical paths).
+        *   Define coding guidelines and design patterns that promote WCET analyzability (e.g., clear loop bounds, simple control flow).
+        *   Specify the methodology for WCET analysis:
+            *   Static analysis tools to be used (as per SoP 5.2.5).
+            *   Measurement-based techniques for calibration and on-target verification.
+            *   Combination of both (hybrid approach).
+        *   Outline the process for documenting WCET bounds for each analyzed operation.
+        *   This is an ongoing analytical task that should be applied to all kernel code as it's developed, but this task specifically focuses on establishing the framework and initial analysis pass.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T13_Ensure_Bounded_WCET_For_Kernel_Ops_dev_plan.md`.
+
+2.  **Implement the Task (Analysis, Guideline Enforcement, Initial Tooling):**
+    *   Execute the analysis and review portions of your sub-development plan.
+    *   For existing kernel code (from prior tasks in Module 3.2 and 3.3), perform an initial WCET analysis pass. Identify and flag areas that need refactoring for better WCET properties.
+    *   Establish and document the coding guidelines for WCET-friendly code.
+    *   Set up and configure any chosen WCET analysis tools for the gRiTOS environment.
+    *   Refactor identified problematic kernel code sections to improve their WCET characteristics, ensuring functionality remains correct.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 1.4.3 (Bounded Execution Times Constraint), 3.5.3 (WCET NFR for safety).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001` and `GRITOS-REQ-NFR-SAF-WCET-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Applying WCET analysis systematically to all new kernel code.
+        *   Integrating WCET analysis into the CI/CD pipeline if feasible (e.g., for regression detection).
+        *   Regularly reviewing and updating WCET bounds as the kernel evolves.
+        *   Using WCET results as input for schedulability analysis (critical for real-time guarantees).
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T13_Ensure_Bounded_WCET_For_Kernel_Ops_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to analysis, refactoring, or tool setup.
+
+**Context & References:**
+-   **SoP Sections:** 1.4.3, 3.1.5 (Jitter), 3.5.3 (WCET NFR).
+-   **ReqFull IDs:** `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`, `GRITOS-REQ-NFR-SAF-WCET-00001`, `GRITOS-REQ-NFR-PERF-REALTIME-00001`.
+-   Bounded WCET for kernel operations is essential for determinism, real-time guarantees, and functional safety. It's a critical system property.
+
+**Dependencies:**
+-   This task applies to all implemented kernel code, particularly syscall handlers (`M3_S2_T1`), kernel object methods (`M3_S2_T3`), scheduler logic (`M3_S2_T5`), IPC primitives (`M3_S3`), and interrupt handling paths (`M3_S2_T10`).
+-   Requires selection and setup of WCET analysis tools (SoP 5.2.5).
+
+This task is crucial for laying the groundwork for predictable real-time behavior.
+Good luck, Jules!

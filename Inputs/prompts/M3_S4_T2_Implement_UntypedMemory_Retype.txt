@@ -1,0 +1,54 @@
+Subject: Implement UntypedMemory Object and Retype Method for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement `UntypedMemory` object and `Untyped_Retype` method for creating kernel objects and memory objects. (SoP 2.1.2, 4.1.2, 4.3, GRITOS-REQ-FNC-KERNEL-MEM-00002, GRITOS-REQ-ARC-MEM-CAPABILITYBASEDMODEL-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the `UntypedMemory` kernel object and its associated `Untyped_Retype` method.
+    *   This plan should:
+        *   Define the structure of the `UntypedMemory` object (as per `M3_S2_T2`), which includes tracking its base address, size, and regions already retyped/allocated from it.
+        *   Detail the logic for the `Untyped_Retype` method (invoked via `gRiTOS_KernelObject_Invoke` on an `UntypedMemory` capability):
+            *   Input parameters: requested object type (e.g., TCB, CNode, Endpoint, `gRiTOS_MemoryObject`, another `UntypedMemory` for splitting), size of the object(s) to create, number of objects.
+            *   Validation: Ensure the caller has appropriate rights on the `UntypedMemory` capability. Check if the requested region within the `UntypedMemory` is free and large enough.
+            *   Allocation: Mark the specified portion of the `UntypedMemory` as used/retyped.
+            *   Object Initialization: For the newly created kernel object(s), initialize their basic structure using the allocated memory. This ties into the static pool allocators for those objects (`M3_S2_T4`) if `Untyped_Retype` is the source for those pools at init, or directly if creating objects for a user-space resource manager.
+            *   Capability Creation: Create new capabilities to the newly created object(s) and place them in the caller's CSpace (in specified slots).
+        *   Address how initial `UntypedMemory` objects (representing system physical memory) are created at boot time and provided to the initial Memory Manager/Root Resource Manager.
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T2_Implement_UntypedMemory_Retype_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `UntypedMemory` object management and the `Untyped_Retype` method based on your sub-development plan.
+    *   This is a critical part of resource allocation, allowing a privileged user-space component (Memory Manager or Root Resource Manager) to carve out memory for all other uses.
+    *   Ensure that retyping operations are atomic and maintain the integrity of `UntypedMemory` regions.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.2 (Memory Management), 4.1.2 (UntypedMemory object), 4.3 (Memory Management Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00002` and `GRITOS-REQ-ARC-MEM-CAPABILITYBASEDMODEL-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with the initial user-space Memory Manager / Root Resource Manager which will use this `Untyped_Retype` method.
+        *   Thorough testing of `Untyped_Retype` for various object types, sizes, error conditions (e.g., insufficient space, invalid type).
+        *   Security implications of this powerful operation – ensuring only highly privileged components can perform it.
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T2_Implement_UntypedMemory_Retype_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2, 4.1.2, 4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00002`, `GRITOS-REQ-ARC-MEM-CAPABILITYBASEDMODEL-00001`, `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+-   The `UntypedMemory` and `Retype` mechanism is fundamental to gRiTOS's capability-based resource management, inspired by systems like seL4.
+
+**Dependencies:**
+-   Requires `UntypedMemory` object structure definition (`M3_S2_T2`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`).
+-   Requires definitions of all other kernel objects that can be created by retyping (`M3_S2_T2`).
+-   Requires the capability system for managing `UntypedMemory` capabilities and creating capabilities for new objects (`M3_S2_T11`).
+-   Relates to static kernel memory allocation (`M3_S2_T4`) as `Untyped_Retype` might be used by the kernel during early boot to partition memory for its own static pools before handing remaining `UntypedMemory` to user-space.
+
+Focus on a secure and robust implementation of this core resource allocation primitive.
+Good luck, Jules!

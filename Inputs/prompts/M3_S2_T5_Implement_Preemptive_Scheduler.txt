@@ -1,0 +1,56 @@
+Subject: Implement Preemptive Priority-Based Scheduler for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement preemptive, priority-based scheduler (Fixed-Priority Preemptive) with configurable priority levels, FIFO and Round-Robin for same-priority threads. (SoP 2.1.1, 4.1.3, GRITOS-REQ-FNC-KERNEL-SCHED-00001, GRITOS-REQ-ARC-KERNEL-SCHEDALGO-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the preemptive, priority-based scheduler.
+    *   This plan should:
+        *   Define the scheduler data structures: ready queues (e.g., an array of doubly linked lists, one per priority level), and any structures needed for managing blocked threads or timer-related information for Round-Robin.
+        *   Specify the number of priority levels (e.g., 256 as per SoP 2.1.1).
+        *   Detail the core scheduling algorithm: how the highest priority ready thread is selected.
+        *   Describe the implementation of FIFO policy for same-priority threads.
+        *   Describe the implementation of Round-Robin policy for same-priority threads, including time slice management (TCB_METHOD_SET_TIMESLICE will be implemented in M3_S2_T3, but the scheduler needs to use this information).
+        *   Outline how preemption occurs (e.g., on a thread becoming ready that has higher priority, on current thread blocking or yielding, on timeslice expiry for Round-Robin).
+        *   Interaction with timer interrupts for time slicing and potentially for other timed events.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T5_Implement_Preemptive_Scheduler_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the scheduler logic based on your sub-development plan.
+    *   This involves:
+        *   Creating and managing the ready queues.
+        *   Implementing functions to add threads to ready queues, remove threads, and select the next thread to run.
+        *   Integrating with TCB state transitions (e.g., when a thread becomes `TS_READY`, `TS_BLOCKED_IPC_SEND`, etc.).
+        *   Handling preemption logic, including saving and restoring thread contexts (context switching itself is a HAL function, but scheduler triggers it).
+        *   Interfacing with a system timer (likely via HAL) to handle time slicing for Round-Robin.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.1 (Process/Thread Management, Scheduling), 4.1.3 (Scheduler Algorithm).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-SCHED-00001` and `GRITOS-REQ-ARC-KERNEL-SCHEDALGO-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with advanced scheduling policies (e.g., hooks for EDF/RMS if user-space schedulers adjust priorities).
+        *   Implementation of time partitioning for MCS (Task `M3_S2_T6`).
+        *   Thorough testing of scheduler behavior under various load conditions, including preemption, priority inheritance (if considered later), and policy interactions.
+        *   WCET analysis of scheduler critical paths.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T5_Implement_Preemptive_Scheduler_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.1 (Process/Thread Management), 4.1.3 (Scheduler Algorithm).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-SCHED-00001`, `GRITOS-REQ-ARC-KERNEL-SCHEDALGO-00001`, `GRITOS-REQ-FNC-KERNEL-PROCESS-00001` (Thread States).
+-   The scheduler is a fundamental component for achieving real-time guarantees and managing concurrency.
+
+**Dependencies:**
+-   This task requires defined TCB structures (`M3_S2_T2`) and their state management.
+-   It requires HAL support for context switching (`M3_S2_T7` or a HAL task) and system timers (HAL task).
+-   It will be invoked by various kernel operations that change thread states (e.g., IPC, TCB method calls).
+
+Focus on correctness, determinism, and bounded execution time for the scheduler logic.
+Good luck, Jules!

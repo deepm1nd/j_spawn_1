@@ -1,0 +1,52 @@
+Subject: Define and Implement SBL-to-Kernel Boot Information Structure for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Define and implement boot information structure passed from SBL to kernel (memory map, DTB location, etc.). (SoP 2.3.1)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for defining and implementing the boot information structure passed from the SBL to the gRiTOS kernel.
+    *   This plan should:
+        *   Finalize the fields of the boot information structure (e.g., `gRiTOS_BootInfo_t` as proposed in SoP 2.3.1). Key fields include: version of the structure, memory map (list of regions with base, length, type), physical address of the Device Tree Blob (DTB), physical address of an initial ramdisk (if used), boot partition ID, and any other critical platform-specific info.
+        *   Specify the memory location and mechanism for passing this structure (e.g., pointer in a specific CPU register, fixed memory address).
+        *   Detail how the SBL will gather this information (e.g., from hardware queries, its own configuration, or DTB parsing if SBL uses a DTB).
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T5_Define_SBL_Kernel_Boot_Info_dev_plan.md`.
+
+2.  **Implement the Task (SBL Side):**
+    *   Implement the SBL-side logic based on your sub-development plan.
+    *   This involves:
+        *   Defining the `gRiTOS_BootInfo_t` structure (or chosen name) in a way that is accessible/shareable with the kernel.
+        *   Populating this structure with accurate information during SBL execution:
+            *   Constructing the memory map.
+            *   Determining and storing the DTB physical address.
+            *   Storing the ID of the partition from which the kernel was loaded.
+        *   Placing the populated structure in the agreed-upon memory location or register before jumping to the kernel entry point.
+    *   The integrity of this structure is implicitly covered by the SBL's own integrity and the kernel's verification, but ensure data accuracy.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.1 (Secure Boot Chain, including the example `gRiTOS_BootInfo_t` structure) and 4.5 (Bootloader Design Specification).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, focusing on:
+        *   The kernel-side implementation required to parse this boot information structure.
+        *   Versioning of the boot information structure for future compatibility.
+        *   Testing strategies to ensure the accuracy and completeness of the passed information.
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T5_Define_SBL_Kernel_Boot_Info_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.1 (Secure Boot Chain), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+-   This structure is the primary means by which the SBL communicates essential boot-time hardware and configuration details to the kernel.
+
+**Dependencies:**
+-   This task depends on a functional SBL capable of gathering hardware information (`M3_S1_T2_Develop_SBL_With_HW_Init.txt`).
+-   The kernel will require a corresponding implementation to read and use this information (this will be a separate task for the Kernel Core module).
+
+Ensure the boot information structure is comprehensive and accurately reflects the state of the system as prepared by the SBL.
+Good luck, Jules!

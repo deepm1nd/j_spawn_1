@@ -1,0 +1,56 @@
+Subject: Plan and Initiate Formal Verification of Key gRiTOS Kernel Properties
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Formally verify key kernel properties (e.g., isolation, IPC correctness, scheduler integrity) if practical. (SoP 1.4.1, GRITOS-REQ-ARC-PHILOSOPHY-PROVABLECORR-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Feasibility & Scoping Study):**
+    *   Develop a detailed sub-development plan that serves as a feasibility study and scoping document for the formal verification (FV) of key kernel properties. This is a planning and preparatory task for potential large-scale FV efforts.
+    *   This plan should:
+        *   Identify specific, critical kernel properties suitable for FV. Examples from SoP 1.4.1 include:
+            *   Isolation (spatial and temporal).
+            *   Core scheduler behavior/integrity.
+            *   IPC correctness (e.g., message/capability transfer, no leakage).
+            *   Key capability system properties (e.g., unforgeability, correct delegation).
+        *   Evaluate suitable FV tools and methodologies (e.g., Isabelle/HOL, TLA+, Coq, model checking tools like SPIN or UPPAAL) based on gRiTOS's implementation language (primarily Rust, potentially C for HAL/SBL) and complexity.
+        *   Define the precise scope for an initial FV pilot project (e.g., verifying a small, critical module like parts of the capability system or a core IPC primitive).
+        *   Estimate resources required (personnel with FV expertise, time, tools).
+        *   Outline the process for integrating FV into the development lifecycle (e.g., how specifications are written, how proofs are maintained alongside code changes).
+        *   Identify assumptions that will need to be made (e.g., about hardware correctness, compiler correctness unless binary verification is also planned).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T12_Formally_Verify_Key_Kernel_Properties_dev_plan.md` (or in `/plan/generated_subplans/formal_verification/` if preferred for organization).
+
+2.  **Implement the Task (Execute Feasibility Study & Initial Setup):**
+    *   Execute the feasibility study as outlined in your sub-development plan.
+    *   Set up the chosen FV toolchain for a pilot project.
+    *   Develop formal specifications for the selected initial module/property.
+    *   Begin initial proof efforts for the pilot scope. The goal of *this task* is not necessarily to complete full proofs for large parts of the kernel, but to establish the FV process, tools, and demonstrate feasibility on a small scale.
+    *   Document challenges, successes, and refined estimates from the pilot effort.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 1.4.1 (Provable Correctness), 1.4.3 (Formal Verification Target), 3.4.1 (CC EAL target if FV used), 3.5.1 (SIL target if FV used), 5.2.4 (FV Tools).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-PHILOSOPHY-PROVABLECORR-00001` and `GRITOS-REQ-CON-KERNEL-FORMALVERIFYTARGET-00001`.
+
+3.  **Document Next Steps:**
+    *   Based on the pilot project's outcome:
+        *   Provide recommendations on whether and how to proceed with broader FV efforts.
+        *   Refine the list of kernel properties to target for FV.
+        *   Update resource estimates and timelines for further FV work.
+        *   Detail strategies for maintaining proofs as the kernel code evolves.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T12_Formally_Verify_Key_Kernel_Properties_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to setting up tools, writing specifications, or initial proof attempts.
+
+**Context & References:**
+-   **SoP Sections:** 1.4.1, 1.4.3, 3.4.1, 3.5.1, 5.2.4.
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-PHILOSOPHY-PROVABLECORR-00001`, `GRITOS-REQ-CON-KERNEL-FORMALVERIFYTARGET-00001`.
+-   Formal verification offers the highest level of assurance for critical properties and is a key differentiator for high-assurance systems.
+
+**Dependencies:**
+-   This task ideally starts after the core design of the targeted modules (e.g., capability system, IPC) is relatively stable, though specifications can be co-developed.
+-   Depends on a clear understanding of the kernel's architecture and the properties to be verified.
+
+This task is exploratory and foundational for any significant FV effort. The outcome will guide future investment in formal methods.
+Good luck, Jules!

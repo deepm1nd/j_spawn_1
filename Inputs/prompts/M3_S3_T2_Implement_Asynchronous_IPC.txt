@@ -1,0 +1,60 @@
+Subject: Implement Asynchronous IPC (`gRiTOS_SendAsync`, Notifications) for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Implement asynchronous IPC (`gRiTOS_SendAsync`, `gRiTOS_NotificationObject` signals/waits). (SoP 2.1.3, GRITOS-REQ-FNC-KERNEL-IPC-00002)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing asynchronous IPC mechanisms.
+    *   This plan should detail:
+        *   **`gRiTOS_SendAsync` (non-blocking send):**
+            *   Logic for sending a message to a target capability (e.g., Endpoint) without the sender blocking.
+            *   How the message is queued on the target if no receiver is immediately available.
+            *   Handling of message payload (direct data, capabilities).
+            *   Error conditions (e.g., invalid target capability, full queue if applicable and not an error to sender).
+        *   **`gRiTOS_NotificationObject`:**
+            *   Implementation of `NOTIF_METHOD_SIGNAL` (via `gRiTOS_KernelObject_Invoke`): Atomically sets specified bits in the Notification object's state; unblocks any threads waiting on those bits if their conditions are met.
+            *   Implementation of `NOTIF_METHOD_CLEAR` (via `gRiTOS_KernelObject_Invoke`): Atomically clears specified bits.
+            *   Implementation of `NOTIF_METHOD_WAIT` (via `gRiTOS_KernelObject_Invoke`): Blocks the calling thread until specified bits are set. Handles options like 'wait for all' vs 'wait for any', and timeout.
+            *   Implementation of `NOTIF_METHOD_POLL` (via `gRiTOS_KernelObject_Invoke`): Non-blocking check if specified bits are set.
+        *   Data structures for `NotificationObject` (internal state word, list of waiting threads with their wait masks/conditions).
+        *   Integration with the scheduler for thread state transitions (blocking/unblocking threads waiting on notifications).
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T2_Implement_Asynchronous_IPC_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `gRiTOS_SendAsync` system call and the methods for `gRiTOS_NotificationObject` (via `gRiTOS_KernelObject_Invoke`) based on your sub-development plan.
+    *   Ensure these operations correctly modify object states and interact with the scheduler.
+    *   For `gRiTOS_SendAsync`, ensure it does not block the sender.
+    *   For `NotificationObject` methods, ensure atomicity of state updates and correct handling of waiting threads.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.3 (Inter-Process Communication).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IPC-00002`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of `gRiTOS_SendAsync` (delivery, queueing) and all `NotificationObject` operations (signal, wait, clear, poll, timeout).
+        *   Use cases for these primitives (e.g., interrupt handlers using `gRiTOS_SendAsync` or `Notification_Signal`).
+        *   Performance characteristics, especially for high-frequency signaling.
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T2_Implement_Asynchronous_IPC_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 4.1.1 (Syscall Interface for `gRiTOS_SendAsync`), 4.1.2 (NotificationObject).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00002`, `GRITOS-REQ-FNC-KERNEL-IPC-00004`.
+-   Asynchronous IPC is vital for event notifications and scenarios where senders cannot block.
+
+**Dependencies:**
+-   Requires the system call interface (`M3_S2_T1`) for `gRiTOS_SendAsync`.
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`) for NotificationObject methods.
+-   Requires `NotificationObject`, `Endpoint`, `TCB`, and `Capability` object definitions (`M3_S2_T2`).
+-   Requires the scheduler for managing thread states (`M3_S2_T5`).
+-   Capability transfer logic for `gRiTOS_SendAsync` will be detailed in `M3_S3_T4`.
+-   The `msg_info` structure definition from `M3_S3_T3`.
+
+Focus on correct, efficient, and non-blocking (for senders) or correctly blocking (for waiters) behavior.
+Good luck, Jules!

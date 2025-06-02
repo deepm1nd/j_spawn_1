@@ -1,0 +1,57 @@
+Subject: Design and Implement Component Manager Service for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.5. Component Framework (User-Space)":
+"Task: Design and implement a Component Manager service for instantiating and managing components based on manifests. (SoP 4.4)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing the Component Manager service. This service itself will be a gRiTOS user-space component.
+    *   This plan should detail:
+        *   **Manifest Parsing:** Logic for parsing component manifest files (format defined in `M3_S5_T1`).
+        *   **Component Instantiation:**
+            *   Requesting resources from the kernel/Root Resource Manager (e.g., `UntypedMemory` for the new component's objects and memory).
+            *   Creating kernel objects for the new component: Process (AddressSpace, root CNode), initial TCB. This involves using kernel syscalls like `gRiTOS_KernelObject_Invoke` with methods like `Untyped_Retype`, `PROC_METHOD_CONFIGURE`, `PROC_METHOD_START_THREAD`.
+            *   Loading the component's executable binary into its address space.
+            *   Setting up the component's initial capabilities in its CSpace based on the manifest's `required_capabilities` section. This may involve requesting capabilities from other services or its parent.
+        *   **Lifecycle Management:**
+            *   Starting the component's main thread.
+            *   Monitoring component health (basic, e.g., did it start correctly?).
+            *   Terminating components and ensuring resource reclamation (revoking capabilities, freeing memory).
+        *   **IPC Interface:** Define the IPC interface for the Component Manager itself (e.g., to request starting a new component, stopping a component).
+        *   **Service Registration (Interaction):** How the Component Manager interacts with a service discovery mechanism (`M3_S5_T5`) if components provide services that need to be registered.
+    *   Save this plan as `/plan/generated_subplans/component_framework/M3_S5_T2_Implement_Component_Manager_Service_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Component Manager service as a gRiTOS user-space component based on your sub-development plan.
+    *   This service will be critical for system composition and management.
+    *   It will require significant interaction with kernel services (IPC, memory management, process/thread management via syscalls).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.4 (User-Space Component Framework Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with the Root Resource Manager (`M3_S7_T1_Implement_Root_Resource_Manager`) which might be the parent/starter of this Component Manager or delegate certain tasks to it.
+        *   Advanced lifecycle operations (e.g., pausing, resuming components).
+        *   Robust error handling and recovery if component instantiation fails.
+        *   Security considerations: The Component Manager is a privileged component; its own security and the policies it enforces are critical.
+    *   Save this document as `/plan/generated_subplans/component_framework/M3_S5_T2_Implement_Component_Manager_Service_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.5 (Resource Management - Root Resource Manager often acts as or starts a component manager), 4.4 (User-Space Component Framework).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`, `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+-   The Component Manager is the workhorse that brings user-space to life by starting and managing individual software modules.
+
+**Dependencies:**
+-   Requires the defined component manifest format (`M3_S5_T1`).
+-   Requires kernel primitives for process creation, TCB management, memory object creation/mapping, CNode manipulation, and IPC (tasks from Module 3.2, 3.3, 3.4).
+-   Will interact with the service discovery mechanism (`M3_S5_T5`).
+
+Focus on creating a robust and secure service for managing the lifecycle of all other user-space components.
+Good luck, Jules!

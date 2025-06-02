@@ -1,0 +1,56 @@
+Subject: Ensure File System Reliability, Data Integrity, and Crash Consistency in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.3. File System Service":
+"Task: Ensure reliability and data integrity, potentially crash-consistency. (SoP 2.2.2)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan focused on enhancing the File System (FS) Server to ensure reliability, data integrity, and (for on-disk file systems) crash consistency.
+    *   This plan should address:
+        *   **Data Integrity Mechanisms:**
+            *   Use of checksums or CRCs for metadata and potentially file data to detect corruption.
+            *   Verification of data integrity during read operations.
+        *   **Reliability Strategies:**
+            *   Careful error handling for I/O errors reported by storage drivers.
+            *   Redundant metadata storage or recovery mechanisms if feasible for the chosen FS type.
+        *   **Crash Consistency (for on-disk file systems):**
+            *   Evaluate and choose a suitable technique for ensuring that the file system can recover to a consistent state after an unexpected crash or power loss. Options include:
+                *   **Journaling:** Writing metadata changes (and optionally data) to a log before applying them in-place.
+                *   **Copy-on-Write (CoW) / Shadow Paging:** Never overwriting live data/metadata directly; new versions are written to new locations, and a top-level structure is updated atomically to point to the new versions.
+                *   **Log-structured File System principles.**
+            *   Detail the chosen technique's impact on FS server design: data structures for the journal/log, recovery procedures at mount time, atomic update mechanisms.
+        *   **Testing Strategy:** How these reliability and integrity features will be tested (e.g., fault injection, power-off testing during write operations).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T4_Ensure_FS_Reliability_Integrity_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the chosen reliability, data integrity, and crash consistency mechanisms within the File System Server, based on your sub-development plan.
+    *   This may involve significant changes to how the FS Server writes data and metadata to the underlying storage.
+    *   Implement recovery procedures that run when the FS Server mounts a file system, to bring it to a consistent state if a previous crash occurred.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.2 (File System - "prioritize reliability and data integrity, possibly crash-consistent").
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Extensive and rigorous testing of the crash consistency mechanisms under various failure scenarios.
+        *   Performance impact of the chosen mechanisms (e.g., journaling overhead).
+        *   Tools for checking and repairing file system consistency (fsck-like utility).
+    *   Save this document as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T4_Ensure_FS_Reliability_Integrity_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.2.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-FS-00001`.
+-   These features are critical for any file system that needs to persist data reliably across system restarts or unexpected failures.
+
+**Dependencies:**
+-   Requires a functional File System Server core (`M3_S7_SS3_T1`) and its integration with storage drivers (`M3_S7_SS3_T3`).
+-   The specific implementation will depend heavily on the chosen file system format(s) (e.g., FAT, ext2-like).
+
+This is a complex task that significantly impacts the robustness of the file system.
+Good luck, Jules!

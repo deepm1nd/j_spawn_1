@@ -1,0 +1,53 @@
+Subject: Define and Implement Minimal System Call Interface for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Define and implement the minimal System Call Interface (target < 15 syscalls: `gRiTOS_IPC_Call`, `gRiTOS_IPC_Send`, `gRiTOS_IPC_Recv`, `gRiTOS_IPC_Reply`, `gRiTOS_KernelObject_Invoke`, `gRiTOS_Yield`, `gRiTOS_DebugPutchar`). (SoP 4.1.1, GRITOS-REQ-ARC-KERNEL-SYSCALLMIN-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for defining and implementing the minimal system call interface.
+    *   This plan should:
+        *   Finalize the exact list of system calls (confirming the target < 15, e.g., `gRiTOS_IPC_Call`, `gRiTOS_IPC_Send`, `gRiTOS_IPC_Recv`, `gRiTOS_IPC_Reply`, `gRiTOS_KernelObject_Invoke`, `gRiTOS_Yield`, `gRiTOS_DebugPutchar`).
+        *   Define the arguments, return types, and error codes for each system call.
+        *   Specify the mechanism for system call invocation (e.g., `SVC` instruction on ARM, `syscall` on x86_64) and dispatch within the kernel.
+        *   Detail how system call arguments will be passed from user-space to kernel-space and results returned.
+        *   Outline the structure of the system call table and handler routines.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T1_Implement_Syscall_Interface_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the system call interface infrastructure based on your sub-development plan.
+    *   This involves:
+        *   Writing the assembly/C stubs for user-space invocation of syscalls.
+        *   Implementing the kernel-side dispatcher that receives syscall numbers and arguments.
+        *   Creating placeholder/stub implementations for each of the defined system call handlers. Actual logic for these syscalls will be developed in subsequent, related tasks.
+        *   Ensuring the syscall mechanism itself is secure and efficient.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.1.1 (System Call Interface).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-ARC-KERNEL-SYSCALLMIN-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, focusing on:
+        *   The implementation of the actual logic within each system call handler (which are separate tasks).
+        *   Testing strategies for the syscall invocation mechanism.
+        *   Performance considerations for syscall overhead.
+        *   Evolution of the syscall interface if new core primitives are identified as absolutely necessary.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T1_Implement_Syscall_Interface_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4 (Architectural Foundations), 4.1.1 (System Call Interface).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-KERNEL-SYSCALLMIN-00001`.
+-   The minimality of the syscall interface is a cornerstone of the microkernel design, reducing the kernel's attack surface and complexity.
+
+**Dependencies:**
+-   Depends on basic HAL setup for context switching and exception/interrupt handling (Module 3.6).
+-   The actual implementation of IPC syscalls will depend on tasks in Module 3.3 (IPC Subsystem).
+-   The `gRiTOS_KernelObject_Invoke` syscall will depend on tasks in Module 3.2 for kernel object implementation.
+
+Focus on creating a clean, efficient, and minimal set of entry points into the kernel.
+Good luck, Jules!

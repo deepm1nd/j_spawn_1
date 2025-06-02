@@ -1,0 +1,64 @@
+Subject: Perform WCET Analysis for Safety-Critical Paths in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Perform WCET analysis for all safety-critical kernel and user-space paths. (SoP 3.5.3, GRITOS-REQ-NFR-SAF-WCET-00001)"
+Note: Task `M3_S2_T13` focuses on ensuring kernel operations are *designed* for bounded WCET and initial tooling. This task is about the systematic *application* of WCET analysis to all identified safety-critical paths, including user-space ones, and integrating this into the safety lifecycle.
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (WCET Analysis Process & Application):**
+    *   Develop a detailed sub-development plan for performing and documenting Worst-Case Execution Time (WCET) analysis across all safety-critical paths.
+    *   This plan should:
+        *   **Identify Safety-Critical Paths:** Define a systematic process to identify all execution paths that are safety-critical. This includes:
+            *   Kernel system calls involved in safety functions.
+            *   Interrupt handling paths for safety-related devices.
+            *   Scheduler critical sections.
+            *   Critical loops or operations within safety-related user-space components (e.g., Health Monitor, Fault Recovery Supervisor, critical drivers).
+        *   **Methodology Reinforcement (from `M3_S2_T13` and SoP 3.5.3, 5.2.5):**
+            *   Confirm the hybrid approach: static analysis of code, measurement-based analysis on target hardware for calibration and validation.
+            *   Toolchain: Specify WCET analysis tools (e.g., AbsInt aiT, Rapita RVS, or others).
+            *   Hardware Model: Ensure an accurate model of the target CPU (pipeline, caches, memory access times) is available for static tools.
+        *   **Process for Each Path:**
+            *   Source code annotation (loop bounds, recursion depth (disallowed in critical paths), infeasible paths).
+            *   Static WCET calculation using tools.
+            *   On-target measurements using tracing or cycle counters to validate/calibrate static analysis.
+            *   Documentation of the determined WCET, analysis assumptions, and confidence level.
+        *   **Integration with Development:** How WCET analysis is performed for new or modified critical code.
+        *   **User-Space Components:** How WCET analysis is applied to user-space components (may require them to be built with specific profiles, run in controlled environments).
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/M3_S9_T7_Perform_WCET_Analysis_For_Critical_Paths_dev_plan.md`.
+
+2.  **Implement the Task (Execution and Documentation):**
+    *   Systematically apply the WCET analysis process to all identified safety-critical kernel and user-space paths based on your sub-development plan.
+    *   Configure and utilize the chosen WCET analysis tools.
+    *   Perform on-target measurements to validate results.
+    *   Document the WCET bounds for each analyzed path, including the context, assumptions, and evidence. This documentation is crucial for the Safety Case and for schedulability analysis.
+    *   If WCET bounds exceed requirements, work with component developers to refactor and optimize the relevant code paths.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 3.5.3 (WCET NFR) and 5.2.5 (Real-Time Analysis Tools).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-SAF-WCET-00001` and `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Using the determined WCET values as input for system-wide schedulability analysis (e.g., Response Time Analysis).
+        *   Integrating WCET checks or estimations into the CI/CD pipeline for early feedback on regressions.
+        *   Regularly re-evaluating WCET for critical paths when underlying hardware, compiler, or code changes significantly.
+        *   Training developers on writing WCET-analyzable code.
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/M3_S9_T7_Perform_WCET_Analysis_For_Critical_Paths_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to WCET analysis setup, execution, or result documentation.
+
+**Context & References:**
+-   **SoP Sections:** 1.4.3 (Bounded Execution Times), 3.1.5 (Jitter), 3.5.3, 5.2.5.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-SAF-WCET-00001`, `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`.
+-   Accurate WCET analysis is fundamental for guaranteeing real-time deadlines in safety-critical systems and is a key input for proving temporal isolation in MCS.
+
+**Dependencies:**
+-   Requires that the critical kernel and user-space paths are implemented and relatively stable.
+-   Depends on the WCET analysis toolchain being set up (`M3_S2_T13`).
+-   Requires target hardware or a cycle-accurate emulator for measurement-based validation.
+
+This is an ongoing and critical activity for safety certification.
+Good luck, Jules!

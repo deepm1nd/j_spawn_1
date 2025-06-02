@@ -1,0 +1,51 @@
+Subject: Integrate HRoT for Secure Key Storage for Bootloader Verification in gRiTOS SBL
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Integrate Hardware Root of Trust (HRoT) for secure key storage for bootloader verification. (SoP 2.3.2, GRITOS-REQ-SEC-HROT-INTEGRATION-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for integrating HRoT capabilities specifically for secure storage and usage of public keys required by the SBL for kernel image verification.
+    *   This plan should:
+        *   Identify the specific HRoT hardware features available on the reference platform (e.g., eFuses for public key hashes, secure NVM for full keys, TPM/HSM for cryptographic operations).
+        *   Define the interface and protocol for the SBL to access the public key(s) or perform verification operations using the HRoT. This might involve developing a minimal HRoT driver or HAL extension usable by the SBL.
+        *   Detail how the public keys are provisioned into the HRoT.
+        *   Address error handling if the HRoT is unavailable or returns errors.
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T7_Integrate_HRoT_For_Bootloader_Key_Storage_dev_plan.md`.
+
+2.  **Implement the Task (SBL Integration):**
+    *   Implement the SBL-side integration with the HRoT based on your sub-development plan.
+    *   This involves modifying the SBL's kernel verification logic (`M3_S1_T3`) to:
+        *   Retrieve the necessary public verification key(s) from the HRoT, or
+        *   Offload the signature verification operation to the HRoT if it supports such functions directly (providing the signature and hash to the HRoT).
+    *   Ensure that keys stored in the HRoT are protected from software compromise at runtime.
+    *   The SBL's interaction with the HRoT must be minimal and robust.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.3.1 (Secure Boot Chain), 2.3.2 (Hardware Root of Trust Integration), and 4.5 (Bootloader Design Specification).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-HROT-INTEGRATION-00001` and `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the HRoT integration thoroughly.
+        *   How this HRoT integration impacts the overall boot time.
+        *   The process for updating HRoT-protected keys if necessary and supported by the hardware and security policy.
+        *   Expansion of HRoT use for other services (e.g., runtime cryptographic operations, secure storage service), which will be covered by separate tasks.
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T7_Integrate_HRoT_For_Bootloader_Key_Storage_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.1 (Secure Boot Chain), 2.3.2 (Hardware Root of Trust Integration), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`, `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+-   Using an HRoT significantly enhances the security of the boot process by protecting the keys used for verification.
+
+**Dependencies:**
+-   This task is directly related to `M3_S1_T3_Implement_SBL_Kernel_Verification.txt`, as it provides the keys or verification services for that task.
+-   Depends on the availability of a specific HRoT on the target hardware and potentially a minimal driver or HAL interface to it. The development of a generic HRoT driver/interface might be a separate, foundational task if not already planned.
+
+Ensure that the integration with the HRoT maintains the security guarantees offered by the hardware.
+Good luck, Jules!

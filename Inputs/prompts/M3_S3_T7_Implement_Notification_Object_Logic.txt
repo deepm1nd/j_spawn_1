@@ -1,0 +1,62 @@
+Subject: Implement Notification Kernel Object Logic for gRiTOS IPC
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Implement Notification kernel object logic for lightweight signaling. (SoP 4.1.2)"
+(This is also implicitly covered by `M3_S2_T2` which defines Notification objects, but this task focuses on the detailed *logic* within the Notification object for signaling).
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the internal logic of the `Notification` kernel object.
+    *   This plan should detail:
+        *   **Data Structures within Notification Object:**
+            *   The word-sized internal state (e.g., a bitmask or counter as per SoP 2.1.3).
+            *   A list/queue of waiting threads, storing for each: TCB reference, the specific bits/condition they are waiting for, and any timeout information.
+        *   **`NOTIF_METHOD_SIGNAL` Logic:**
+            *   Atomically update the internal state (e.g., set specified bits).
+            *   Iterate through waiting threads: if a thread's wait condition is now met by the new state, unblock it (transition to `TS_READY`) and remove it from the wait list.
+        *   **`NOTIF_METHOD_CLEAR` Logic:**
+            *   Atomically clear specified bits in the internal state.
+        *   **`NOTIF_METHOD_WAIT` Logic:**
+            *   Check if the wait condition (e.g., specific bits in `wait_mask`) is already met against the current object state. If so, return immediately.
+            *   If not met, add the current thread to the wait list with its `wait_mask` and timeout. Transition the thread to `TS_BLOCKED_NOTIFICATION`.
+            *   Handle timeout: if a timeout is specified, the thread should be unblocked after the timeout if the condition hasn't been met. This requires interaction with a timer mechanism.
+        *   **`NOTIF_METHOD_POLL` Logic:**
+            *   Non-blockingly check if the specified bits in `wait_mask` are set in the current object state and return the result.
+        *   Thread synchronization for accessing/modifying the Notification object's state and wait list.
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T7_Implement_Notification_Object_Logic_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the internal logic for the `Notification` kernel object (methods `NOTIF_METHOD_SIGNAL`, `NOTIF_METHOD_CLEAR`, `NOTIF_METHOD_WAIT`, `NOTIF_METHOD_POLL` invoked via `gRiTOS_KernelObject_Invoke`) based on your sub-development plan. This involves adding or refining fields in the Notification object structure (defined in `M3_S2_T2`) and writing functions that manage these fields and interact with the scheduler and timer system.
+    *   Ensure atomic operations on the notification state word.
+    *   Ensure thread-safe management of the waiter list.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.3 (NotificationObject details) and 4.1.2 (Notification Object).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IPC-00002`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of all Notification object methods: signal, wait (with/without timeout, different wait conditions), clear, poll. Test scenarios with multiple waiters and multiple signalers.
+        *   Interaction with timer services for `NOTIF_METHOD_WAIT` timeouts.
+        *   Performance, especially for high-frequency signaling and managing many waiters.
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T7_Implement_Notification_Object_Logic_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 4.1.2 (Kernel Objects - Notification).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00002`, `GRITOS-REQ-FNC-KERNEL-IPC-00004`.
+-   Notification objects provide a lightweight and efficient way for event signaling, distinct from full message passing via Endpoints.
+
+**Dependencies:**
+-   Requires the `Notification` object structure definition from `M3_S2_T2`.
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`).
+-   Requires TCB management for thread state transitions (`M3_S2_T8`).
+-   Requires the scheduler for blocking/unblocking threads (`M3_S2_T5`).
+-   May require a kernel timer service for handling timeouts in `NOTIF_METHOD_WAIT`.
+
+Focus on atomicity, correctness of state changes, and efficient waiter management.
+Good luck, Jules!

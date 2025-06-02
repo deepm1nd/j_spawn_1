@@ -1,0 +1,54 @@
+Subject: Design and Implement Core Capability System for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Design and implement capability system: unforgeable capabilities, rights mask, type information, capability derivation. (SoP 2.3.3, GRITOS-REQ-SEC-POLP-CAPABILITY-00001, GRITOS-REQ-ARC-PRINCIPLE-CAPABILITYSEC-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing the core capability system.
+    *   This plan should:
+        *   Finalize the structure of a `Capability` kernel object/entry in a CNode (as defined in `M3_S2_T2`): reference to the kernel object it grants access to, a rights mask, and type information for validation.
+        *   Define the specific rights bits for various operations on different object types (e.g., `CAP_RIGHT_READ`, `CAP_RIGHT_WRITE`, `CAP_RIGHT_GRANT`, `CAP_RIGHT_MAP`, `CAP_RIGHT_EP_SEND`, `CAP_RIGHT_TCB_CONTROL` as suggested in SoP 2.3.3).
+        *   Detail the mechanisms for ensuring capabilities are unforgeable (i.e., only kernel can create/modify them, user-space only holds references/indices into CNodes).
+        *   Specify the logic for capability derivation (creating a new capability with a subset of rights from an existing one, e.g., via `CNode_CopyCap` or a dedicated `Cap_Derive` method).
+        *   Describe how capabilities are stored in `CNode` objects and how they are looked up and validated during `gRiTOS_KernelObject_Invoke` calls and IPC operations.
+        *   Address capability deletion/revocation mechanisms (e.g., `CNode_DeleteCap`).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T11_Implement_Capability_System_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the core capability system logic based on your sub-development plan.
+    *   This involves:
+        *   Implementing the data structures for capabilities within CNodes.
+        *   Integrating capability validation (checking rights mask against requested operation) into the `gRiTOS_KernelObject_Invoke` dispatch logic and IPC message handling (for capability transfer).
+        *   Implementing kernel object methods for CNode management: `CNode_CopyCap` (with rights derivation), `CNode_DeleteCap`, `CNode_MintCap` (if new capabilities are minted this way from a factory or special source).
+        *   Ensuring that all access to kernel objects is mediated by this capability system.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 1.4.2 (Capability-Based Security Principle), 2.3.3 (Principle of Least Privilege), 4.1.2 (Capability and CNode objects).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-SEC-CAPABILITY-00001`, `GRITOS-REQ-SEC-POLP-CAPABILITY-00001`, and `GRITOS-REQ-ARC-PRINCIPLE-CAPABILITYSEC-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Comprehensive testing of capability validation, derivation, CNode operations, and error conditions (e.g., attempting operations with insufficient rights).
+        *   Auditing tools for visualizing capability distribution (as per SoP 1.3).
+        *   Integration with all kernel object methods to ensure they correctly demand and check capability rights.
+        *   Formal verification of key capability system properties if feasible.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T11_Implement_Capability_System_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.3 (Capability-Based Security differentiator), 1.4.2 (Guiding Principles), 2.3.3 (PoLP), 4.1.2 (Kernel Objects).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-SEC-CAPABILITY-00001`, `GRITOS-REQ-SEC-POLP-CAPABILITY-00001`, `GRITOS-REQ-ARC-PRINCIPLE-CAPABILITYSEC-00001`, `GRITOS-REQ-ARC-KERNEL-OBJECTS-00001`.
+-   The capability system is the cornerstone of gRiTOS security, enforcing the Principle of Least Privilege.
+
+**Dependencies:**
+-   Requires defined `Capability` and `CNode` kernel object structures (`M3_S2_T2`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`) for CNode operations.
+-   Underpins all operations on all other kernel objects by providing the access control mechanism.
+
+Focus on a robust, verifiable, and fine-grained access control system.
+Good luck, Jules!

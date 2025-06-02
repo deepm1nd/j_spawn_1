@@ -1,0 +1,51 @@
+Subject: Ensure Secure Construction of Exception IPC Messages in gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Ensure secure construction of exception IPC messages to avoid info leaks. (SoP 2.1.2, GRITOS-REQ-SEC-IPC-EXCEPTIONMSG-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan focused on ensuring the secure construction of exception IPC messages, particularly those generated for memory faults (but principles apply to other exceptions too).
+    *   This plan should:
+        *   Review the proposed structure of the exception IPC message (from `M3_S4_T6` and SoP 2.1.2).
+        *   Identify any fields in this message that could potentially leak sensitive kernel internal information (e.g., kernel virtual addresses, precise internal error codes not meaningful or safe for user-space, contents of kernel-only registers).
+        *   Define strategies to mitigate such leaks:
+            *   Omitting unnecessary kernel-specific details.
+            *   Translating kernel-internal error codes or states into a limited, well-defined set of abstract error codes for user-space.
+            *   Ensuring that any addresses provided are virtual addresses from the faulting user-space context, not kernel virtual addresses (unless specifically intended for a highly privileged debugger component with explicit rights).
+            *   Reviewing the content of any architecture-specific fault status registers to ensure only relevant parts are passed to user-space.
+        *   Establish guidelines for creating any new types of exception IPC messages in the future to follow these security principles.
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T7_Secure_Exception_IPC_Construction_dev_plan.md`.
+
+2.  **Implement the Task (Review and Refinement):**
+    *   Review the implementation of exception IPC message construction (developed in `M3_S4_T6`) against the principles outlined in your sub-development plan.
+    *   Refactor the message construction logic as needed to remove or obfuscate any potentially sensitive kernel internal information, ensuring the user-space fault handler still receives sufficient information to act.
+    *   This task is primarily about careful design and review of the data passed to user-space.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.2 (Memory Fault Handling - Cybersecurity Note on exception IPCs).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SEC-IPC-EXCEPTIONMSG-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Security review and penetration testing focused on information leakage via exception messages.
+        *   Documentation for developers of user-space fault handlers, clarifying the meaning and limitations of the information provided in exception IPCs.
+        *   Applying these principles to other system events or messages passed from kernel to user-space.
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T7_Secure_Exception_IPC_Construction_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2 (Memory Management - Cybersecurity Note).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-IPC-EXCEPTIONMSG-00001`.
+-   Preventing information leakage from the kernel to user-space, even in error conditions, is important for overall system security and mitigating certain attack vectors (e.g., KASLR bypass attempts).
+
+**Dependencies:**
+-   This task directly reviews and refines the output of `M3_S4_T6_Implement_Memory_Fault_Handling.txt`.
+-   Relies on the defined structure of the exception IPC message.
+
+Focus on minimizing the attack surface by carefully controlling the information exposed by the kernel.
+Good luck, Jules!

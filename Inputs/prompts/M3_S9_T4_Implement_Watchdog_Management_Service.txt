@@ -1,0 +1,56 @@
+Subject: Implement User-Space Watchdog Management Service for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Implement user-space watchdog management service interacting with hardware watchdogs. (SoP 2.4.3)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing a user-space Watchdog Management Service.
+    *   This plan should detail:
+        *   **Interaction with Hardware Watchdog:**
+            *   How the service interfaces with the hardware watchdog timer. This will likely involve using a HAL API (`M3_S6_T1`, `M3_S6_T2`) for operations like: enabling/disabling the watchdog, "kicking" or "feeding" the watchdog, setting its timeout period.
+            *   The Watchdog Management Service will need privileged capabilities to access these HAL functions.
+        *   **Watchdog Service Logic:**
+            *   How the service itself is "kicked" by critical monitored components (e.g., via an IPC heartbeat mechanism).
+            *   The logic within the Watchdog Management Service: if it receives kicks from all its registered critical clients in a timely manner, it then kicks the hardware watchdog. If it misses kicks from its clients, it stops kicking the hardware watchdog, leading to a system reset.
+            *   Configuration: How the Watchdog Management Service knows which critical components to monitor and their expected heartbeat intervals. This might be static configuration or dynamic registration.
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):**
+            *   Define an IPC interface for components to register with the Watchdog Management Service and to send heartbeat/kick messages to it (e.g., `WATCHDOG_REGISTER_CLIENT(component_id, timeout_ms)`, `WATCHDOG_KICK(component_id)`).
+        *   **Boot Considerations:** Ensuring the hardware watchdog is appropriately configured or disabled by the SBL or early kernel init until the Watchdog Management Service is running and ready to take over.
+        *   **Component Manifest:** Define the manifest for the Watchdog Management Service component.
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/watchdog_manager/M3_S9_T4_Implement_Watchdog_Management_Service_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Watchdog Management Service as a gRiTOS user-space component, including its IPC interface and core logic, based on your sub-development plan.
+    *   This service is a critical safety mechanism to recover from system hangs.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.3 (Error Detection Mechanisms - watchdog timers).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of the watchdog chain: client kicks service, service kicks hardware. Test scenarios where clients fail to kick, leading to a reset.
+        *   Defining the startup sequence to ensure the watchdog is managed correctly during boot and before the service is fully up.
+        *   Integration with the Health Monitoring system (`M3_S9_T2`).
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/watchdog_manager/M3_S9_T4_Implement_Watchdog_Management_Service_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+-   A watchdog timer is a common hardware mechanism to reset a system if it becomes unresponsive due to a software fault. A user-space manager adds a layer of software health checking.
+
+**Dependencies:**
+-   Requires HAL functions for interacting with the hardware watchdog timer (`M3_S6_T1`, `M3_S6_T2`).
+-   Requires IDL and tooling (`M3_S5_T4`) for its IPC interface.
+-   Requires kernel IPC (`M3_S3`) for clients to communicate with it.
+-   Requires the Component Framework (`M3_S5`).
+-   May use the Time Service (`M3_S7_SS5`) for internal timeouts if managing multiple clients with different kick intervals.
+
+Focus on a reliable implementation that ensures the hardware watchdog is only kicked if the monitored software is deemed healthy.
+Good luck, Jules!

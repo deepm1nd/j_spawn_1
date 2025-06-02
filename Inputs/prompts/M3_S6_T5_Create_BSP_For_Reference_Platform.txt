@@ -1,0 +1,60 @@
+Subject: Create Board Support Package (BSP) for Initial Reference Hardware Platform in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.6. HAL & BSP (Hardware Abstraction Layer & Board Support Package)":
+"Task: Create a BSP for the initial reference hardware platform, including essential device drivers. (SoP 4.6)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for creating the first complete Board Support Package (BSP) for the chosen initial reference hardware platform (e.g., a specific QEMU virt machine, Raspberry Pi model, or other embedded board).
+    *   This plan should:
+        *   Identify the essential peripherals on the reference board that need drivers for initial system operation (e.g., UART for console, timer (if not fully covered by HAL), interrupt controller (if HAL needs BSP specifics), GPIOs for LEDs/buttons, potentially a simple storage interface if needed for early user-space).
+        *   For each essential peripheral:
+            *   Plan the development of its user-space device driver, adhering to the gRiTOS driver model (`M3_S7_T2_Develop_Generic_Driver_Model`) and IPC interfaces.
+            *   Detail how it will be configured using the Devicetree mechanism (`M3_S6_T4`).
+        *   Create the Devicetree source file (.dts) for the reference board, describing all relevant hardware components, their properties, and interrupt mappings.
+        *   Plan any board-specific initialization code (clocking, pinmuxing) that needs to be part of this BSP and how it integrates with the HAL and kernel boot process.
+        *   Specify the memory layout for this board in the BSP configuration.
+        *   Outline how the BSP will be structured according to `M3_S6_T3_Define_BSP_Structure.txt`.
+    *   Save this plan as `/plan/generated_subplans/hal_bsp/M3_S6_T5_Create_BSP_For_Reference_Platform_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the BSP for the reference hardware platform based on your sub-development plan.
+    *   This involves:
+        *   Writing the Devicetree source file (.dts) and compiling it to a DTB.
+        *   Implementing the user-space drivers for the essential peripherals.
+        *   Writing any necessary board-specific initialization code.
+        *   Configuring the build system to correctly build this BSP and link it with the kernel and HAL.
+        *   Testing each driver and the overall BSP functionality on the target hardware or emulator.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.6 (HAL/BSP Strategy).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Adding more complex device drivers to this BSP (e.g., networking, storage, graphics).
+        *   Using this BSP as a template for porting gRiTOS to other boards.
+        *   Refining the BSP structure and Devicetree bindings based on this implementation experience.
+        *   Developing a comprehensive test suite for this BSP.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S6_T5_Create_BSP_For_Reference_Platform_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 3.7.2, 4.6.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PORT-HALBSP-00001`.
+-   This is the first concrete realization of board-level support, making gRiTOS runnable on specific hardware.
+
+**Dependencies:**
+-   Requires the defined HAL API (`M3_S6_T1`) and its implementation for the reference architecture (`M3_S6_T2`).
+-   Requires the defined BSP structure (`M3_S6_T3`).
+-   Requires Devicetree parsing and utilization mechanisms (`M3_S6_T4`).
+-   Requires the gRiTOS user-space driver model (`M3_S7_T2_Develop_Generic_Driver_Model`).
+-   Requires a functional IPC subsystem (`M3_S3`) for user-space drivers to communicate.
+-   Requires the Component Framework (`M3_S5`) for managing user-space drivers as components.
+
+Focus on creating a functional and well-structured BSP that enables gRiTOS to run effectively on the reference platform.
+Good luck, Jules!

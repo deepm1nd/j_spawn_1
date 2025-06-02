@@ -1,0 +1,58 @@
+Subject: Implement User-Space Ethernet and Storage Controller Drivers for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.2. Device Drivers (User-Space)":
+"Task: Implement user-space Ethernet driver and storage controller drivers. (SoP 2.2.1)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing user-space drivers for an Ethernet controller and a storage controller (e.g., SD/MMC, SATA, or NVMe, depending on the reference platform and priorities).
+    *   For the Ethernet Driver:
+        *   Define its IPC interface (using IDL `M3_S5_T4`) for sending/receiving network packets (e.g., `SendPacket(buffer_cap_with_packet)`, `RegisterRxCallback(notification_cap)` or `ReceivePacket(buffer_cap_for_packet) -> actual_length`).
+        *   Detail interaction with the hardware (descriptor rings for DMA, register access for control/status).
+        *   Specify interrupt handling for transmit completion and packet reception.
+        *   Outline memory management for packet buffers (e.g., using `gRiTOS_MemoryObject`s suitable for DMA).
+        *   Its component manifest.
+    *   For the Storage Controller Driver:
+        *   Define its IPC interface (using IDL `M3_S5_T4`) for block I/O operations (e.g., `ReadBlocks(block_start, count, buffer_cap)`, `WriteBlocks(block_start, count, buffer_cap)`, `GetInfo() -> block_size, total_blocks`).
+        *   Detail interaction with the specific storage controller hardware (e.g., command submission, data transfer, status checking via MMIO registers).
+        *   Specify interrupt handling for I/O completion or errors.
+        *   Outline memory management for data buffers (DMA considerations).
+        *   Its component manifest.
+    *   Both drivers should adhere to the generic gRiTOS Driver Model (`M3_S7_SS2_T1`) and discover resources via Devicetree (`M3_S6_T4`).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T3_Implement_Ethernet_Storage_Drivers_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the user-space Ethernet driver and the chosen storage controller driver as separate gRiTOS components, based on your sub-development plan.
+    *   These are complex drivers and will require careful management of hardware interaction, DMA, and concurrency.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.1 (Device Drivers).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-DRIVER-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with higher-level services: the Networking Stack service (`M3_S7_SS4`) will use the Ethernet driver, and the File System service (`M3_S7_SS3`) will use the storage driver.
+        *   Extensive testing, including performance benchmarking (throughput, latency) and stress testing.
+        *   Development of more sophisticated error handling and recovery within the drivers.
+        *   Support for different models of Ethernet or storage controllers.
+    *   Save this document as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T3_Implement_Ethernet_Storage_Drivers_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.1.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-DRIVER-00001`.
+-   These drivers are essential for enabling networking and persistent storage capabilities in gRiTOS.
+
+**Dependencies:**
+-   Requires the generic driver model (`M3_S7_SS2_T1`).
+-   Requires a functional reference BSP (`M3_S6_T5`) that provides the hardware context (Devicetree for specific Ethernet/storage controllers).
+-   Requires kernel services: IPC (`M3_S3`), memory mapping and DMA-capable memory object management (`M3_S4`), interrupt delivery (`M3_S2_T10`).
+-   Requires the Component Framework (`M3_S5`).
+-   Requires IDL and tooling (`M3_S5_T4`).
+
+Focus on robust, efficient, and well-abstracted driver implementations.
+Good luck, Jules!

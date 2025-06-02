@@ -1,0 +1,51 @@
+Subject: Implement Root Resource Manager Component Logic for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.1. Root Resource Manager":
+"Task: Implement Root Resource Manager component logic. (SoP 2.2.5, GRITOS-REQ-FNC-SVC-RSCMGMT-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the core logic of the Root Resource Manager (RRM). The RRM is the initial user-space process responsible for system composition and initial resource allocation.
+    *   This plan should detail:
+        *   **Initialization:** How the RRM starts up, receives initial capabilities from the kernel (e.g., capabilities to all physical memory as `UntypedMemory`, capabilities to I/O ports, interrupt sources, root of the CSpace).
+        *   **System Configuration Parsing:** How the RRM reads a system configuration file or data (potentially from Devicetree or a dedicated manifest) that specifies which initial components to start and their resource entitlements.
+        *   **Initial Component Creation:** The logic for using its `UntypedMemory` capabilities to retype memory into kernel objects (AddressSpaces, CNodes, TCBs, MemoryObjects) needed for the first set of critical system services (e.g., Component Manager, core drivers, Time Service). This involves using `gRiTOS_KernelObject_Invoke` with `Untyped_Retype`.
+        *   **Capability Delegation:** How the RRM delegates necessary capabilities (e.g., to memory, hardware resources, other services) to the components it starts.
+        *   **Resource Allocation Policies:** Initial policies for managing and partitioning resources like memory and CPU time (if it directly manages MCS budgets before a dedicated manager exists).
+        *   **Fault Handling:** How the RRM handles failures during early boot (e.g., failure to start a critical component).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/root_resource_manager/M3_S7_SS1_T1_Implement_Root_Resource_Manager_Logic_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Root Resource Manager as a gRiTOS user-space component based on your sub-development plan.
+    *   This component is typically the first user-space process started by the kernel.
+    *   It will make extensive use of kernel syscalls, especially `gRiTOS_KernelObject_Invoke` for resource management (`Untyped_Retype`, creating other kernel objects) and process/thread creation for initial services.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.5 (Resource Management).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   The IPC interface of the RRM (`M3_S7_SS1_T2`) for other components to request resources or services if applicable (though its primary role is early boot).
+        *   Integration with the Component Manager (`M3_S5_T2`), which the RRM might start and delegate further component management to.
+        *   Testing the RRM's ability to correctly parse system configuration, create initial components, and delegate capabilities.
+        *   Security considerations: The RRM is highly privileged; its compromise would be catastrophic.
+    *   Save this document as `/plan/generated_subplans/user_space_services/root_resource_manager/M3_S7_SS1_T1_Implement_Root_Resource_Manager_Logic_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.5, 4.4 (Component Framework - RRM is a key component).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-RSCMGMT-00001`.
+-   The RRM is critical for bootstrapping the rest of the user-space environment.
+
+**Dependencies:**
+-   Requires a functional kernel with support for process creation, `UntypedMemory` retyping, capability management, and IPC (Modules 3.2, 3.3, 3.4).
+-   Depends on the SBL passing necessary information to the kernel, which then makes it available to the RRM.
+-   The definition of the component manifest (`M3_S5_T1`) if RRM directly parses some manifests or starts the Component Manager.
+
+Focus on creating a robust and secure initial user-space process that correctly sets up the system.
+Good luck, Jules!

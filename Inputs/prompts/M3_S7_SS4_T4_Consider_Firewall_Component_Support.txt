@@ -1,0 +1,54 @@
+Subject: Consider and Plan for Dedicated Firewall Component Support in gRiTOS Networking
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.4. Networking Stack Service":
+"Task: Consider integration of a dedicated firewall component support. (SoP 2.2.3, GRITOS-REQ-SEC-NET-FIREWALLSUPPORT-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Feasibility and Design Study):**
+    *   Develop a detailed sub-development plan that studies the feasibility and design implications of supporting a dedicated user-space firewall component that can inspect and filter network traffic.
+    *   This plan should:
+        *   **Firewall Architecture:**
+            *   Propose how a separate firewall component would intercept network packets. This might involve:
+                *   The Networking Stack explicitly passing packets (or descriptors) to the Firewall component via IPC before they are sent to/after they are received from the Ethernet driver.
+                *   A more advanced kernel mechanism (if deemed necessary and secure) to allow a privileged component to hook into the packet flow (less likely in a strict microkernel to avoid adding policy to kernel).
+        *   **IPC Interface for Firewall:** Define the IPC interface the Networking Stack would use to interact with the Firewall (e.g., `Firewall_InspectPacket(packet_buffer_cap, direction) -> allow/deny_action`).
+        *   **Packet Mangling/Modification:** Consider if the firewall needs capabilities to modify packets (e.g., for NAT, though this is an advanced feature beyond simple filtering).
+        *   **Rule Management:** Briefly outline how firewall rules would be configured (e.g., by another service, read from a file by the firewall component itself).
+        *   **Performance Impact:** Analyze the potential performance overhead of an IPC-based user-space firewall.
+        *   **Security Considerations:** How to ensure the firewall component itself is secure and that its interaction with the networking stack doesn't introduce new vulnerabilities. The firewall needs sufficient capabilities to inspect packets but not necessarily to compromise other parts of the networking stack or system.
+    *   The output of this task is primarily a design document and feasibility analysis, not necessarily the full implementation of a firewall.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T4_Consider_Firewall_Component_Support_dev_plan.md` (or in `/plan/generated_subplans/security_services/` if preferred).
+
+2.  **Implement the Task (Design Study & Proof-of-Concept Interfaces):**
+    *   Conduct the design study as outlined in your sub-development plan.
+    *   If feasible, define the IDL interfaces for the interaction between the Networking Stack and a potential Firewall component.
+    *   Potentially implement minimal hooks or points in the Networking Stack where a firewall could integrate, without implementing the firewall itself.
+    *   Document the chosen architecture, design trade-offs, and recommendations for or against proceeding with a full firewall component implementation in the initial gRiTOS scope.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.3 (Networking Stack - Cybersecurity Warning about firewalling).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SEC-NET-FIREWALLSUPPORT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Decision on whether to implement a full firewall component based on this study.
+        *   If yes, a separate set of tasks for firewall implementation.
+        *   How to test the firewall integration points.
+    *   Save this document as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T4_Consider_Firewall_Component_Support_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.3.
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-NET-FIREWALLSUPPORT-00001`.
+-   A dedicated firewall can significantly enhance network security by enforcing policies based on the principle of least functionality.
+
+**Dependencies:**
+-   Requires a functional Networking Stack component (`M3_S7_SS4_T1`) to understand where firewall hooks might be placed.
+-   The design will depend on the IPC capabilities (`M3_S3`) and IDL (`M3_S5_T4`).
+
+This task is about careful consideration and planning for a security-critical feature.
+Good luck, Jules!

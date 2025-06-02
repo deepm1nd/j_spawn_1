@@ -1,0 +1,52 @@
+Subject: Develop Interface Definition Language (IDL) for gRiTOS Component Interfaces
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.5. Component Framework (User-Space)":
+"Task: Develop an Interface Definition Language (IDL) for specifying component interfaces and generating stubs/skeletons. (SoP 2.2, 4.4.5, GRITOS-REQ-NFR-MAINT-MODULARITY-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for creating an Interface Definition Language (IDL) and its associated tooling.
+    *   This plan should:
+        *   **IDL Syntax Definition:** Define the syntax for the IDL. This includes how to specify interfaces, methods within interfaces, parameters (data types, direction: in/out/inout), return types, error types, and potentially complex data structures or constants. Consider inspiration from existing IDLs (e.g., FIDL, AIDL, Franca IDL, Protocol Buffers syntax).
+        *   **Data Type System:** Define the supported data types in the IDL (e.g., primitive types like int32, bool, string; arrays; custom structures). Map these to gRiTOS IPC message payload capabilities (direct registers, shared memory via capabilities).
+        *   **Tooling - Stub/Skeleton Generator:** Design a tool that parses IDL files and generates:
+            *   Client-side stubs (proxies): Code that applications use to call methods on a remote component. These stubs will handle marshalling data into IPC messages, sending them, and unmarshalling replies.
+            *   Server-side skeletons (dispatchers): Code that server components use to receive IPC messages, unmarshal data, call the actual implementation method, marshal the reply, and send it back.
+            *   Specify the target language for generated code (e.g., Rust, C if needed for some components).
+        *   **IPC Integration:** How the generated code maps interface calls to gRiTOS IPC mechanisms (`gRiTOS_Call`, `msg_info` structure, capability passing for complex data).
+    *   Save this plan as `/plan/generated_subplans/component_framework/M3_S5_T4_Develop_IDL_For_Component_Interfaces_dev_plan.md` (or `/plan/generated_subplans/idl_tooling/` if a separate module is preferred).
+
+2.  **Implement the Task:**
+    *   Implement the IDL parser and the stub/skeleton generator tool based on your sub-development plan.
+    *   Create a formal specification document for the IDL syntax and semantics.
+    *   Develop example IDL files for a few representative gRiTOS services (e.g., a simple driver interface, a basic service interface).
+    *   Generate client stubs and server skeletons from these example IDL files and test their basic functionality.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.2 (System Services - IDL mention), 4.4.5 (Interface Definition).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-MAINT-MODULARITY-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration of the IDL tool into the main build system.
+        *   Using the IDL to define interfaces for all major gRiTOS system services.
+        *   Support for asynchronous methods or events/callbacks in the IDL if needed.
+        *   Versioning of interfaces defined in IDL.
+    *   Save this document as `/plan/generated_subplans/component_framework/M3_S5_T4_Develop_IDL_For_Component_Interfaces_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2, 3.3.4 (Modularity), 4.4.5.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-MAINT-MODULARITY-00001`.
+-   An IDL is crucial for maintaining stable, well-defined interfaces between components, promoting modularity, simplifying development, and enabling independent updates of components.
+
+**Dependencies:**
+-   Relies on a functional IPC subsystem (`M3_S3`) as the generated code will use these IPC primitives.
+-   The definition of the `msg_info` structure (`M3_S3_T3`) will influence how IDL data types are marshalled.
+
+Focus on creating a practical IDL and generator that simplifies inter-component communication.
+Good luck, Jules!

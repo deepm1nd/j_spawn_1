@@ -1,0 +1,57 @@
+Subject: Implement User-Space Drivers for Core Peripherals (UART, GPIO, SPI, I2C) in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.2. Device Drivers (User-Space)":
+"Task: Implement specific user-space drivers for core peripherals (e.g., UART, GPIO, SPI, I2C) based on BSP needs, exposing functionality via standardized IPC. (SoP 2.2.1)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing user-space drivers for a set of core peripherals relevant to the initial reference BSP (`M3_S6_T5`). This typically includes UART (for console/serial), GPIO (for LEDs, buttons, basic control), and potentially SPI and I2C if needed by other early services or test applications.
+    *   For each driver type (UART, GPIO, etc.):
+        *   Define its specific IPC interface using the system IDL (`M3_S5_T4`). For example:
+            *   UART: `Write(buffer_cap, length)`, `Read(buffer_cap, length_to_read) -> actual_length_read`, `Configure(baud, parity, etc.)`.
+            *   GPIO: `SetDirection(pin_id, direction)`, `SetValue(pin_id, value)`, `GetValue(pin_id) -> value`.
+            *   SPI/I2C: `Transfer(device_address, write_buffer_cap, read_buffer_cap)`.
+        *   Detail how the driver will use the generic driver model (`M3_S7_SS2_T1`).
+        *   Specify how it discovers its hardware resources (e.g., MMIO addresses, IRQ numbers) from Devicetree (`M3_S6_T4`).
+        *   Outline its internal logic for interacting with the hardware registers.
+        *   Describe its interrupt handling flow if applicable (e.g., UART Rx/Tx interrupts).
+        *   Specify its component manifest.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T2_Implement_Core_Peripheral_Drivers_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the user-space drivers for UART, GPIO, and SPI/I2C (as prioritized by BSP needs) according to your sub-development plan and the gRiTOS Driver Model.
+    *   Each driver will be a separate gRiTOS component.
+    *   They will require capabilities to access MMIO regions (mapped into their VSpace by the kernel/MemoryManager based on Devicetree) and to handle interrupts.
+    *   Use the IDL-generated stubs/skeletons for their IPC interfaces.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.1 (Device Drivers).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-DRIVER-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of each driver with actual hardware on the reference BSP.
+        *   Development of sample applications that use these drivers.
+        *   Refinement of the driver model and IDL interfaces based on this experience.
+        *   Development of drivers for other peripheral types.
+    *   Save this document as `/plan/generated_subplans/user_space_services/device_drivers/M3_S7_SS2_T2_Implement_Core_Peripheral_Drivers_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.1.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-DRIVER-00001`.
+-   These drivers provide the fundamental means for gRiTOS to interact with the hardware world.
+
+**Dependencies:**
+-   Requires the generic driver model (`M3_S7_SS2_T1`).
+-   Requires a functional reference BSP (`M3_S6_T5`) that provides the hardware context (Devicetree).
+-   Requires kernel services: IPC (`M3_S3`), memory mapping (`M3_S4_T4`), interrupt delivery (`M3_S2_T10`).
+-   Requires the Component Framework (`M3_S5`) for running as components.
+-   Requires IDL and tooling (`M3_S5_T4`) for defining and implementing IPC interfaces.
+
+Focus on creating robust, well-tested, and reusable drivers for these common peripherals.
+Good luck, Jules!

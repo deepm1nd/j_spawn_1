@@ -1,0 +1,54 @@
+Subject: Implement TCB Management for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement TCB management: creation, configuration (associating VSpace, CSpace, fault handler EP), priority setting, state transitions (`TS_INACTIVE`, `TS_READY`, `TS_RUNNING`, etc.). (SoP 2.1.1, GRITOS-REQ-FNC-KERNEL-PROCESS-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing Thread Control Block (TCB) management.
+    *   This plan should detail:
+        *   **TCB Creation:** How TCB objects are allocated (from static pools, as per `M3_S2_T4`) and initialized with default values. This is likely invoked via `Untyped_Retype` method on an UntypedMemory capability.
+        *   **TCB Configuration (`TCB_METHOD_CONFIGURE`):** Logic for associating a TCB with its virtual address space (`AddressSpace` capability), capability space (root `CNode` capability), and an optional fault handler endpoint capability. Storing these capabilities within the TCB structure.
+        *   **Priority Management (`TCB_METHOD_SET_PRIORITY`):** Logic for setting a thread's priority and potentially re-evaluating scheduling if the thread is ready.
+        *   **Timeslice Management (`TCB_METHOD_SET_TIMESLICE`):** Logic for setting a thread's Round-Robin timeslice (if applicable).
+        *   **Start (`TCB_METHOD_START`):** Logic for setting the entry point, stack pointer, initial arguments, and transitioning the thread to a ready state to be picked up by the scheduler.
+        *   **Abort (`TCB_METHOD_ABORT`):** Logic for terminating a thread, cleaning up its resources (or marking them for cleanup), and notifying relevant parties (e.g., parent process, joined threads).
+        *   **Sleep (`TCB_METHOD_SLEEP` or `gRiTOS_Yield` for sleep via timer service):** Logic for putting a thread to sleep for a duration (likely involves a timer queue and blocking the thread).
+        *   **State Transitions:** Implementing the logic for all defined thread states (`TS_INACTIVE`, `TS_READY`, `TS_RUNNING`, `TS_BLOCKED_IPC_SEND`, `TS_BLOCKED_IPC_RECV`, `TS_BLOCKED_NOTIFICATION`, `TS_BLOCKED_SLEEP`, `TS_TERMINATED` as per SoP 2.1.1) and ensuring valid transitions between them.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T8_Implement_TCB_Management_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the TCB management functions, primarily as methods invoked via `gRiTOS_KernelObject_Invoke` on TCB capabilities (as designed in `M3_S2_T3`), based on your sub-development plan.
+    *   Ensure these operations correctly modify the TCB data structures (defined in `M3_S2_T2`) and interact with the scheduler (`M3_S2_T5`) as needed (e.g., making a thread ready, yielding).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.1 (Process/Thread Management).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-PROCESS-00001` and `GRITOS-REQ-FNC-KERNEL-PROCESS-00002`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with process management for initial thread creation.
+        *   Detailed testing of all TCB operations and state transitions, including edge cases and error conditions.
+        *   Interaction with fault handling mechanisms when a thread faults.
+        *   Resource cleanup upon thread termination.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T8_Implement_TCB_Management_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.1 (Process/Thread Management), 4.1.2 (Kernel Objects - TCB).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-PROCESS-00001`, `GRITOS-REQ-FNC-KERNEL-PROCESS-00002`, `GRITOS-REQ-FNC-KERNEL-SCHED-00001`.
+-   TCB management is central to enabling concurrency and managing individual execution streams.
+
+**Dependencies:**
+-   Requires defined TCB structure (`M3_S2_T2`) and static allocators (`M3_S2_T4`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`).
+-   Interacts heavily with the scheduler (`M3_S2_T5`).
+-   Requires `AddressSpace` and `CNode` object concepts (`M3_S2_T2`) for configuration.
+-   Fault handler endpoint association links to IPC objects (`M3_S2_T2`, `M3_S3_T6`).
+
+Focus on robust state management and correct interaction with other kernel subsystems.
+Good luck, Jules!

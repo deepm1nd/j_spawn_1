@@ -1,0 +1,55 @@
+Subject: Implement IPC Interfaces for Time Services in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.5. Time Services":
+"Task: Implement IPC interfaces for getting current time, setting one-shot/periodic timers (using Notification objects), and canceling timers. (SoP 2.2.4, GRITOS-REQ-FNC-SVC-TIME-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (IDL Definition & Client Library Design):**
+    *   Develop a detailed sub-development plan for defining and implementing the IPC interfaces for the Time Management Service.
+    *   This plan should:
+        *   **IDL Definition:** Define the time service interface using the system IDL (`M3_S5_T4`). This includes specifying methods like:
+            *   `TIME_METHOD_GET_CURRENT_TIME() -> (error_code, seconds_low, seconds_high, nanoseconds)` (for monotonic or system time).
+            *   `TIME_METHOD_SET_TIMER(duration_ns_low, duration_ns_high, notification_cap, event_id) -> (error_code, timer_id_cap)` (for one-shot timers).
+            *   `TIME_METHOD_CREATE_PERIODIC_TIMER(interval_ns_low, interval_ns_high, notification_cap, event_id) -> (error_code, timer_id_cap)`
+            *   `TIME_METHOD_CANCEL_TIMER(timer_id_cap) -> error_code`
+            *   Define necessary data structures for parameters and return values.
+        *   **Capability Usage:**
+            *   `notification_cap`: Capability to a `gRiTOS_NotificationObject` provided by the client, which the Time Service will signal upon timer expiry.
+            *   `timer_id_cap`: A new type of capability representing an active timer, managed by the Time Service. This capability is returned upon timer creation and used to cancel it.
+        *   **Client Library (Optional but Recommended):** Plan for a small user-space client library that wraps these IPC calls, providing a more convenient API to applications (e.g., `gettime()`, `timer_create()`, `timer_delete()`).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T2_Implement_TimeService_IPC_Interfaces_dev_plan.md`.
+
+2.  **Implement the Task (IDL and Client Library Stubs):**
+    *   Create the IDL definition file for the time service.
+    *   Use the IDL tool (`M3_S5_T4`) to generate the client-side stubs and server-side skeletons.
+    *   If a client library is planned, implement its basic structure and wrapper functions using the generated client stubs.
+    *   The server-side implementation of these interfaces will be done as part of `M3_S7_SS5_T1`. This task focuses on defining the contract and providing the means for clients to use it.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.4 (Time Services - IPC interface examples).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-TIME-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Full implementation of the Time Management Service logic (`M3_S7_SS5_T1`) that serves these IPC requests.
+        *   Testing client-server interaction using these interfaces.
+        *   Refinement of the interfaces and client library.
+    *   Save this document as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T2_Implement_TimeService_IPC_Interfaces_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.4.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-TIME-00001`.
+-   These IPC interfaces are how user-space applications and services will access time and timer functionalities.
+
+**Dependencies:**
+-   Requires the system IDL and tooling (`M3_S5_T4`).
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`), including `gRiTOS_NotificationObject` capabilities.
+-   The Time Management Service (`M3_S7_SS5_T1`) will implement the server side of these interfaces.
+
+Focus on defining clear, robust, and capability-secure IPC interfaces for time and timer operations.
+Good luck, Jules!

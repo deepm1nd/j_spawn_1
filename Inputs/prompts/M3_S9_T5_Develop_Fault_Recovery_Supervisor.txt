@@ -1,0 +1,65 @@
+Subject: Develop Fault Recovery Supervisor Components for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Develop fault recovery supervisor components capable of restarting failed user-space services and managing graceful degradation strategies. (SoP 2.4.4, GRITOS-REQ-SAF-FAULT-RECOVERY-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing Fault Recovery Supervisor component(s).
+    *   This plan should detail:
+        *   **Scope of Supervision:** Which components are supervised by this particular supervisor? (There might be multiple supervisors for different subsystems).
+        *   **Fault Notification Input:** How the supervisor is notified of component failures. This could be:
+            *   Via exception IPCs forwarded from a component's fault handler (if the handler decides it cannot recover locally).
+            *   If a component terminates unexpectedly (e.g., monitored by Component Manager or a parent, which then notifies this supervisor).
+            *   From the Health Monitoring service (`M3_S9_T2`) if it detects a non-responsive component.
+        *   **Restart Logic:**
+            *   The protocol for restarting a failed component:
+                1.  Resource Revocation/Reclamation: Ensuring the failed component's resources (capabilities, memory) are cleanly revoked and reclaimed by the kernel/resource managers. This might involve IPC calls to the Component Manager or kernel.
+                2.  State Analysis (Optional): Analyzing any persistent state or logs from the failed component to decide if a restart is appropriate or safe.
+                3.  Re-instantiation: Requesting the Component Manager (`M3_S5_T2`) to re-create and start the component based on its manifest.
+                4.  Service Re-establishment: How clients re-bind to the new instance if the component provided services (may involve service discovery `M3_S5_T5`).
+            *   Restart policies: Max restart count, backoff delays to prevent continuous restarts of a persistently failing component.
+        *   **Graceful Degradation Strategies:**
+            *   Defining specific degraded modes of operation for the supervised subsystem.
+            *   Logic for deciding when to enter a degraded mode (e.g., after a component fails and cannot be restarted, or if a critical resource is lost).
+            *   How the supervisor reconfigures other components or informs them to operate in a degraded mode.
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):** Define any IPC interface the Fault Recovery Supervisor might expose (e.g., to be configured, to report its status) or use.
+        *   **Component Manifest:** Define the manifest for the Fault Recovery Supervisor component(s).
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/fault_recovery_supervisor/M3_S9_T5_Develop_Fault_Recovery_Supervisor_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Fault Recovery Supervisor component(s) as gRiTOS user-space components based on your sub-development plan.
+    *   This component will interact with other services (Component Manager, potentially kernel for resource control, Health Monitor) to achieve its objectives.
+    *   Ensure all recovery actions are designed to complete within the application-defined Fault Tolerant Time Interval (FTTI) and transition the system to a known safe state.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.4 (Fault Recovery Strategies).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-FAULT-RECOVERY-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of restart and graceful degradation scenarios for various component failures.
+        *   Verification that recovery actions meet FTTI requirements.
+        *   Ensuring recovery actions do not themselves introduce new hazards.
+        *   Defining clear policies for when to attempt restart vs. when to enter a safe/degraded state.
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/fault_recovery_supervisor/M3_S9_T5_Develop_Fault_Recovery_Supervisor_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.4.2 (Predictable Error Behavior), 2.4.4.
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-FAULT-RECOVERY-00001`.
+-   Fault recovery supervisors are essential for enhancing system availability and safety by automatically handling certain types of faults.
+
+**Dependencies:**
+-   Requires the Component Manager (`M3_S5_T2`) for restarting components.
+-   Requires mechanisms for fault notification (e.g., from component fault handlers `M3_S4_T6`, or Health Monitor `M3_S9_T2`).
+-   Requires kernel primitives for resource revocation if not handled by Component Manager.
+-   Requires service discovery (`M3_S5_T5`) if restarted services need to be re-integrated.
+-   Requires the Component Framework (`M3_S5`).
+
+Focus on creating robust and predictable fault recovery logic.
+Good luck, Jules!

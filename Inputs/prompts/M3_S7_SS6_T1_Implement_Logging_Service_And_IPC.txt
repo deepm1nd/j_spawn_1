@@ -1,0 +1,62 @@
+Subject: Implement User-Space Logging Service and IPC Interface for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.6. System Monitoring & Logging Service":
+"Task: Implement a user-space logging service with IPC interface for submitting log messages (with severity, buffer capability). (SoP 2.2.6, GRITOS-REQ-FNC-SVC-LOG-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the user-space Logging Service and its IPC interface.
+    *   This plan should detail:
+        *   **Logging Service Core Logic:**
+            *   How the service receives log messages via IPC.
+            *   Internal buffering mechanism for log messages.
+            *   Log message format (e.g., timestamp, component ID, severity level, actual message content). Timestamps would come from the Time Service (`M3_S7_SS5`).
+            *   Log storage/output:
+                *   Initial strategy: e.g., storing in a circular buffer in RAM, outputting to a serial console driver via IPC.
+                *   Future considerations: outputting to a file system, network logging.
+            *   Log filtering/prioritization based on severity level (optional for initial version).
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):**
+            *   Define methods like `LOG_METHOD_SUBMIT_LOG(log_buffer_cap, length, severity_level)`.
+            *   `log_buffer_cap`: Capability to shared memory containing the log message string.
+            *   `severity_level`: Enum (e.g., DEBUG, INFO, WARN, ERROR, CRITICAL).
+            *   Consider if the call is asynchronous (`gRiTOS_SendAsync`) or synchronous with a simple ack. SoP 2.2.6 suggests asynchronous or simple ack.
+        *   **Client Library (Optional):** A simple wrapper library for applications to easily submit log messages.
+        *   **Component Manifest:** Define the manifest for the Logging Service component.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/system_monitoring_logging/M3_S7_SS6_T1_Implement_Logging_Service_And_IPC_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Logging Service as a gRiTOS user-space component, including its IPC interface (server-side skeletons from IDL) and core logic, based on your sub-development plan.
+    *   Implement the client library stubs (from IDL) or a simple client wrapper if planned.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.6 (System Monitoring & Logging).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-LOG-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with a serial console driver for log output.
+        *   Log rotation, persistent storage (if logging to file system).
+        *   Log retrieval mechanisms for debugging.
+        *   Thorough testing of log submission from multiple components and various message rates.
+        *   Implementation of the Monitoring Service part (`M3_S7_SS6_T2`).
+    *   Save this document as `/plan/generated_subplans/user_space_services/system_monitoring_logging/M3_S7_SS6_T1_Implement_Logging_Service_And_IPC_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.6.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-LOG-00001`.
+-   A centralized logging service is essential for system diagnostics, debugging, and audit trails.
+
+**Dependencies:**
+-   Requires IDL and tooling (`M3_S5_T4`) for defining the IPC interface.
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`).
+-   Requires the Component Framework (`M3_S5`).
+-   Will use the Time Service (`M3_S7_SS5`) for timestamps.
+-   May interact with a console driver (`M3_S7_SS2_T2`) for output.
+
+Focus on a reliable and extensible logging mechanism.
+Good luck, Jules!

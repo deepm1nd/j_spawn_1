@@ -1,0 +1,61 @@
+Subject: Define Component Manifest Format for gRiTOS User-Space Components
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.5. Component Framework (User-Space)":
+"Task: Define component manifest format (executable, required capabilities, provided services, resources, config). (SoP 4.4, GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for defining the component manifest format.
+    *   This plan should:
+        *   Choose a suitable format for the manifest file (e.g., JSON, XML, YAML, or a custom plain text format like INI). Consider ease of parsing, human readability, and extensibility.
+        *   Define the structure and all required/optional fields within the manifest:
+            *   `executable`: Path to the component's binary within its package.
+            *   `name`: Human-readable name for the component.
+            *   `version`: Version of the component.
+            *   `required_capabilities` (or similar section):
+                *   List of capabilities the component needs.
+                *   For each, specify: type/interface name (e.g., "gritos.service.FileSystem", "gritos.hardware.IRQ"), how it's acquired (e.g., from parent, by name from service registry), and intended usage/rights needed.
+            *   `provided_services` (or similar section):
+                *   List of services/interfaces the component offers.
+                *   For each, specify: interface name/type, and how it's exposed (e.g., name to register with a service discovery mechanism).
+            *   `resource_quotas`:
+                *   Initial memory allocation (e.g., initial heap size, max memory).
+                *   CPU time parameters (e.g., priority, MCS budget/period if applicable).
+                *   Maximum number of threads, IPC channels, etc.
+            *   `configuration_data` (optional): Section for component-specific configuration parameters (key-value pairs or structured data).
+        *   Consider versioning for the manifest format itself.
+        *   Provide examples of manifest files for different types of components (e.g., a simple driver, a system service).
+    *   Save this plan as `/plan/generated_subplans/component_framework/M3_S5_T1_Define_Component_Manifest_Format_dev_plan.md`.
+
+2.  **Implement the Task (Specification Document):**
+    *   Based on your sub-development plan, create a formal specification document for the component manifest format. This document will serve as the reference for developers creating components and for the Component Manager service that parses these manifests.
+    *   Include clear definitions for all fields, their data types, whether they are mandatory or optional, and example usage.
+    *   This task is primarily about specification and documentation, not code implementation (parsing logic will be in `M3_S5_T2`).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.4 (User-Space Component Framework Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Development of the Component Manager service that will parse these manifests (`M3_S5_T2`).
+        *   Tooling to validate manifest files.
+        *   How manifests will be packaged with component binaries.
+    *   Save this document as `/plan/generated_subplans/component_framework/M3_S5_T1_Define_Component_Manifest_Format_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to the specification document.
+
+**Context & References:**
+-   **SoP Sections:** 4.4 (User-Space Component Framework Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+-   The component manifest is crucial for defining the identity, requirements, offerings, and resource needs of each user-space component, enabling modularity and controlled composition.
+
+**Dependencies:**
+-   This definition will be used by the Component Manager (`M3_S5_T2`) and by all component developers.
+-   Relates to the IDL definition (`M3_S5_T4`) for specifying interface names/types.
+
+Focus on creating a clear, comprehensive, and extensible manifest format.
+Good luck, Jules!

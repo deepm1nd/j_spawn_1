@@ -1,0 +1,55 @@
+Subject: Implement Scheduler Time Partitioning for Mixed-Criticality Systems in gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement support for time partitioning (scheduler budgets) for Mixed-Criticality Systems. (SoP 2.4.5, GRITOS-REQ-SAF-MCS-SUPPORT-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing time partitioning (CPU time budgets) in the scheduler to support Mixed-Criticality Systems (MCS).
+    *   This plan should:
+        *   Define how scheduling parameters like Period (P) and Budget (Q) are associated with threads or groups of threads (e.g., via a `gRiTOS_SchedulingContext` object as suggested in SoP 2.4.5, or directly on TCBs if simpler initially).
+        *   Detail how the scheduler will enforce these budgets:
+            *   Tracking execution time consumed by a thread/component within its period.
+            *   Preempting a thread/component if it exhausts its budget.
+            *   Replenishing budgets at the start of each new period.
+        *   Specify how these parameters are configured by a privileged component (e.g., via `SCHEDCTX_METHOD_SET_BUDGET` on a `SchedulingContext` object, invoked through `gRiTOS_KernelObject_Invoke`).
+        *   Consider interactions with the base priority scheduler (e.g., budget enforcement occurs alongside priority scheduling).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T6_Implement_Time_Partitioning_For_MCS_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the time partitioning logic within the scheduler based on your sub-development plan.
+    *   This involves:
+        *   Modifying scheduler data structures (TCBs or new SchedulingContext objects) to store budget parameters (P, Q, consumed time).
+        *   Integrating budget enforcement with the timer interrupt and scheduling decisions. When a thread runs, its execution time is tracked against its budget.
+        *   Ensuring that even if a high-priority thread exhausts its budget, it does not prevent lower-priority threads with available budget in different partitions from running (this is key for FFI).
+        *   Providing kernel mechanisms (e.g., methods on TCB or SchedulingContext objects) for privileged components to set and manage these budgets.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.5 (Mixed-Criticality System Support) and 4.1.3 (Scheduler Algorithm).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-MCS-SUPPORT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Rigorous testing of budget enforcement, especially scenarios involving multiple components with different budgets and priorities.
+        *   Analysis of temporal isolation achieved (Freedom From Interference - FFI).
+        *   Overhead introduced by budget tracking and enforcement.
+        *   Mechanisms for handling budget exhaustion (e.g., temporary deprioritization, specific error reporting).
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T6_Implement_Time_Partitioning_For_MCS_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.4.5 (Mixed-Criticality System Support), 3.5.1 (SIL targets, FFI), 4.1.3 (Scheduler Algorithm).
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-MCS-SUPPORT-00001`, `GRITOS-REQ-NFR-SAF-FFI-00001`.
+-   Time partitioning is a critical feature for ensuring Freedom From Interference in Mixed-Criticality Systems, a core safety requirement.
+
+**Dependencies:**
+-   This task directly extends the preemptive priority scheduler implemented in `M3_S2_T5_Implement_Preemptive_Scheduler.txt`.
+-   It requires kernel object method invocation (`M3_S2_T3`) for privileged components to configure budgets.
+-   Reliable timer interrupts (HAL task) are essential for tracking execution time and period boundaries.
+
+Focus on robust and verifiable enforcement of time budgets.
+Good luck, Jules!

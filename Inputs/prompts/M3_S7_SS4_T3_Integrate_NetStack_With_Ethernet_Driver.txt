@@ -1,0 +1,53 @@
+Subject: Integrate Networking Stack with User-Space Ethernet Driver in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.4. Networking Stack Service":
+"Task: Integrate with user-space Ethernet driver. (SoP 2.2.3)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for integrating the Networking Stack component with the user-space Ethernet Driver.
+    *   This plan should detail:
+        *   **Driver Discovery:** How the Networking Stack discovers and obtains the capability to communicate with the Ethernet driver component (e.g., via service discovery `M3_S5_T5`, or configured by Component Manager `M3_S5_T2`).
+        *   **Sending Packets:**
+            *   How the Networking Stack, after processing an outgoing packet down to the link layer (Ethernet frame), uses the Ethernet driver's IPC interface (e.g., `SendPacket(buffer_cap_with_frame)`) to transmit the frame.
+            *   Management of packet buffers (capabilities to `gRiTOS_MemoryObject`s) shared with the driver for transmission.
+        *   **Receiving Packets:**
+            *   How the Networking Stack registers a callback or uses a method (e.g., `RegisterRxCallback(notification_cap)` or `ReceivePacket(buffer_cap_for_frame)`) provided by the Ethernet driver to be notified of incoming frames or to receive them.
+            *   Processing of received raw frames from the driver.
+        *   **Error Handling:** How errors reported by the Ethernet driver (e.g., transmission failure, reception error) are handled by the Networking Stack.
+        *   **Link Status Changes:** How the Networking Stack is informed of and reacts to changes in network link status (e.g., link up/down) if the driver provides such notifications.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T3_Integrate_NetStack_With_Ethernet_Driver_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the logic within the Networking Stack component to interact with the user-space Ethernet Driver, based on your sub-development plan.
+    *   This involves the Networking Stack acting as a client to the Ethernet driver's IPC interface.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.3 (Networking Stack).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the end-to-end packet flow from an application using the Networking Stack, through the stack, to the Ethernet driver, and onto the wire (and vice-versa).
+        *   Performance testing of the Network Stack-Driver interface.
+        *   Support for multiple Ethernet interfaces if required.
+    *   Save this document as `/plan/generated_subplans/user_space_services/networking_stack/M3_S7_SS4_T3_Integrate_NetStack_With_Ethernet_Driver_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-NET-00001`.
+-   This integration is vital for the Networking Stack to actually send and receive packets over the network hardware.
+
+**Dependencies:**
+-   Requires a functional Networking Stack core (`M3_S7_SS4_T1`).
+-   Requires a functional user-space Ethernet Driver with a defined IPC interface (`M3_S7_SS2_T3`).
+-   Requires a service discovery mechanism (`M3_S5_T5`) or capability passing via Component Manager for the Networking Stack to find the Ethernet driver.
+-   Relies on kernel IPC (`M3_S3`) for communication.
+
+Focus on establishing a clear and efficient communication path between the networking stack and the hardware driver.
+Good luck, Jules!

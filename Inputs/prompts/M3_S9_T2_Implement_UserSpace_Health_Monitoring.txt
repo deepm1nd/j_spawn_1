@@ -1,0 +1,57 @@
+Subject: Design and Implement User-Space Health Monitoring Components for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Design and implement user-space Health Monitoring components that utilize kernel error reporting and heartbeat mechanisms. (SoP 2.4.3, GRITOS-REQ-SAF-ERROR-DETECTION-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for designing and implementing user-space Health Monitoring component(s).
+    *   This plan should detail:
+        *   **Scope of Monitoring:** What aspects of system health will be monitored (e.g., liveness of critical components, resource usage thresholds, kernel-reported critical errors).
+        *   **Mechanisms for Health Information Gathering:**
+            *   **Kernel Error Reporting:** How the Health Monitor receives or subscribes to critical error reports from the kernel (e.g., via a dedicated IPC interface or system log analysis if logs are reliable and timely).
+            *   **Heartbeat Mechanisms:**
+                *   Define a heartbeat protocol: Critical components periodically send heartbeat messages (e.g., via IPC) to the Health Monitor.
+                *   The Health Monitor tracks received heartbeats and detects missed heartbeats (timeouts).
+            *   **Kernel Health Primitives:** How the Health Monitor might use kernel-provided primitives like `TCB_METHOD_GET_HEALTH_STATUS` (SoP 2.4.3) if implemented, to query basic health of other TCBs.
+        *   **Health State Evaluation:** Logic within the Health Monitor to evaluate the collected information and determine the health status of monitored components or the overall system.
+        *   **Action on Unhealthy State:** Define actions the Health Monitor can take if an unhealthy state is detected (e.g., logging the event, notifying a higher-level system supervisor, triggering a safe state transition, requesting restart of a failed component via Component Manager or a fault recovery supervisor). The scope of actions taken by *this* monitor should be clearly defined versus actions taken by a dedicated fault recovery supervisor (`M3_S9_T5`).
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):** Define any IPC interface the Health Monitor itself might expose (e.g., for configuration, to report overall system health) or use to interact with other components for actions.
+        *   **Component Manifest:** Define the manifest for the Health Monitoring component(s).
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/health_monitoring/M3_S9_T2_Implement_UserSpace_Health_Monitoring_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Health Monitoring component(s) as gRiTOS user-space components based on your sub-development plan.
+    *   This component will be critical for detecting failures and contributing to the Fault Detection Time Interval (FDTI).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.3 (Error Detection Mechanisms).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with critical system components that need to be monitored.
+        *   Testing the Health Monitor's ability to correctly detect various fault scenarios (e.g., component crashes, missed heartbeats, kernel error reports).
+        *   Defining clear FDTI targets and verifying the Health Monitor can meet them.
+        *   Interaction with fault recovery supervisors (`M3_S9_T5`).
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/health_monitoring/M3_S9_T2_Implement_UserSpace_Health_Monitoring_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.4.2 (Predictable Error Behavior), 2.4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+-   Health monitoring is a key component of a functional safety strategy, enabling timely detection of and reaction to system faults.
+
+**Dependencies:**
+-   Requires kernel mechanisms for error reporting or health status queries (e.g., `TCB_METHOD_GET_HEALTH_STATUS` from `M3_S2_T3` or a system log `M3_S7_SS6_T1`).
+-   Requires IPC (`M3_S3`) for heartbeat messages and potentially for receiving notifications.
+-   Requires the Component Framework (`M3_S5`).
+-   May use the Time Service (`M3_S7_SS5`) for heartbeat timeouts.
+-   May use IDL (`M3_S5_T4`) for its own IPC interfaces or those of monitored components.
+
+Focus on creating a reliable and timely health monitoring capability.
+Good luck, Jules!

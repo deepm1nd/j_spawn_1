@@ -1,0 +1,59 @@
+Subject: Define Board Support Package (BSP) Structure for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.6. HAL & BSP (Hardware Abstraction Layer & Board Support Package)":
+"Task: Define BSP structure: device drivers, hardware configuration (Devicetree or similar), clock/pinmux config, memory layout. (SoP 3.7.2, 4.6, GRITOS-REQ-NFR-PORT-HALBSP-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (BSP Specification):**
+    *   Develop a detailed sub-development plan for defining the structure and conventions for Board Support Packages (BSPs) in gRiTOS.
+    *   This plan should specify:
+        *   **Overall Directory Structure:** How a BSP for a specific board will be organized (e.g., `src/bsp/<board_manufacturer>/<board_name>/`).
+        *   **Device Drivers:**
+            *   Location for board-specific user-space device driver implementations (which adhere to the gRiTOS user-space driver model from `M3_S7_T2_Develop_Generic_Driver_Model`).
+            *   How these drivers are registered or discovered by the system.
+        *   **Hardware Configuration Mechanism:**
+            *   Adoption or definition of a hardware description format (e.g., Devicetree is strongly suggested in SoP 4.6).
+            *   If Devicetree: specify conventions for gRiTOS-specific bindings (compatible strings, properties for interrupt mapping, resource assignment). How Devicetree blobs (DTBs) are compiled and made available to the SBL/Kernel.
+            *   If not Devicetree, define the alternative mechanism clearly.
+        *   **Board Initialization Code:**
+            *   Location for early board-specific initialization code that runs before or as part of kernel startup (if not fully covered by SBL or HAL). This might include clock tree setup, pin multiplexing, and basic power management IC (PMIC) configuration.
+            *   How this code interfaces with HAL or early kernel init.
+        *   **Memory Layout Definition:** How the BSP specifies the board's physical memory map (RAM size, device memory regions, reserved areas), to be used by SBL/Kernel for setting up memory management. This should align with the boot information structure (`M3_S1_T5`).
+        *   **Build System Integration:** How a BSP is selected and built as part of the overall gRiTOS build process (e.g., via Kconfig, CMake/Cargo features).
+        *   **Documentation Standards:** Required documentation for a BSP (e.g., hardware setup, peripheral mapping, supported features).
+    *   Save this plan as `/plan/generated_subplans/hal_bsp/M3_S6_T3_Define_BSP_Structure_dev_plan.md`.
+
+2.  **Implement the Task (Specification Document & Example Structure):**
+    *   Based on your sub-development plan, create a formal specification document for the gRiTOS BSP structure.
+    *   Create a template or example directory structure for a hypothetical BSP to illustrate the defined conventions.
+    *   If Devicetree is chosen, start defining initial common bindings.
+    *   This task is primarily about specification and setting standards for BSP development.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 3.7.2 (HAL/BSP Strategy) and 4.6 (HAL/BSP Strategy).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-PORT-HALBSP-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of Devicetree parsing logic (`M3_S6_T4`).
+        *   Development of the first concrete BSP for the reference hardware platform (`M3_S6_T5`).
+        *   Refinement of the BSP structure based on experience from creating the first BSP.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S6_T3_Define_BSP_Structure_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 3.7.2, 4.6.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PORT-HALBSP-00001`, `GRITOS-REQ-ARC-PORT-HALBSPSTRATEGY-00001`.
+-   A clear BSP structure is essential for supporting multiple hardware platforms efficiently and consistently.
+
+**Dependencies:**
+-   Relies on the HAL API definition (`M3_S6_T1`) as BSP drivers will operate above or alongside HAL.
+-   The hardware configuration part (e.g., Devicetree) will be consumed by kernel and drivers to configure themselves.
+-   The memory layout definition feeds into the SBL (`M3_S1_T5`) and kernel memory initialization.
+
+Focus on creating a flexible yet standardized structure for board-specific support.
+Good luck, Jules!

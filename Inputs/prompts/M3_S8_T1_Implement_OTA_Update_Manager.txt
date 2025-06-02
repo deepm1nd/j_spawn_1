@@ -1,0 +1,62 @@
+Subject: Implement Secure OTA Update Manager Component for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.8. Security Services":
+"Task: Implement Secure Over-the-Air (OTA) Update Manager component, including image verification, A/B partition management, and communication with SBL (status block). (SoP 2.3.6, GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001, GRITOS-REQ-SEC-UPDATE-OTA-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the user-space Secure Over-the-Air (OTA) Update Manager component.
+    *   This plan should detail:
+        *   **Update Package Handling:**
+            *   Receiving new system image packages (e.g., downloaded from a server, loaded from USB). Define how the package is acquired.
+            *   Parsing the update package format (defined in SoP 8.1, including manifest, images, signature).
+        *   **Image Verification:**
+            *   Cryptographically verifying the authenticity and integrity of the downloaded package and its constituent images (using embedded signatures, hashes from manifest). This requires access to trusted public keys.
+        *   **A/B Partition Management:**
+            *   Determining the inactive partition.
+            *   Writing the verified images to the inactive partition(s). This requires raw block write access to the partition, possibly via a special interface to a storage driver or a dedicated partition manager service.
+        *   **Communication with SBL (Status Block):**
+            *   Reading and writing the `gRiTOS_UpdateStatusBlock_t` (defined in SoP 2.3.6) to coordinate with the SBL. This includes:
+                *   Indicating a new valid image is ready in the inactive partition.
+                *   Requesting a 'trial boot' into the new image.
+                *   After a successful trial boot (confirmed by system health checks or a dedicated confirmation mechanism), confirming the update to the SBL to make the new partition permanent.
+        *   **Rollback Coordination:** How the Update Manager detects a failed update (e.g., if the system rolls back and reboots into the old version, the Update Manager should recognize this) and reports the failure.
+        *   **IPC Interface (if any):** Define any IPC interface the Update Manager might expose (e.g., to trigger an update check, report status).
+        *   **Component Manifest:** Define the manifest for the OTA Update Manager.
+    *   Save this plan as `/plan/generated_subplans/security_services/ota_update_manager/M3_S8_T1_Implement_OTA_Update_Manager_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the OTA Update Manager as a gRiTOS user-space component based on your sub-development plan.
+    *   This is a security-critical component requiring careful implementation.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.3.6 (Secure Updates) and 8.1 (Patching and Updates - package format).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001` and `GRITOS-REQ-SEC-UPDATE-OTA-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Robust testing of the entire OTA update flow: package download (simulated), verification, A/B switching, trial boot, confirmation, and rollback scenarios.
+        *   Integration with system health monitoring to confirm successful updates.
+        *   Security of the update package source (e.g., secure server connection).
+        *   Management of public keys used for package verification.
+    *   Save this document as `/plan/generated_subplans/security_services/ota_update_manager/M3_S8_T1_Implement_OTA_Update_Manager_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.3 (Key Differentiators - OTA), 2.3.6, 4.5 (SBL A/B support), 8.1.
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001`, `GRITOS-REQ-SEC-UPDATE-OTA-00001`, `GRITOS-REQ-NFR-MAINT-ROLLBACK-00001`.
+-   The OTA Update Manager is essential for long-term system maintainability and security in the field.
+
+**Dependencies:**
+-   Requires SBL support for A/B partitioning and status block handling (`M3_S1_T4`).
+-   Requires cryptographic libraries for image verification.
+-   Requires access to a non-volatile memory region for the status block, shared with the SBL.
+-   May require privileged access to write to raw disk partitions.
+-   Requires the Component Framework (`M3_S5`).
+
+Focus on a secure, atomic, and reliable update mechanism.
+Good luck, Jules!

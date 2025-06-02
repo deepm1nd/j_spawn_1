@@ -1,0 +1,57 @@
+Subject: Implement gRiTOS_MemoryObject (VMO-like) for Physical Memory Regions in gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement `gRiTOS_MemoryObject` (VMO-like) for representing physical memory regions. (SoP 2.1.2, 4.1.2, 4.3, GRITOS-REQ-FNC-KERNEL-MEM-00002)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the `gRiTOS_MemoryObject` kernel object (analogous to Zircon's VMOs).
+    *   This plan should:
+        *   Define the structure of the `gRiTOS_MemoryObject` (as per `M3_S2_T2` and SoP 2.1.2):
+            *   Size (total size of the memory region, multiple of page size).
+            *   Information about the physical pages backing this object (e.g., a list or array of physical page frame numbers).
+            *   Reference count (for managing lifecycle when shared).
+            *   Caching policy attributes (e.g., write-back, write-through, uncached), if configurable.
+        *   Detail how `gRiTOS_MemoryObject` instances are created, typically by retyping `UntypedMemory` (as per `M3_S4_T2`) by a privileged Memory Manager component.
+        *   Specify any methods that can be invoked on a `gRiTOS_MemoryObject` capability via `gRiTOS_KernelObject_Invoke` (e.g., to set caching policy, to get size, potentially to create views/slices if advanced features are planned, though not required by initial SoP).
+        *   Describe how the reference count is managed (incremented when a new capability to it is created or it's mapped, decremented when a capability is deleted or it's unmapped).
+        *   When the reference count drops to zero, how the physical pages backing the `MemoryObject` are reclaimed (potentially returned to the parent `UntypedMemory` region or a global free page pool if such a concept exists for user-space managed memory).
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T3_Implement_MemoryObject_VMO_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `gRiTOS_MemoryObject` structure and its management logic based on your sub-development plan.
+    *   This includes:
+        *   Functions for creating `gRiTOS_MemoryObject` instances from `UntypedMemory`.
+        *   Implementing reference counting mechanisms.
+        *   Implementing any defined methods for `gRiTOS_MemoryObject` capabilities.
+        *   Logic for reclaiming physical pages when a `gRiTOS_MemoryObject` is no longer in use.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.2 (Memory Management), 4.1.2 (Memory Object), 4.3 (Memory Management Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00002`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with the `AddressSpace_MapObject` method (`M3_S4_T4`) which will map these `MemoryObject`s.
+        *   Thorough testing of `MemoryObject` creation, deletion, reference counting, and page reclamation.
+        *   Consideration for different types of memory backing (e.g., contiguous physical memory for DMA).
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T3_Implement_MemoryObject_VMO_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2, 4.1.2, 4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00002`, `GRITOS-REQ-ARC-MEM-CAPABILITYBASEDMODEL-00001`.
+-   `gRiTOS_MemoryObject` instances are the primary entities representing physical memory that can be mapped into process address spaces, crucial for providing memory to user-space components and for shared memory.
+
+**Dependencies:**
+-   Requires `MemoryObject` structure definition from `M3_S2_T2`.
+-   Requires `UntypedMemory` and its `Retype` method for creation (`M3_S4_T2`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`) for any methods on `MemoryObject` capabilities.
+-   Requires the capability system for managing `MemoryObject` capabilities (`M3_S2_T11`).
+
+Focus on correct lifecycle management, especially reference counting and page reclamation.
+Good luck, Jules!

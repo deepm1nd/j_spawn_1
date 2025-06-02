@@ -1,0 +1,60 @@
+Subject: Define Hardware Abstraction Layer (HAL) API for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.6. HAL & BSP (Hardware Abstraction Layer & Board Support Package)":
+"Task: Define HAL API for CPU architecture specifics (context switching, MMU/MPU control, atomics, clocks), core peripherals (timer, interrupt controller, console), and boot interface. (SoP 3.7.2, 4.6, GRITOS-REQ-NFR-PORT-HALBSP-00001, GRITOS-REQ-ARC-PORT-HALBSPSTRATEGY-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (API Specification):**
+    *   Develop a detailed sub-development plan focused on defining the HAL API. This is primarily a specification task.
+    *   This plan should:
+        *   Identify all functions to be included in the HAL API, grouped by category:
+            *   **CPU Architecture Specifics:**
+                *   Context switching: `hal_context_save()`, `hal_context_restore()`, `hal_context_switch_to(next_tcb_kernel_stack)`.
+                *   MMU/MPU control: `hal_mmu_enable()`, `hal_mmu_disable()`, `hal_mmu_load_page_table_base(ptbr)`, `hal_mmu_map_page(vspace, paddr, vaddr, size, perms, cache_policy)`, `hal_mmu_unmap_page(vspace, vaddr, size)`, `hal_mmu_tlb_flush_entry(vaddr)`, `hal_mmu_tlb_flush_all()`. (Permissions and cache policy enums also need definition).
+                *   Atomics: `hal_atomic_load()`, `hal_atomic_store()`, `hal_atomic_cas()`, `hal_atomic_add()`, etc. (Specify memory ordering constraints).
+                *   CPU clock control: `hal_cpu_clock_get_freq()`, `hal_cpu_set_idle_state()`.
+                *   CPU identification: `hal_cpu_get_id()`, `hal_cpu_get_num_cores()`.
+            *   **Core Peripherals:**
+                *   System timer: `hal_timer_init(freq, callback)`, `hal_timer_oneshot_arm(ticks)`, `hal_timer_periodic_arm(ticks)`, `hal_timer_stop()`, `hal_timer_get_current_ticks()`.
+                *   Interrupt controller: `hal_irq_enable(irq_num)`, `hal_irq_disable(irq_num)`, `hal_irq_acknowledge(irq_num)`, `hal_irq_set_priority(irq_num, priority)`, `hal_irq_register_handler(irq_num, handler_func_ptr)` (for kernel's first-level handler).
+                *   Basic serial console: `hal_console_init()`, `hal_console_putchar(char)`, `hal_console_getchar()`.
+            *   **Boot Interface:**
+                *   `hal_get_boot_info()`: To retrieve the boot information structure passed by SBL.
+                *   `hal_kernel_entry_setup()`: Any final arch-specific setup before kernel main logic.
+        *   For each function, define its exact C signature (parameters, return types, error codes).
+        *   Specify pre-conditions, post-conditions, and expected behavior for each API function.
+        *   Consider versioning for the HAL API itself.
+    *   Save this plan as `/plan/generated_subplans/hal_bsp/M3_S6_T1_Define_HAL_API_dev_plan.md`.
+
+2.  **Implement the Task (API Header Files & Documentation):**
+    *   Based on your sub-development plan, create the C header files (e.g., `hal_cpu.h`, `hal_mmu.h`, `hal_irq.h`, `hal_timer.h`, `hal_console.h`, `hal_boot.h`) that define the HAL API.
+    *   Write detailed documentation (e.g., Doxygen comments) for each API function, explaining its purpose, parameters, return values, and usage.
+    *   This task is primarily about creating the interface specification. The actual implementation of these HAL functions for a specific architecture will be done in `M3_S6_T2`.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 3.7.2 (HAL/BSP Strategy) and 4.6 (HAL/BSP Strategy).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-PORT-HALBSP-00001` and `GRITOS-REQ-ARC-PORT-HALBSPSTRATEGY-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of this HAL API for the primary reference architecture (`M3_S6_T2`).
+        *   Review of the API by kernel developers who will be its consumers.
+        *   Development of a HAL test suite to verify implementations.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S6_T1_Define_HAL_API_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to API definition.
+
+**Context & References:**
+-   **SoP Sections:** 3.7.2, 4.6.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PORT-HALBSP-00001`, `GRITOS-REQ-ARC-PORT-HALBSPSTRATEGY-00001`, `GRITOS-REQ-ARC-PRINCIPLE-PORTABILITY-00001`.
+-   A well-defined HAL API is crucial for isolating the kernel from hardware specifics, enabling portability and easier maintenance.
+
+**Dependencies:**
+-   This definition work should precede or happen in parallel with the initial implementation for the reference architecture (`M3_S6_T2`).
+-   The definition of the boot information structure (`M3_S1_T5`) is needed for `hal_get_boot_info()`.
+
+Focus on creating a minimal, stable, and clear API that meets the kernel's needs.
+Good luck, Jules!

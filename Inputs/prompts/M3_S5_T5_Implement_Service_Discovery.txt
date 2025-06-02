@@ -1,0 +1,57 @@
+Subject: Implement Service Discovery Mechanisms for gRiTOS Components
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.5. Component Framework (User-Space)":
+"Task: Implement mechanisms for service discovery between components (e.g., via a naming service or capability passing). (SoP 4.4)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing service discovery mechanisms.
+    *   This plan should:
+        *   Evaluate different approaches for service discovery:
+            *   **Naming Service:** A dedicated user-space service where components can register their provided services (e.g., by a unique string name) and other components can query for these services to obtain an `Endpoint` capability.
+            *   **Capability Passing:** Components obtain capabilities for services they depend on directly from their parent component (e.g., Component Manager or Root Resource Manager) during instantiation, as specified in their manifest.
+            *   A hybrid approach might also be considered.
+        *   If a Naming Service is chosen:
+            *   Define its IPC interface (e.g., `RegisterService(name, endpoint_cap)`, `LookupService(name) -> endpoint_cap`).
+            *   Specify its data structures for storing service registrations.
+            *   Consider security: who is allowed to register which service names?
+        *   If capability passing is the primary method (as implied by manifest `required_capabilities`):
+            *   Ensure the Component Manager (`M3_S5_T2`) has robust logic to resolve these capability needs, potentially by interacting with a central registry or by having a system-wide configuration of service providers.
+        *   Detail how service interfaces (defined via IDL in `M3_S5_T4`) relate to discovered service endpoints.
+    *   Save this plan as `/plan/generated_subplans/component_framework/M3_S5_T5_Implement_Service_Discovery_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the chosen service discovery mechanism(s) based on your sub-development plan.
+    *   If a Naming Service is implemented, it will be a gRiTOS user-space component.
+    *   If capability passing is primary, enhance the Component Manager and related infrastructure to support this robustly. This includes ensuring that when a component starts, it receives the necessary capabilities to connect to services it depends on.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.4 (User-Space Component Framework Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the service discovery mechanism thoroughly (registration, lookup, handling of missing services).
+        *   Integration with the IDL and generated stubs (client stubs might use the discovery mechanism to find servers).
+        *   Security considerations: ensuring components can only discover/access services they are authorized for.
+        *   Scalability if a Naming Service is used in a system with many services.
+    *   Save this document as `/plan/generated_subplans/component_framework/M3_S5_T5_Implement_Service_Discovery_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.5 (Root Resource Manager might provide basic service discovery), 4.4 (Component Framework).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+-   Service discovery allows components to find and connect to the interfaces provided by other components, enabling a loosely coupled but functional system.
+
+**Dependencies:**
+-   Requires a functional IPC subsystem (`M3_S3`) for components to communicate with a Naming Service or for the Component Manager to pass capabilities.
+-   Relies on the definition of component manifests (`M3_S5_T1`) which may declare service dependencies.
+-   Interacts with the Component Manager (`M3_S5_T2`).
+-   Uses `Endpoint` capabilities (`M3_S2_T2`, `M3_S3_T6`) as the primary handles to services.
+
+Focus on a secure and reliable mechanism for components to establish communication channels.
+Good luck, Jules!

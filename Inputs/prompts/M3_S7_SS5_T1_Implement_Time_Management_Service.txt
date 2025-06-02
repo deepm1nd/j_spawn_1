@@ -1,0 +1,57 @@
+Subject: Implement User-Space Time Management Service for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.5. Time Services":
+"Task: Implement a user-space time management service. (SoP 2.2.4, GRITOS-REQ-FNC-SVC-TIME-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the user-space Time Management Service.
+    *   This plan should detail:
+        *   **Time Sources:** How the service interacts with hardware timers. This might involve:
+            *   Using a HAL-provided system timer (`hal_timer_get_current_ticks()`, `hal_timer_init()`) as a source for monotonic time.
+            *   Interacting with a Real-Time Clock (RTC) driver (if available) for wall-clock time (time of day).
+        *   **Timekeeping Logic:**
+            *   Maintaining current system time (monotonic, potentially wall-clock if RTC exists).
+            *   Converting hardware ticks to standard time units (seconds, nanoseconds).
+        *   **Timer Management:**
+            *   Data structures for managing active one-shot and periodic timers requested by other components (e.g., a sorted list or priority queue of pending timers).
+            *   Logic for processing timer expirations: when the underlying hardware timer signals an event (or during periodic checks), the Time Service identifies expired software timers and notifies the requesting components.
+            *   Notification mechanism: Using `gRiTOS_NotificationObject` capabilities (provided by clients when setting timers) to signal timer expiry, sending the specified `event_id`.
+        *   **IPC Interface Implementation:** The server-side implementation for the IPC interface defined in `M3_S7_SS5_T2`.
+        *   **Component Manifest:** Define the manifest for the Time Management Service component.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T1_Implement_Time_Management_Service_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Time Management Service as a gRiTOS user-space component based on your sub-development plan.
+    *   This service will interact with HAL timer functions or user-space RTC drivers and expose time/timer services to other components via IPC.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.4 (Time Services).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-TIME-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the accuracy and precision of time services.
+        *   Testing timer functionality (one-shot, periodic, cancellation) under various loads.
+        *   Support for time synchronization protocols (e.g., NTP client) if needed in the future.
+        *   Handling of time adjustments (e.g., due to synchronization or manual setting of wall-clock time) and its impact on active timers.
+    *   Save this document as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T1_Implement_Time_Management_Service_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.4.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-TIME-00001`.
+-   Accurate and reliable time services are fundamental for many system operations, including scheduling, logging, and real-time event management.
+
+**Dependencies:**
+-   Requires the IPC interfaces for time services to be defined (`M3_S7_SS5_T2`), ideally using IDL (`M3_S5_T4`). This task implements the server side.
+-   Requires HAL timer functions (`M3_S6_T1`, `M3_S6_T2`) or a user-space RTC driver.
+-   Requires kernel IPC (`M3_S3`) and `gRiTOS_NotificationObject` functionality (`M3_S3_T2`, `M3_S3_T7`).
+-   Requires the Component Framework (`M3_S5`).
+
+Focus on providing accurate time and reliable timer mechanisms.
+Good luck, Jules!

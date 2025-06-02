@@ -1,0 +1,64 @@
+Subject: Implement User-Space Secure Storage Service for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.8. Security Services":
+"Task: Implement user-space Secure Storage service for confidential and integrity-protected data, potentially using HRoT. (SoP 2.2.7, GRITOS-REQ-FNC-SVC-SSTORE-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the user-space Secure Storage service.
+    *   This plan should detail:
+        *   **Storage Objects:** How data is organized (e.g., as named objects or "blobs" of data).
+        *   **Confidentiality:**
+            *   Encryption algorithms to be used (e.g., AES-GCM for authenticated encryption).
+            *   Key management: How encryption keys are generated, protected, and used. This is a critical part and should ideally leverage the HRoT driver/service (`M3_S8_T2`) for deriving keys, wrapping/unwrapping keys, or performing cryptographic operations with HRoT-protected keys.
+        *   **Integrity Protection:**
+            *   Mechanisms to detect tampering (e.g., using MACs like HMAC or AEAD modes like AES-GCM).
+            *   How integrity checks are performed during data read operations.
+        *   **Underlying Storage:** How the Secure Storage service interacts with a standard storage driver (e.g., via File System service `M3_S7_SS3` to store encrypted objects as files, or directly with a block storage driver `M3_S7_SS2_T3` if managing its own raw partition).
+        *   **IPC Interface (IDL Definition - `M3_S5_T4`):** Define methods like (from SoP 2.2.7):
+            *   `SSTORE_METHOD_CREATE_OBJECT(size, flags) -> (error_code, object_id_cap, object_handle_cap)`
+            *   `SSTORE_METHOD_OPEN_OBJECT(object_id_cap, flags) -> (error_code, object_handle_cap)`
+            *   `SSTORE_METHOD_READ(object_handle_cap, offset, length, buffer_cap) -> error_code`
+            *   `SSTORE_METHOD_WRITE(object_handle_cap, offset, length, buffer_cap) -> error_code`
+            *   `SSTORE_METHOD_CLOSE_OBJECT(object_handle_cap) -> error_code`
+            *   `SSTORE_METHOD_DELETE_OBJECT(object_id_cap) -> error_code`
+            *   `object_id_cap` and `object_handle_cap` would be capabilities managed by this service.
+        *   **Component Manifest:** Define the manifest for the Secure Storage service.
+    *   Save this plan as `/plan/generated_subplans/security_services/secure_storage_service/M3_S8_T3_Implement_Secure_Storage_Service_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Secure Storage service as a gRiTOS user-space component, including its IPC interface (server-side from IDL) and core logic, based on your sub-development plan.
+    *   This service will handle encryption/decryption and integrity checks for data it manages.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.2.7 (Secure Storage) and 2.3.2 (HRoT Integration for key management).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-SSTORE-00001` and `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of all Secure Storage operations, including various data sizes, error conditions, and security properties (confidentiality, integrity).
+        *   Integration with the HRoT driver for key management.
+        *   Performance analysis, especially the overhead of cryptographic operations.
+        *   Defining policies for key rotation and data migration if keys are updated.
+    *   Save this document as `/plan/generated_subplans/security_services/secure_storage_service/M3_S8_T3_Implement_Secure_Storage_Service_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.7, 2.3.2.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-SSTORE-00001`, `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`.
+-   This service provides a crucial security function for protecting sensitive data at rest.
+
+**Dependencies:**
+-   Requires IDL and tooling (`M3_S5_T4`) for the IPC interface.
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`).
+-   Requires the Component Framework (`M3_S5`).
+-   Strongly depends on an HRoT driver/service (`M3_S8_T2`) for secure key management and cryptographic operations.
+-   Requires an underlying storage mechanism (e.g., File System service `M3_S7_SS3` or a block storage driver `M3_S7_SS2_T3`).
+-   Requires cryptographic libraries.
+
+Focus on robust cryptographic implementation and secure key handling.
+Good luck, Jules!

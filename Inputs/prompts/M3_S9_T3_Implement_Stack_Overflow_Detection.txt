@@ -1,0 +1,55 @@
+Subject: Implement Stack Overflow Detection Support in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Implement stack overflow detection support (e.g., guard pages if feasible, compiler options). (SoP 2.4.3)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing stack overflow detection mechanisms.
+    *   This plan should evaluate and detail strategies for:
+        *   **Guard Pages:**
+            *   Feasibility: Assess if the MMU/MPU hardware and kernel memory management (`M3_S4_T1`, `M3_S4_T4`) can support creating unmapped (guard) pages at the end of each thread's stack.
+            *   Implementation: If feasible, detail how the kernel (when creating a thread stack or a process) would set up these guard pages. An access to a guard page would cause a memory fault, which the kernel's memory fault handler (`M3_S4_T6`) would then identify as a potential stack overflow.
+            *   Reporting: How a stack overflow detected via a guard page fault is reported (e.g., specific exception type in the fault IPC message).
+        *   **Compiler Options:**
+            *   Research and identify compiler options (e.g., `-fstack-protector`, `-fstack-clash-protection` in GCC/Clang) that can help detect stack overflows by inserting canaries or checking stack pointer bounds.
+            *   Plan for enabling these options in the build system for kernel and user-space components.
+            *   How violations detected by compiler-inserted checks are handled (e.g., they might trigger a specific panic or abort sequence).
+        *   **Stack Usage Watermarking (Optional):**
+            *   Consider if a mechanism to fill stacks with a known pattern during thread creation and periodically check stack pointer depth or pattern corruption could be useful for debugging or near-overflow detection (though this is less about hard detection).
+        *   **Combination of Techniques:** Recommend a combination of these techniques if appropriate.
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/M3_S9_T3_Implement_Stack_Overflow_Detection_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the chosen stack overflow detection mechanisms based on your sub-development plan.
+    *   If guard pages are implemented, this involves modifying kernel memory management code for thread/process stack setup and enhancing the memory fault handler to recognize guard page violations.
+    *   If compiler options are used, update the build system configurations.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.3 (Error Detection Mechanisms).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of stack overflow detection mechanisms (e.g., by intentionally causing stack overflows in test components).
+        *   How user-space components or debuggers are informed about stack overflows.
+        *   The performance impact of compiler-based checks.
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/M3_S9_T3_Implement_Stack_Overflow_Detection_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-ERROR-DETECTION-00001`.
+-   Stack overflows are a common source of software faults and can lead to crashes or security vulnerabilities. Detecting them is an important safety measure.
+
+**Dependencies:**
+-   Guard page implementation depends on kernel memory management (`M3_S4_T1`, `M3_S4_T4`) and the memory fault handler (`M3_S4_T6`).
+-   Compiler options depend on the chosen toolchain and build system configuration.
+-   Relates to TCB/process setup where stack sizes are defined.
+
+Focus on providing robust and timely detection of stack overflow conditions.
+Good luck, Jules!

@@ -1,0 +1,44 @@
+Subject: Implement RBL/PBL Verification Logic for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Design and implement ROM Bootloader (RBL) / Primary Bootloader (PBL) verification logic. (SoP 2.3.1, GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the RBL/PBL verification logic.
+    *   This plan should detail the steps for designing the verification mechanism, selecting cryptographic primitives, and the implementation strategy.
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T1_Implement_RBL_PBL_Verification_Logic_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the RBL/PBL verification logic based on your sub-development plan.
+    *   This typically involves:
+        *   Assuming the RBL/PBL is immutable and part of the hardware root of trust (HRoT).
+        *   Defining how the RBL/PBL locates the Secondary Bootloader (SBL).
+        *   Implementing the cryptographic signature verification of the SBL image. This includes hashing the SBL image and verifying its signature against a public key securely stored/accessible by the RBL/PBL (e.g., in eFuses or OTP memory).
+        *   Defining behavior on successful verification (load SBL, transfer execution) and failed verification (error state, recovery mode).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.1 (Secure Boot Chain) and 2.3.2 (HRoT Integration).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+    *   Code for this task will likely be low-level, potentially in C or assembly, or a language suitable for bootloader development as determined by the project's toolchain choices for this stage.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, enhancements, optimizations, and improvements for the RBL/PBL verification logic.
+    *   Focus on aspects like key management, algorithm agility, and potential attack vectors.
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T1_Implement_RBL_PBL_Verification_Logic_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4 (Architectural Foundations), 2.3.1 (Secure Boot Chain), 2.3.2 (HRoT Integration), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`, `GRITOS-REQ-SEC-HROT-INTEGRATION-00001`.
+-   The RBL is the first stage of boot, and its integrity is paramount. It forms the ultimate root of trust for the SBL.
+
+**Dependencies:**
+-   While this is an early task, the choice of cryptographic algorithms should align with those planned for later stages (SBL verifying kernel, OTA updates, etc., as per SoP 2.3.1, 2.3.6). Refer to `GRITOS-REQ-NFR-SEC-CRYPTOCOMPLIANCE-00001`.
+
+Ensure your implementation provides a solid foundation for the secure boot process.
+Good luck, Jules!

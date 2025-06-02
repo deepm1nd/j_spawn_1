@@ -1,0 +1,54 @@
+Subject: Implement SBL/Kernel Anti-Rollback Protection for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Implement anti-rollback protection for SBL and Kernel. (SoP 2.3.1, GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing anti-rollback protection for the SBL and Kernel images.
+    *   This plan should:
+        *   Define the mechanism for version tracking (e.g., monotonic counters, version numbers stored in secure non-volatile memory like eFuses, RPMB, or a trusted NVM area).
+        *   Detail how the SBL checks the version of the SBL image (if SBL updates are supported and this check is done by a prior stage like RBL, or if SBL checks its own upgrade version against a stored minimum).
+        *   Detail how the SBL checks the version of the Kernel image against a stored minimum required version before attempting to verify or boot it.
+        *   Specify how and when the stored minimum versions are updated (e.g., by the Update Manager after a successful and confirmed update).
+        *   Address the security of the version storage mechanism (it must be non-reversible or tamper-evident).
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T6_Implement_Anti_Rollback_Protection_dev_plan.md`.
+
+2.  **Implement the Task (SBL Role):**
+    *   Implement the SBL's role in anti-rollback protection based on your sub-development plan.
+    *   This involves:
+        *   During SBL execution, reading the current version of the kernel image to be loaded.
+        *   Reading the minimum acceptable kernel version from the secure non-volatile storage.
+        *   Comparing the kernel image's version with the minimum required version. If the image's version is older, the SBL **MUST NOT** boot this image and should enter an error state or defined recovery procedure.
+        *   If SBL updates are supported and verified by a prior stage (e.g. RBL), this task might also include the SBL checking its own version if the RBL doesn't fully handle SBL anti-rollback.
+        *   Coordinating with the OTA update mechanism (e.g., the Update Manager would be responsible for updating the minimum acceptable version in secure storage after a new version is confirmed).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.1 (Secure Boot Chain, Cybersecurity Consideration on anti-rollback) and 2.3.6 (Secure Updates).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   The specific implementation details for the user-space Update Manager to securely update the minimum version numbers.
+        *   Testing procedures for anti-rollback, including attempting to load older versions.
+        *   Recovery mechanisms if version enforcement fails or causes issues.
+        *   Implications for key revocation and versioning strategies.
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T6_Implement_Anti_Rollback_Protection_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.1 (Secure Boot Chain), 2.3.6 (Secure Updates), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+-   Anti-rollback protection is critical to prevent downgrading the system to versions with known vulnerabilities.
+
+**Dependencies:**
+-   This task relies on a functional SBL (`M3_S1_T2`) and kernel verification (`M3_S1_T3`).
+-   It is closely tied to the A/B update logic (`M3_S1_T4`) and the user-space Update Manager (Module 3.8), which will be responsible for updating the version information in secure storage.
+-   Access to secure non-volatile storage (potentially via HRoT integration - `M3_S1_T7`) is likely required.
+
+Ensure the anti-rollback mechanism is robust and cannot be easily bypassed.
+Good luck, Jules!

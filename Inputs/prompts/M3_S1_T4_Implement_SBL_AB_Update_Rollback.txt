@@ -1,0 +1,50 @@
+Subject: Implement SBL A/B Partition Update and Rollback Logic for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Implement A/B partition update logic in SBL, including rollback capabilities. (SoP 2.3.6, GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing A/B partition update and rollback logic within the SBL.
+    *   This plan should detail:
+        *   The structure and management of the boot status block (e.g., `gRiTOS_UpdateStatusBlock_t` from SoP 2.3.6) used for communication between the SBL and the user-space Update Manager. This includes defining fields for current boot partition, update target partition, attempt status, boot attempts left, image versions, and checksum.
+        *   Logic for selecting the boot partition based on the status block (e.g., normal boot, trial boot).
+        *   Mechanism for the SBL to detect a failed boot attempt (e.g., lack of confirmation from Update Manager after a trial boot, watchdog timeout not serviced by a newly booted system).
+        *   The rollback procedure: how the SBL reverts to the previously known-good partition by updating the status block.
+        *   Interaction with the kernel verification step (i.e., an image must be verified before attempting to boot).
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T4_Implement_SBL_AB_Update_Rollback_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the SBL A/B update and rollback logic based on your sub-development plan.
+    *   This involves:
+        *   Reading and interpreting the boot status block at SBL startup.
+        *   Selecting the appropriate partition (A or B) for kernel loading based on the status flags.
+        *   Before booting the selected partition, ensuring it passes cryptographic verification (as per `M3_S1_T3`).
+        *   Implementing logic to manage boot attempts for trial boots (e.g., decrementing `boot_attempts_left` in the status block).
+        *   Implementing the automatic rollback mechanism: if a trial boot is deemed unsuccessful (e.g., after a certain number of attempts or if a "revert" status is explicitly set), the SBL updates the status block to make the previous partition active and reboots.
+        *   Updating the status block checksum after any modification by the SBL.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.3.6 (Secure Updates), 4.5 (Bootloader Design Specification).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001` and `GRITOS-REQ-NFR-MAINT-ROLLBACK-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including robust testing of the update and rollback scenarios, interactions with the user-space Update Manager, and potential security considerations for the status block itself (e.g., preventing malicious manipulation if stored in insecure NVM).
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T4_Implement_SBL_AB_Update_Rollback_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.1 (Secure Boot Chain), 2.3.6 (Secure Updates), 4.5 (Bootloader Design Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-UPDATE-SECUREMECHANISM-00001`, `GRITOS-REQ-SEC-UPDATE-OTA-00001`, `GRITOS-REQ-NFR-MAINT-ROLLBACK-00001`.
+-   This functionality is critical for reliable and safe Over-the-Air (OTA) updates.
+
+**Dependencies:**
+-   This task builds upon `M3_S1_T2_Develop_SBL_With_HW_Init.txt` (functional SBL) and `M3_S1_T3_Implement_SBL_Kernel_Verification.txt` (kernel verification logic).
+-   It will closely interact with the yet-to-be-developed user-space Update Manager component (specified in Module 3.8 Security Services).
+
+Ensure the A/B update and rollback logic is atomic and resilient to unexpected power loss where feasible.
+Good luck, Jules!

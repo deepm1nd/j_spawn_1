@@ -1,0 +1,54 @@
+Subject: Implement Process Management for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement process management: creation from UntypedMemory, configuration (associating root CNode, VSpace), starting initial thread. Process states (`PS_INACTIVE`, `PS_ACTIVE`, `PS_TERMINATING`). (SoP 2.1.1, GRITOS-REQ-FNC-KERNEL-PROCESS-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing process management.
+    *   This plan should detail:
+        *   **Process Object Definition (if distinct from TCB for the initial thread, clarify relationship):** SoP 2.1.1 mentions "Process object". Clarify if this is a separate kernel object or if a process is primarily represented by its initial TCB, AddressSpace, and root CNode. For this task, assume a "Process" can be conceptualized by these associated objects.
+        *   **Process Creation (`KOBJ_METHOD_RETYPE` for object_type=Process):** How a Process "object" or the core structures representing a process (initial AddressSpace, root CNode) are created from `UntypedMemory`. This will likely be a privileged operation.
+        *   **Process Configuration (`PROC_METHOD_CONFIGURE`):** Logic for associating the fundamental capabilities (root CNode cap, VSpace cap) with the new process. This might be part of the initial retype or a subsequent invocation.
+        *   **Starting Initial Thread (`PROC_METHOD_START_THREAD`):** This method, invoked on a process capability, will create and start the first TCB within that process. This involves allocating a TCB, setting it up (entry point, stack, priority), associating it with the process's AddressSpace and CNode, and making it ready for scheduling.
+        *   **Process States:** Define and implement the logic for managing process states:
+            *   `PS_INACTIVE`: Created (AddressSpace, CNode exist) but no threads yet.
+            *   `PS_ACTIVE`: One or more threads exist within the process.
+            *   `PS_TERMINATING`: Process is being shut down (e.g., all threads terminated or being terminated).
+        *   Relationship between process state and thread states.
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T9_Implement_Process_Management_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the process management functions, likely as methods on kernel objects (e.g., a Process object, or on UntypedMemory for creation, and a Process/TCB for starting initial thread) invoked via `gRiTOS_KernelObject_Invoke` (as designed in `M3_S2_T3`), based on your sub-development plan.
+    *   Ensure these operations correctly manage the lifecycle of processes and their core associated kernel objects.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.1 (Process/Thread Management).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-PROCESS-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Process termination: How a process and all its threads are properly terminated and resources reclaimed.
+        *   Interaction with user-space component managers that will use these primitives.
+        *   Testing of process creation, configuration, initial thread start, and state transitions.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T9_Implement_Process_Management_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.1 (Process/Thread Management), 4.1.2 (Kernel Objects).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-PROCESS-00001`.
+-   Process management provides the foundational isolation domains (AddressSpace, CSpace) for running components.
+
+**Dependencies:**
+-   Requires defined kernel objects: `UntypedMemory`, `AddressSpace`, `CNode`, `TCB` (`M3_S2_T2`).
+-   Requires static memory allocation for these objects (`M3_S2_T4`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure and method implementation for base objects (`M3_S2_T3`).
+-   Requires TCB management for creating the initial thread (`M3_S2_T8`).
+-   Interacts with the scheduler for making the initial thread runnable (`M3_S2_T5`).
+
+Focus on creating robust mechanisms for process creation and the setup of their fundamental resources.
+Good luck, Jules!

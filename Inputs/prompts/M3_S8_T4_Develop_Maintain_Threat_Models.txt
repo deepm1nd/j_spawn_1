@@ -1,0 +1,53 @@
+Subject: Develop and Maintain Threat Models for gRiTOS Critical Components and System
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.8. Security Services":
+"Task: Develop and maintain threat models for critical components and the system. (SoP 2.3.7, GRITOS-REQ-SEC-PROCESS-THREATMODEL-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Process & Initial Models):**
+    *   Develop a detailed sub-development plan for establishing a continuous threat modeling process and creating initial threat models.
+    *   This plan should:
+        *   **Threat Modeling Methodology:** Select a methodology (e.g., STRIDE, Attack Trees, or a hybrid). Document the chosen methodology and how it will be applied.
+        *   **Scope Identification:** Identify initial critical components and system aspects for threat modeling (e.g., Kernel Core, IPC Subsystem, Bootloader, OTA Update Manager, HRoT Driver, Component Manager).
+        *   **Process Definition:**
+            *   Steps for creating a threat model: Define assets, identify trust boundaries, decompose the system/component, enumerate threats, identify vulnerabilities, propose mitigations, document findings.
+            *   When threat models are created (e.g., during design phase for new components).
+            *   When threat models are reviewed and updated (e.g., in response to design changes, new features, discovered vulnerabilities, emerging attack vectors).
+            *   Roles and responsibilities in the threat modeling process.
+        *   **Tooling (Optional):** Evaluate and select any tools for creating and managing threat models (e.g., Microsoft Threat Modeling Tool, draw.io for diagrams, dedicated threat modeling tools).
+        *   **Documentation Standard:** Define a standard template for documenting threat models (e.g., including diagrams, threat lists, mitigation status, residual risk).
+    *   Save this plan as `/plan/generated_subplans/security_services/M3_S8_T4_Develop_Maintain_Threat_Models_dev_plan.md`. The actual threat model documents will be separate.
+
+2.  **Implement the Task (Process Documentation & Initial Models):**
+    *   Document the chosen threat modeling process and methodology in a central location (e.g., `/docs/security/threat_modeling_process.md`).
+    *   Create initial threat models for a few selected critical components (e.g., the SBL, the Kernel's capability system, the OTA Update Manager) using the defined process and template.
+    *   These initial models should identify key assets, trust boundaries, potential threats based on STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege), and initial thoughts on mitigations.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.7 (Threat Modeling).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SEC-PROCESS-THREATMODEL-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Iteratively developing threat models for all other critical components as they are designed and implemented.
+        *   Integrating threat modeling outputs (identified vulnerabilities, required mitigations) into component design, development backlogs, and test plans.
+        *   Training developers on the threat modeling process.
+        *   Scheduling regular reviews and updates for existing threat models.
+    *   Save this document as `/plan/generated_subplans/security_services/M3_S8_T4_Develop_Maintain_Threat_Models_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to process documentation or threat model documents.
+
+**Context & References:**
+-   **SoP Sections:** 2.3.7.
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-PROCESS-THREATMODEL-00001`.
+-   Threat modeling is a proactive security practice to identify and mitigate potential security risks early in the development lifecycle.
+
+**Dependencies:**
+-   Requires a good understanding of the gRiTOS architecture and the design of the components being modeled.
+-   The outputs of this task will influence the design and testing of other components.
+
+This task is foundational for a "Security by Design" approach.
+Good luck, Jules!

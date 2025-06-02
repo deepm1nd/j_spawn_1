@@ -1,0 +1,54 @@
+Subject: Optimize IPC Pathways for Low Latency and Bounded WCET in gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Optimize IPC pathways for low latency and bounded WCET. (SoP 2.1.3, GRITOS-REQ-NFR-PERF-IPC-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan focused on optimizing the IPC pathways (`gRiTOS_Call`, `gRiTOS_Reply`, `gRiTOS_SendAsync`, `Notification_Signal`/`Wait`) for low latency and ensuring they have bounded Worst-Case Execution Time (WCET).
+    *   This plan should:
+        *   Identify the critical code paths within each IPC mechanism.
+        *   Analyze these paths for potential performance bottlenecks or sources of non-determinism (e.g., complex data structure traversals, cache effects, locking contention if any).
+        *   Propose specific optimization techniques for each identified bottleneck. This might include:
+            *   Careful choice of data structures for endpoint queues and notification waitlists.
+            *   Minimizing lock contention (e.g., fine-grained locking, lock-free data structures where appropriate and verifiable).
+            *   Optimizing memory access patterns for better cache performance.
+            *   Reducing instruction counts in critical sections.
+            *   Ensuring all loops are bounded and code paths are predictable.
+        *   Outline the methodology for measuring IPC latency and conducting WCET analysis on the IPC paths (coordinating with `M3_S2_T13`).
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T5_Optimize_IPC_Pathways_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the identified optimizations in the IPC handling code based on your sub-development plan.
+    *   Refactor existing IPC code where necessary to improve performance and determinism.
+    *   Work closely with WCET analysis efforts (`M3_S2_T13`) to apply tools and techniques to the IPC code, using the results to guide further optimization.
+    *   Measure IPC round-trip times (e.g., for `gRiTOS_Call`) and one-way notification latencies under various conditions to quantify improvements and ensure targets (e.g., < 5 µs for small synchronous IPC as per SoP 3.1.4) are met.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.3 (Bounded IPC latency), 3.1.4 (IPC Latency target), 3.5.3 (WCET).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-NFR-PERF-IPC-00001` and `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Ongoing performance monitoring and regression testing for IPC.
+        *   Further optimization techniques that could be applied (e.g., architecture-specific optimizations, batching of notifications if applicable).
+        *   The impact of these optimizations on overall system performance and schedulability.
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T5_Optimize_IPC_Pathways_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3, 3.1.4, 3.5.3.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PERF-IPC-00001`, `GRITOS-REQ-NFR-PERF-IPC-00002`, `GRITOS-REQ-CON-PERF-BOUNDEDEXEC-00001`.
+-   Low-latency, deterministic IPC is critical for real-time performance and the overall responsiveness of a microkernel-based system.
+
+**Dependencies:**
+-   This task presumes that the core IPC mechanisms (`M3_S3_T1`, `M3_S3_T2`, `M3_S3_T3`, `M3_S3_T4`) are already implemented, at least in a functional form.
+-   Requires the framework and tools for WCET analysis (`M3_S2_T13`).
+-   Requires HAL support for high-resolution timers for accurate latency measurements.
+
+This is an iterative process; initial implementations should be correct, and then optimized.
+Good luck, Jules!

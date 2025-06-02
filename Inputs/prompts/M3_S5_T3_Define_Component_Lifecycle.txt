@@ -1,0 +1,64 @@
+Subject: Define Component Lifecycle for gRiTOS User-Space Components
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.5. Component Framework (User-Space)":
+"Task: Define component lifecycle: instantiation, startup, running, termination, cleanup, resource reclamation. (SoP 4.4, GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Specification & Process Definition):**
+    *   Develop a detailed sub-development plan focused on formally defining the lifecycle of a user-space component in gRiTOS.
+    *   This plan should detail each phase of the lifecycle:
+        *   **Instantiation:**
+            *   Triggered by: Component Manager (`M3_S5_T2`) processing a manifest.
+            *   Actions: Resource allocation (memory for objects, executable), creation of Process (AddressSpace, root CNode), loading component binary.
+            *   Capability setup: Granting initial capabilities as per manifest.
+            *   Resulting State: Component exists but is not yet running (e.g., initial thread `TS_INACTIVE` or `PS_INACTIVE` for process).
+        *   **Startup:**
+            *   Triggered by: Component Manager after successful instantiation.
+            *   Actions: Starting the component's main thread (e.g., calling `PROC_METHOD_START_THREAD`). The component's own initialization code runs.
+            *   Resulting State: Component's main thread is `TS_RUNNING` or `TS_READY`; process is `PS_ACTIVE`. Component may register services.
+        *   **Running:**
+            *   Actions: Component performs its designated functions, interacts via IPC, manages its resources.
+            *   State transitions based on thread activity (running, blocked, etc.).
+        *   **Termination:**
+            *   Triggered by: Voluntary exit by the component, request from Component Manager (e.g., system shutdown, error), or unrecoverable fault.
+            *   Actions: Component's threads are terminated. Signal handlers or shutdown hooks within the component might run.
+            *   Resulting State: Process becomes `PS_TERMINATING`.
+        *   **Cleanup & Resource Reclamation:**
+            *   Triggered by: Component Manager after termination.
+            *   Actions: Kernel reclaims all kernel objects exclusively owned by the component (TCBs, AddressSpace, CNodes, MemoryObjects it solely holds, Endpoints it created). This involves revoking capabilities held by the component and ensuring its resources are not leaked.
+            *   The Component Manager might need to explicitly instruct the kernel to destroy some objects or revoke capabilities.
+        *   Define clear states and transitions for components themselves, aligning with process and thread states.
+    *   Save this plan as `/plan/generated_subplans/component_framework/M3_S5_T3_Define_Component_Lifecycle_dev_plan.md`.
+
+2.  **Implement the Task (Documentation & Process Integration):**
+    *   Based on your sub-development plan, create a formal specification document detailing the component lifecycle.
+    *   Ensure this lifecycle definition is integrated into the design of the Component Manager service (`M3_S5_T2`) and is reflected in how kernel primitives for process/thread/resource management are used.
+    *   This task is primarily about defining and documenting the process and ensuring other components (kernel, Component Manager) adhere to it.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.4 (User-Space Component Framework Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   How this lifecycle integrates with fault handling and recovery mechanisms.
+        *   Testing procedures to verify correct lifecycle transitions and resource reclamation for various scenarios (normal exit, forced termination).
+        *   Defining any specific signals or IPC messages used to manage lifecycle transitions (e.g., shutdown request to a component).
+    *   Save this document as `/plan/generated_subplans/component_framework/M3_S5_T3_Define_Component_Lifecycle_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to this specification.
+
+**Context & References:**
+-   **SoP Sections:** 4.4 (User-Space Component Framework).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-USERSPACE-COMPONENTFW-00001`.
+-   A well-defined lifecycle is essential for predictable and robust management of user-space components.
+
+**Dependencies:**
+-   This definition must be consistent with the capabilities of the Component Manager (`M3_S5_T2`).
+-   Relies on kernel primitives for process and thread management (`M3_S2_T8`, `M3_S2_T9`), memory management, and capability management.
+
+Focus on creating a clear, unambiguous, and robust lifecycle model.
+Good luck, Jules!

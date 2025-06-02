@@ -1,0 +1,59 @@
+Subject: Implement Endpoint Kernel Object Logic for gRiTOS IPC
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Implement Endpoint kernel object logic for message queuing and thread synchronization. (SoP 4.1.2)"
+(This is also implicitly covered by `M3_S2_T2` which defines Endpoint objects, but this task focuses on the detailed *logic* within the Endpoint for IPC).
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the internal logic of the `Endpoint` kernel object, specifically its role in message queuing and thread synchronization for IPC.
+    *   This plan should detail:
+        *   **Data Structures within Endpoint Object:**
+            *   Queue for sender threads that are blocked (`TS_BLOCKED_IPC_SEND`) waiting to send on this endpoint. This queue would store sender TCB references and their `msg_info`.
+            *   Queue for receiver threads that are blocked (`TS_BLOCKED_IPC_RECV`) waiting for a message on this endpoint. This queue would store receiver TCB references.
+            *   (Alternatively, for `gRiTOS_Call`, a server might not explicitly queue on the endpoint if it's handling one client at a time; the sender blocks waiting for reply. Clarify how server-side blocking on `gRiTOS_Recv` (if used standalone) or the receive phase of `gRiTOS_Call` interacts with these queues).
+        *   **Message Queuing Logic:**
+            *   How messages from `gRiTOS_SendAsync` or the send phase of `gRiTOS_Call` are enqueued if no receiver is immediately available.
+            *   How messages are dequeued when a receiver becomes available or calls `gRiTOS_Recv`.
+        *   **Thread Synchronization Logic:**
+            *   How a sender thread is blocked on the endpoint's sender queue and transitioned to `TS_BLOCKED_IPC_SEND`.
+            *   How a receiver thread is blocked on the endpoint's receiver queue (if applicable) and transitioned to `TS_BLOCKED_IPC_RECV`.
+            *   How a waiting receiver is unblocked and transitioned to `TS_READY` when a message arrives.
+            *   How a waiting sender (from `gRiTOS_Call`) is transitioned from `TS_BLOCKED_IPC_SEND` to `TS_BLOCKED_IPC_RECV` (waiting for reply) when its message is delivered.
+        *   Badging: How endpoint badges (if any, set on the capability) are made available to the receiver.
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T6_Implement_Endpoint_Object_Logic_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the internal logic for the `Endpoint` kernel object based on your sub-development plan. This involves adding or refining the fields in the Endpoint structure (defined in `M3_S2_T2`) and writing the functions that manage these fields and interact with the scheduler.
+    *   This logic will be called by the IPC system call handlers (`gRiTOS_Call`, `gRiTOS_SendAsync`, `gRiTOS_Recv`).
+    *   Ensure thread-safe access to Endpoint internal data structures (e.g., using appropriate kernel spinlocks or other synchronization primitives if multiple threads could modify the same endpoint object concurrently, though often syscalls operate on one TCB at a time).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.3 (IPC) and 4.1.2 (Endpoint Object).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing various IPC scenarios focusing on endpoint queueing and thread state transitions (e.g., multiple senders, multiple receivers, send then receive, receive then send).
+        *   Error handling related to endpoint operations (e.g., attempting to send to a full endpoint if queues are bounded and this is an error condition).
+        *   Performance implications of the chosen queueing data structures.
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T6_Implement_Endpoint_Object_Logic_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 4.1.2 (Kernel Objects - Endpoint).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00001`, `GRITOS-REQ-FNC-KERNEL-IPC-00002`.
+-   Endpoints are the nexus for most IPC operations, managing the synchronization and message flow between threads.
+
+**Dependencies:**
+-   Requires the `Endpoint` object structure definition from `M3_S2_T2`.
+-   Requires TCB management for thread state transitions (`M3_S2_T8`).
+-   Requires the scheduler for blocking/unblocking threads (`M3_S2_T5`).
+-   Is directly used by the synchronous (`M3_S3_T1`) and asynchronous (`M3_S3_T2`) IPC call implementations.
+
+Focus on correct and efficient queue management and thread synchronization logic within the Endpoint object.
+Good luck, Jules!

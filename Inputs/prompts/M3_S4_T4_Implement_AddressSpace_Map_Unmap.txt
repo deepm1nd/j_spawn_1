@@ -1,0 +1,61 @@
+Subject: Implement AddressSpace Object Mapping/Unmapping Methods for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement `AddressSpace` object and methods for mapping/unmapping `gRiTOS_MemoryObject` instances (`ADDRSPACE_METHOD_MAP_OBJECT`). (SoP 2.1.2, 4.1.2, 4.3, GRITOS-REQ-FNC-KERNEL-MEM-00002)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the `AddressSpace` object methods for mapping and unmapping `gRiTOS_MemoryObject` instances.
+    *   This plan should detail:
+        *   **`ADDRSPACE_METHOD_MAP_OBJECT` Logic:**
+            *   Input parameters: capability to the `AddressSpace` object, capability to the `gRiTOS_MemoryObject` to map, offset within `MemoryObject`, length of mapping, target virtual address (or kernel-chosen), access permissions (Read, Write, Execute), caching policy override.
+            *   Validation: Ensure caller has rights on `AddressSpace` cap and `MemoryObject` cap (e.g., `RIGHT_MAP`). Validate parameters (page-aligned offset/length, valid permissions, target virtual address range availability if specified).
+            *   For each page in the mapping range:
+                *   Determine corresponding physical page from `gRiTOS_MemoryObject`.
+                *   Update page table entries within the target `AddressSpace` (calling HAL MMU/MPU functions as per `M3_S4_T1`). This includes setting present, permissions, and cache-related bits.
+            *   Handle TLB invalidation/shootdown (via HAL).
+            *   Increment `MemoryObject` reference count.
+        *   **`ADDRSPACE_METHOD_UNMAP_OBJECT` Logic (or similar for unmapping a region):**
+            *   Input parameters: `AddressSpace` capability, virtual address of mapping to remove, length.
+            *   Validation: Ensure caller has rights.
+            *   Update page table entries to remove mappings (via HAL).
+            *   Handle TLB invalidation/shootdown (via HAL).
+            *   Decrement `MemoryObject` reference count for the previously mapped object.
+        *   Data structures within `AddressSpace` to track mapped regions and their properties.
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T4_Implement_AddressSpace_Map_Unmap_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `ADDRSPACE_METHOD_MAP_OBJECT` and corresponding unmapping method(s) as part of `gRiTOS_KernelObject_Invoke` on `AddressSpace` capabilities, based on your sub-development plan.
+    *   This logic will modify the `AddressSpace` object's representation of the virtual memory map and call HAL functions to update the actual hardware MMU/MPU state.
+    *   Ensure correct management of `MemoryObject` reference counts.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.2 (Memory Management - mapping details), 4.1.2 (AddressSpace, MemoryObject), 4.3 (Memory Management Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00002`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Thorough testing of mapping and unmapping operations: various permissions, sizes, offsets, error conditions (e.g., overlapping mappings, invalid VMO).
+        *   Integration with user-space Memory Manager which will use these calls to set up process address spaces.
+        *   Handling of copy-on-write (COW) mappings if planned for future.
+        *   Lazy page population strategies (if VMOs can be created without immediate physical backing).
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T4_Implement_AddressSpace_Map_Unmap_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2, 4.1.2, 4.3.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00002`, `GRITOS-REQ-FNC-KERNEL-MEM-00001`.
+-   These methods are the core mechanisms by which user-space components get memory into their virtual address spaces.
+
+**Dependencies:**
+-   Requires `AddressSpace` and `gRiTOS_MemoryObject` object definitions and basic management (`M3_S2_T2`, `M3_S4_T3`).
+-   Requires `gRiTOS_KernelObject_Invoke` infrastructure (`M3_S2_T3`).
+-   Requires kernel-level MMU/MPU configuration and management logic (`M3_S4_T1`) and corresponding HAL functions.
+-   Requires the capability system for validating rights on `AddressSpace` and `MemoryObject` capabilities (`M3_S2_T11`).
+
+Focus on correct and secure translation between `MemoryObject` physical pages and process virtual addresses.
+Good luck, Jules!

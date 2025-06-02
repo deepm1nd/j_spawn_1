@@ -1,0 +1,55 @@
+Subject: Verify and Document Kernel Fault Containment & Isolation Mechanisms for Functional Safety
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Implement kernel mechanisms for fault containment and isolation (already covered in Kernel Core). (SoP 2.4.1, GRITOS-REQ-SAF-FAULT-CONTAINMENT-00001)"
+The note "(already covered in Kernel Core)" implies that the implementation (e.g., MMU/MPU based isolation via `M3_S4_T1`, capability system via `M3_S2_T11`) is handled by Kernel Core tasks. This Functional Safety task focuses on *verifying* these mechanisms meet safety requirements and documenting their role in the safety case.
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Verification & Safety Argumentation):**
+    *   Develop a detailed sub-development plan focused on the verification of kernel fault containment and isolation mechanisms from a functional safety perspective.
+    *   This plan should:
+        *   **Identify Mechanisms:** List the specific kernel mechanisms that contribute to fault containment and isolation (e.g., MMU/MPU based memory protection, capability-based access control, user-space component model).
+        *   **Safety Requirements Mapping:** Map these mechanisms to specific safety requirements related to fault containment (e.g., preventing fault propagation between components of different SIL/ASILs, protecting kernel from user-space faults). Refer to `GRITOS-REQ-SAF-FAULT-CONTAINMENT-00001`.
+        *   **Verification Strategy:**
+            *   Define test cases (including fault injection tests as per SoP 2.4.1, 5.3.5) to demonstrate the effectiveness of these isolation barriers. For example, intentionally crashing a user-space component and verifying the kernel and other components remain unaffected.
+            *   Leverage formal verification results for isolation properties if available from `M3_S2_T12`.
+            *   Plan for code reviews and static analysis focusing on the integrity of these mechanisms.
+        *   **Documentation for Safety Case:** Outline the arguments and evidence needed to demonstrate that these mechanisms are effective and meet their safety requirements. This will be part of the gRiTOS Safety Case (SoP 6.2).
+        *   **Metrics:** Reference safety metrics like "Effectiveness of fault containment barriers" (SoP 2.4.1).
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/M3_S9_T1_Verify_Kernel_Fault_Containment_Mechanisms_dev_plan.md`.
+
+2.  **Implement the Task (Execute Verification & Document Evidence):**
+    *   Execute the verification activities outlined in your sub-development plan. This includes running specific tests, analyzing results, and potentially performing targeted reviews.
+    *   Compile the evidence (test reports, analysis results, review records, links to formal proofs) that demonstrates the effectiveness of the fault containment and isolation mechanisms.
+    *   Write the sections of the Safety Case that argue for fault containment based on these kernel features and the collected evidence.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.1 (Fault Containment).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-FAULT-CONTAINMENT-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Ongoing regression testing for these mechanisms.
+        *   Periodic review of the safety arguments as the kernel evolves.
+        *   Addressing any weaknesses found during verification.
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/M3_S9_T1_Verify_Kernel_Fault_Containment_Mechanisms_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages related to test procedures or safety documentation.
+
+**Context & References:**
+-   **SoP Sections:** 1.3 (Microkernel for fault isolation), 2.4.1, 3.5 (Safety Verifiable), 5.3.5 (Fault Injection Testing), 6.2 (Safety Case).
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-FAULT-CONTAINMENT-00001`, `GRITOS-REQ-ARC-GEN-MICROKERNEL-00001`.
+-   Robust fault containment is a cornerstone of functional safety, preventing single component failures from leading to system-level hazards.
+
+**Dependencies:**
+-   Relies on the implementation of the actual fault containment mechanisms in the Kernel Core:
+    *   MMU/MPU based memory isolation (`M3_S4_T1`).
+    *   Capability system (`M3_S2_T11`).
+    *   User-space component model (Module 3.5).
+-   May use results from formal verification efforts (`M3_S2_T12`).
+
+Focus on rigorously verifying and documenting how the existing kernel mechanisms fulfill the safety requirements for fault containment.
+Good luck, Jules!

@@ -1,0 +1,56 @@
+Subject: Implement Shared Memory in gRiTOS via Multiple Mappings of MemoryObjects
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement shared memory by mapping the same `gRiTOS_MemoryObject` into multiple `AddressSpace` objects, controlled by capabilities. (SoP 2.1.2, GRITOS-REQ-FNC-KERNEL-MEM-00004)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for enabling shared memory.
+    *   This plan should primarily focus on ensuring that the existing mechanisms (`gRiTOS_MemoryObject` and `ADDRSPACE_METHOD_MAP_OBJECT`) correctly support sharing. This includes:
+        *   Verifying that `ADDRSPACE_METHOD_MAP_OBJECT` (from `M3_S4_T4`) can take a capability to a `gRiTOS_MemoryObject` and map it into a given `AddressSpace`, regardless of whether that `MemoryObject` is already mapped elsewhere.
+        *   Ensuring the reference counting on `gRiTOS_MemoryObject` (from `M3_S4_T3`) correctly handles multiple mappings (i.e., is incremented for each new mapping and decremented when any mapping is removed). The `MemoryObject`'s physical pages are only reclaimed when the reference count drops to zero.
+        *   Detailing the role of capability transfer (`M3_S3_T4`): how one component (owner of the `MemoryObject`) grants a capability (with appropriate rights like `RIGHT_MAP` and read/write permissions) for that `MemoryObject` to another component via IPC. The receiving component then uses this capability to map the `MemoryObject` into its own `AddressSpace`.
+        *   Specifying any necessary cache coherence considerations if shared memory is used across different cores in an SMP system (though initial focus is single-core, design should be mindful). This might involve specific cache management operations via HAL during map/unmap or explicit flushing by user components.
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T5_Implement_Shared_Memory_dev_plan.md`.
+
+2.  **Implement the Task (Verification & Integration):**
+    *   Review and verify that the implementations of `gRiTOS_MemoryObject` lifecycle/reference counting (`M3_S4_T3`) and `ADDRSPACE_METHOD_MAP_OBJECT` (`M3_S4_T4`) inherently support the mapping of a single `MemoryObject` into multiple `AddressSpace` objects.
+    *   Implement any necessary adjustments or explicit checks to ensure this functionality is robust.
+    *   Develop test cases that specifically demonstrate shared memory:
+        *   Component A creates a `MemoryObject`.
+        *   Component A maps the `MemoryObject` into its VSpace.
+        *   Component A transfers a capability for the `MemoryObject` (with appropriate rights) to Component B.
+        *   Component B maps the same `MemoryObject` into its VSpace.
+        *   Component A writes to the memory; Component B reads the changes, and vice-versa.
+        *   Ensure proper unmapping and `MemoryObject` reclamation when both components are done.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.2 (Shared memory support).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00004`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Advanced shared memory features if required (e.g., specific synchronization primitives optimized for shared memory, though general IPC/Notifications can be used).
+        *   Security implications of shared memory: ensuring components only get access via legitimate capability transfer and with appropriate rights.
+        *   Detailed cache management strategies for SMP scenarios.
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T5_Implement_Shared_Memory_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2 (Memory Management).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00004`, `GRITOS-REQ-FNC-KERNEL-MEM-00002`.
+-   Shared memory is a key mechanism for efficient inter-component data exchange when large data volumes are involved.
+
+**Dependencies:**
+-   This task relies heavily on the correct implementation of:
+    *   `gRiTOS_MemoryObject` with reference counting (`M3_S4_T3`).
+    *   `AddressSpace` mapping methods (`M3_S4_T4`).
+    *   Secure capability transfer via IPC (`M3_S3_T4`).
+    *   The capability system itself (`M3_S2_T11`).
+
+The primary work here is ensuring these prerequisite components correctly interact to enable shared memory as described.
+Good luck, Jules!

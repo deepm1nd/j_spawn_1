@@ -1,0 +1,46 @@
+Subject: Develop SBL with Hardware Initialization Capabilities for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.1. Foundation & Bootloader":
+"Task: Develop Secondary Bootloader (SBL) with hardware initialization capabilities. (SoP 2.3.1, GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for creating the Secondary Bootloader (SBL), focusing on its hardware initialization role.
+    *   This plan should cover:
+        *   Identification of essential hardware to be initialized by the SBL (e.g., RAM controller, clock system, console for diagnostics, flash memory interface).
+        *   Strategy for interacting with the HAL or board-specific drivers if applicable at this stage.
+        *   Steps for implementing the initialization sequences.
+    *   Save this plan as `/plan/generated_subplans/foundation_bootloader/M3_S1_T2_Develop_SBL_With_HW_Init_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the SBL based on your sub-development plan.
+    *   The SBL's primary responsibilities in this task include:
+        *   Performing essential hardware initialization required for the kernel to boot. This includes setting up memory controllers, clocks, and any peripherals needed to load and verify the kernel (e.g., flash controller, serial console).
+        *   Locating the gRiTOS kernel image in non-volatile storage.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.3.1 (Secure Boot Chain) and 4.5 (Bootloader Design Specification).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+    *   The SBL should be developed to be minimal to reduce its own attack surface.
+    *   Code for this task will likely be in C or assembly, or a language suitable for bootloader development.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps for the SBL, particularly regarding interactions with subsequent SBL tasks (kernel verification, A/B updates) and potential optimizations for boot time.
+    *   Save this document as `/plan/generated_subplans/foundation_bootloader/M3_S1_T2_Develop_SBL_With_HW_Init_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4 (Architectural Foundations), 2.3.1 (Secure Boot Chain), 4.5 (Bootloader Design Specification), 3.7.2 (HAL/BSP Strategy).
+-   **ReqFull IDs:** `GRITOS-REQ-SEC-BOOT-SECURECHAIN-00001`.
+-   The SBL is verified by the RBL/PBL and is responsible for setting up the system to a state where the main OS kernel can be loaded and verified.
+
+**Dependencies:**
+-   This task logically follows `M3_S1_T1_Implement_RBL_PBL_Verification_Logic.txt` as the SBL is loaded by the RBL/PBL.
+-   The hardware initialization performed here will be critical for subsequent SBL tasks like kernel image verification and loading.
+
+Ensure your implementation is robust and prepares the hardware adequately for the kernel boot process.
+Good luck, Jules!

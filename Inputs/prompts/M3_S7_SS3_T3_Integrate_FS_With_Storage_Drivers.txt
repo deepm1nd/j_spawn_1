@@ -1,0 +1,55 @@
+Subject: Integrate File System Service with Storage Device Drivers in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.3. File System Service":
+"Task: Integrate with storage device drivers. (SoP 2.2.2)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for integrating the File System (FS) Server with underlying storage device drivers.
+    *   This plan should detail:
+        *   **Storage Driver Discovery:** How the FS Server discovers and obtains capabilities to communicate with relevant storage device drivers (e.g., an SD card driver, an NVMe driver). This might involve:
+            *   Querying a service discovery mechanism (`M3_S5_T5`) for storage drivers by type or instance.
+            *   Being configured with these capabilities by the Component Manager (`M3_S5_T2`) or Root Resource Manager (`M3_S7_SS1`) at startup.
+        *   **Block I/O Operations:**
+            *   How the FS Server uses the IPC interface of the storage driver (defined in `M3_S7_SS2_T3`, e.g., `ReadBlocks`, `WriteBlocks`) to read and write data blocks for the file systems it manages.
+            *   Managing capabilities for data buffers passed to/from the storage driver.
+        *   **Device Information:** How the FS Server queries the storage driver for device information (e.g., total number of blocks, block size) using the `GetInfo` IPC method of the storage driver.
+        *   **Error Handling:** How the FS Server handles errors reported by the storage driver during block I/O operations and propagates them appropriately to its own clients.
+        *   **Abstraction Layer (Optional):** Consider if a thin abstraction layer within the FS Server is needed to interact with different types of storage drivers if their IPC interfaces vary significantly (though standardization via IDL should minimize this).
+    *   Save this plan as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T3_Integrate_FS_With_Storage_Drivers_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the logic within the File System Server to interact with storage device drivers, based on your sub-development plan.
+    *   This involves:
+        *   Adding code to the FS Server to act as a client to the storage driver's IPC interface.
+        *   Translating higher-level file system operations (e.g., reading a file cluster) into lower-level block read/write requests to the storage driver.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.2 (File System).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the FS Server with an actual storage driver and underlying hardware/emulator.
+        *   Performance testing of file operations that involve interaction with storage drivers.
+        *   Implementing support for multiple mounted file systems on different storage devices.
+    *   Save this document as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T3_Integrate_FS_With_Storage_Drivers_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.2.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-FS-00001`.
+-   This integration is essential for any on-disk file system functionality.
+
+**Dependencies:**
+-   Requires a functional File System Server core (`M3_S7_SS3_T1`).
+-   Requires implemented storage device drivers (`M3_S7_SS2_T3`) with defined IPC interfaces.
+-   Requires a service discovery mechanism (`M3_S5_T5`) or capability passing via Component Manager for the FS Server to find storage drivers.
+-   Relies on kernel IPC (`M3_S3`) for communication between FS Server and storage drivers.
+
+Focus on creating a clean and efficient interface between the FS Server and storage drivers.
+Good luck, Jules!

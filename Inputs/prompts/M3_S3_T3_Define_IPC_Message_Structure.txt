@@ -1,0 +1,50 @@
+Subject: Define and Implement IPC Message Structure (`msg_info`) for gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Define and implement IPC message structure (`msg_info`: tag, direct payload, capability slots). (SoP 2.1.3, 4.2, GRITOS-REQ-FNC-KERNEL-IPC-00003, GRITOS-REQ-ARC-IPC-MSGSTRUCTURE-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for defining and implementing the `msg_info` IPC message structure.
+    *   This plan should:
+        *   Finalize the exact layout of the `msg_info` structure, to be used by all IPC system calls (`gRiTOS_Call`, `gRiTOS_SendAsync`, `gRiTOS_Recv`, `gRiTOS_Reply`).
+        *   Specify the number of direct payload registers (MRs - Message Registers, e.g., N=4 or 8 `uintptr_t` words as per SoP 2.1.3).
+        *   Specify the number of capability transfer slots (e.g., M=1 or 4 `gRiTOS_CapSlot_t` structures as per SoP 2.1.3).
+        *   Define the `gRiTOS_CapSlot_t` structure itself: CNode pointer/index for source capability, rights mask for derivation, and badge for the new capability (especially for endpoints).
+        *   Define the `tag` field (e.g., `uintptr_t`) for user-defined message labels/method IDs.
+        *   Consider alignment and packing for the structure to ensure efficient access in kernel and user-space.
+        *   Detail how this structure is passed between user-space and kernel-space for syscalls (e.g., via registers, pointer to user-space memory).
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T3_Define_IPC_Message_Structure_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `msg_info` and `gRiTOS_CapSlot_t` structures in a header file or module accessible to both kernel and user-space (or define it such that user-space libraries can replicate it accurately).
+    *   Ensure the definition is fixed for a given architecture to maintain ABI stability for IPC.
+    *   Update relevant kernel code (syscall entry points, IPC handling logic) to correctly interpret and use this structure for passing message data and capability transfer information.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially sections 2.1.3 (IPC, `message_info` and `gRiTOS_CapSlot_t` definitions) and 4.2 (IPC Mechanism Specification).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IPC-00003` and `GRITOS-REQ-ARC-IPC-MSGSTRUCTURE-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration of this structure into all IPC call implementations (`M3_S3_T1`, `M3_S3_T2`).
+        *   Development of user-space library wrappers that make it easier for applications to populate and parse this structure.
+        *   Testing to ensure correct marshalling and unmarshalling of the structure across the kernel boundary.
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T3_Define_IPC_Message_Structure_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 4.2 (IPC Mechanism Specification).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00003`, `GRITOS-REQ-ARC-IPC-MSGSTRUCTURE-00001`.
+-   This structure is fundamental to all IPC operations, defining how data and capabilities are exchanged.
+
+**Dependencies:**
+-   This task is a prerequisite for the detailed implementation of capability transfer (`M3_S3_T4`) and is used by all IPC call implementations (`M3_S3_T1`, `M3_S3_T2`).
+-   Relies on definitions of `Capability` and `CNode` from `M3_S2_T2`.
+
+Focus on a clear, efficient, and architecture-stable definition for this critical data structure.
+Good luck, Jules!

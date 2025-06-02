@@ -1,0 +1,60 @@
+Subject: Ensure and Configure Mixed-Criticality System (MCS) Resource Partitioning in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.9. Functional Safety Services":
+"Task: Ensure support for Mixed-Criticality Systems (MCS) through strict resource partitioning (CPU, memory, I/O) configurable by a privileged component. (SoP 2.4.5, GRITOS-REQ-SAF-MCS-SUPPORT-00001)"
+Kernel-level mechanisms for MCS (time partitioning, memory isolation via capabilities and MMU/MPU) are covered in kernel core tasks (e.g., `M3_S2_T6`, `M3_S4_T1`). This task focuses on ensuring these mechanisms are *usable* and *configurable* by a privileged user-space component to establish an MCS environment, and verifying the resulting Freedom From Interference (FFI).
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (Configuration & Verification Strategy):**
+    *   Develop a detailed sub-development plan for configuring and verifying MCS resource partitioning.
+    *   This plan should:
+        *   **Privileged Configuration Component:**
+            *   Define which user-space component is responsible for configuring system-wide MCS policies (e.g., Root Resource Manager `M3_S7_SS1`, or a dedicated System Configuration Manager).
+            *   Detail how this component uses kernel interfaces to:
+                *   Set CPU time budgets (Period, Budget) for different components/criticality levels using scheduler APIs (e.g., `SCHEDCTX_METHOD_SET_BUDGET` from `M3_S2_T6`).
+                *   Allocate memory regions (`UntypedMemory`, `MemoryObject`s) exclusively to components or groups of components.
+                *   Configure I/O partitioning (e.g., assigning device capabilities, configuring IOMMU if available via HAL).
+        *   **System Configuration Data:** Define how the overall MCS resource allocation plan (which component gets what CPU budget, memory regions, device access) is specified for the system (e.g., in a static system manifest file parsed by the privileged configuration component).
+        *   **Verification of Freedom From Interference (FFI):**
+            *   Outline test strategies to verify that the partitioning is effective:
+                *   Run high-load, misbehaving lower-criticality components and verify that higher-criticality components continue to meet their deadlines and have exclusive access to their allocated memory/IO.
+                *   Measure resource usage to confirm partitioning enforcement.
+            *   Reference formal analysis of partitioning mechanisms if available from `M3_S2_T12`.
+        *   **Documentation:** Plan for documentation outlining how to configure gRiTOS for an MCS environment and the evidence for FFI.
+    *   Save this plan as `/plan/generated_subplans/functional_safety_services/M3_S9_T6_Ensure_MCS_Resource_Partitioning_Support_dev_plan.md`.
+
+2.  **Implement the Task (Configuration Tools/Logic & Verification Tests):**
+    *   Implement the logic within the designated privileged user-space component to parse the system MCS configuration and apply it using kernel APIs.
+    *   Develop and execute test suites to verify FFI as outlined in the verification strategy. This includes creating test components that attempt to violate partitioning rules.
+    *   Compile documentation and evidence supporting the MCS capabilities of gRiTOS.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.4.5 (Mixed-Criticality System Support), 3.5.2 (FFI).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-SAF-MCS-SUPPORT-00001` and `GRITOS-REQ-NFR-SAF-FFI-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   More advanced MCS scheduling policies (e.g., adaptive budget management).
+        *   Tools for visualizing resource allocations and monitoring FFI at runtime.
+        *   Guidance for application developers on building mixed-criticality systems on gRiTOS.
+    *   Save this document as `/plan/generated_subplans/functional_safety_services/M3_S9_T6_Ensure_MCS_Resource_Partitioning_Support_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4.2 (Explicit Resource Management), 2.4.5, 3.5.2.
+-   **ReqFull IDs:** `GRITOS-REQ-SAF-MCS-SUPPORT-00001`, `GRITOS-REQ-NFR-SAF-FFI-00001`.
+-   Supporting MCS with verifiable FFI is a key requirement for many safety-critical systems where software of different importance levels must coexist.
+
+**Dependencies:**
+-   Relies on kernel support for:
+    *   Time partitioning in the scheduler (`M3_S2_T6`).
+    *   Capability-based memory and resource isolation (`M3_S2_T11`, `M3_S4`).
+    *   IOMMU support in HAL if available, for I/O partitioning.
+-   The privileged configuration component (e.g., RRM `M3_S7_SS1`) needs to be functional.
+
+Focus on demonstrating that the system can be configured to robustly enforce resource partitions.
+Good luck, Jules!

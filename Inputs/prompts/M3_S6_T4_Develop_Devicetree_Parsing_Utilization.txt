@@ -1,0 +1,54 @@
+Subject: Develop Devicetree Parsing and Utilization for gRiTOS Driver Configuration
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.6. HAL & BSP (Hardware Abstraction Layer & Board Support Package)":
+"Task: Develop Devicetree parsing and utilization mechanisms for driver configuration. (SoP 4.6)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing Devicetree parsing and utilization. (Assuming Devicetree was chosen in `M3_S6_T3`).
+    *   This plan should:
+        *   **Library Selection/Implementation:**
+            *   Evaluate existing `no_std` compatible Devicetree parsing libraries in Rust or C (e.g., `fdt-rs`, `libfdt` if a C library is acceptable for this utility).
+            *   If no suitable library exists, plan the implementation of a minimal parser for Flattened Device Tree (FDT) blobs. The parser needs to handle: reading FDT headers, iterating through nodes and properties, reading property values (integers, strings, boolean, phandles, arrays).
+        *   **Kernel/Early User-Space Access:**
+            *   How the kernel or early user-space components (like a Root Resource Manager or Device Manager service) access the DTB passed by the SBL (via boot info structure `M3_S1_T5`).
+            *   Define APIs for querying the parsed Devicetree: finding nodes by path or compatible string, reading property values, resolving phandles.
+        *   **Driver Configuration:**
+            *   How device drivers (both kernel-level if any, and user-space) will use this API to obtain their configuration data (e.g., register addresses, interrupt numbers, clock information, GPIO pins).
+        *   **Bus Enumeration:** How bus manager components (e.g., for PCI, I2C, SPI) might use the Devicetree to discover and enumerate devices on their respective buses.
+    *   Save this plan as `/plan/generated_subplans/hal_bsp/M3_S6_T4_Develop_Devicetree_Parsing_Utilization_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the Devicetree parsing library/module and the utilization APIs based on your sub-development plan.
+    *   If using an existing library, integrate it into the gRiTOS build system.
+    *   Provide clear functions for the kernel and other services to access hardware configuration from the DTB.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.6 (HAL/BSP Strategy - Devicetree).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration of Devicetree data into the driver model (`M3_S7_T2_Develop_Generic_Driver_Model`) and specific drivers.
+        *   Testing the parser with various DTB files and query types.
+        *   Handling of DT overlays if that feature is planned for the future (dynamic hardware configuration).
+        *   Defining more gRiTOS-specific Devicetree bindings as new hardware and drivers are added.
+    *   Save this document as `/plan/generated_subplans/hal_bsp/M3_S6_T4_Develop_Devicetree_Parsing_Utilization_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 3.7.2, 4.6.
+-   **ReqFull IDs:** `GRITOS-REQ-NFR-PORT-HALBSP-00001`.
+-   Devicetree (or a similar mechanism) is essential for decoupling hardware description from driver code, improving portability and configurability.
+
+**Dependencies:**
+-   Depends on the SBL providing a pointer to the DTB in the boot information structure (`M3_S1_T5`).
+-   Depends on the BSP structure definition (`M3_S6_T3`) choosing Devicetree as the hardware configuration mechanism.
+-   Will be used by device drivers and bus enumeration logic.
+
+Focus on a robust and efficient way to access hardware configuration information.
+Good luck, Jules!

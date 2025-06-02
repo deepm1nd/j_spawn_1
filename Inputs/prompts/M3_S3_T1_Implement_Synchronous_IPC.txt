@@ -1,0 +1,60 @@
+Subject: Implement Synchronous IPC (`gRiTOS_Call`, `gRiTOS_Reply`) for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.3. IPC Subsystem":
+"Task: Implement synchronous IPC (`gRiTOS_Call`, `gRiTOS_Reply`) including direct data transfer and blocking mechanisms. (SoP 2.1.3, GRITOS-REQ-FNC-KERNEL-IPC-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the synchronous IPC mechanisms (`gRiTOS_Call` and `gRiTOS_Reply`).
+    *   This plan should detail:
+        *   The exact logic for `gRiTOS_Call`:
+            *   Validation of the target `Endpoint` capability (must have `RIGHT_SEND`).
+            *   Handling of message payload (direct data words, capability slots as per `msg_info` structure).
+            *   If a receiver is waiting on the endpoint: direct transfer of message to receiver, making receiver `TS_READY`, placing sender in `TS_BLOCKED_IPC_RECV` (awaiting reply on a temporary reply capability/object).
+            *   If no receiver is waiting: enqueuing sender on the endpoint, placing sender in `TS_BLOCKED_IPC_SEND`.
+            *   Creation and management of the temporary reply capability/object for the sender.
+        *   The exact logic for `gRiTOS_Reply` (typically invoked by a server that previously received a message via `gRiTOS_IPC_Recv` or the receive part of a `gRiTOS_Call`):
+            *   Validation of the `reply_cap`.
+            *   Transfer of reply message (data and capabilities) to the original caller's `message_info_recv` space.
+            *   Transitioning the original caller to `TS_READY`.
+            *   Destroying/invalidating the `reply_cap`.
+        *   Integration with the scheduler for thread state transitions and context switches.
+        *   Management of Endpoint object queues (senders waiting, receivers waiting).
+    *   Save this plan as `/plan/generated_subplans/ipc_subsystem/M3_S3_T1_Implement_Synchronous_IPC_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the `gRiTOS_Call` and `gRiTOS_Reply` system call logic within the kernel based on your sub-development plan.
+    *   This includes handling the direct data transfer, capability transfer (as per `M3_S3_T4`), thread blocking/unblocking, and interaction with Endpoint objects.
+    *   Ensure atomicity of critical operations within the IPC path.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.3 (Inter-Process Communication).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-IPC-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of `gRiTOS_IPC_Recv` (often closely related or part of `gRiTOS_Call`'s server-side).
+        *   Thorough testing of send, receive, reply scenarios, including various blocking conditions, message contents, and capability transfers.
+        *   Performance optimization and WCET analysis of the IPC path.
+        *   Error handling (e.g., invalid capabilities, full queues if not dynamically sized, non-existent endpoints).
+    *   Save this document as `/plan/generated_subplans/ipc_subsystem/M3_S3_T1_Implement_Synchronous_IPC_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.3 (IPC), 4.1.1 (Syscall Interface), 4.1.2 (Endpoint object).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-IPC-00001`, `GRITOS-REQ-ARC-KERNEL-SYSCALLMIN-00001`.
+-   Synchronous IPC is the primary method for client-server interactions in gRiTOS.
+
+**Dependencies:**
+-   Requires the system call interface (`M3_S2_T1`).
+-   Requires `Endpoint`, `TCB`, and `Capability` object definitions and basic management (`M3_S2_T2`, `M3_S2_T8`, `M3_S2_T11`).
+-   Requires the scheduler for managing thread states (`M3_S2_T5`).
+-   Capability transfer logic will be detailed in `M3_S3_T4`.
+-   The `msg_info` structure definition from `M3_S3_T3`.
+
+Focus on a correct, secure, and efficient implementation of this fundamental communication mechanism.
+Good luck, Jules!

@@ -1,0 +1,56 @@
+Subject: Implement Core Kernel Objects for gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.2. Kernel Core":
+"Task: Implement core kernel objects: Capability, CNode, TCB, Endpoint, Notification, AddressSpace, UntypedMemory, IRQ Handler Object, Memory Object. (SoP 4.1.2, GRITOS-REQ-ARC-KERNEL-OBJECTS-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing the core kernel objects.
+    *   This plan should:
+        *   Define the data structures in Rust (or C if specific low-level parts require it, though Rust is preferred) for each kernel object:
+            *   `Capability`: Object pointer/ID, rights mask, type information.
+            *   `CNode`: Structure for storing capabilities.
+            *   `TCB (Thread Control Block)`: Thread state, priority, scheduling parameters, references to AddressSpace and root CNode, stack pointers, context save areas.
+            *   `Endpoint`: Message queues, waiting sender/receiver lists for IPC.
+            *   `Notification`: Internal state (word-sized bitmask/counter), waiting thread list.
+            *   `AddressSpace`: Pointer to page table structures (architecture-specific details handled by HAL/MMU task).
+            *   `UntypedMemory`: Base address, size, and status of raw memory regions.
+            *   `IRQHandlerObject`: IRQ number, associated notification endpoint/badge.
+            *   `MemoryObject (VMO-like)`: Size, physical backing information (if any), reference count, caching policy.
+        *   Specify how these objects will be allocated (e.g., from static pools managed by the kernel, derived from `UntypedMemory` by a privileged kernel initialization routine). Remember: no dynamic kernel memory allocation post-init.
+        *   Outline the basic lifecycle management for these objects (creation, initialization, deletion/revocation if applicable).
+    *   Save this plan as `/plan/generated_subplans/kernel_core/M3_S2_T2_Implement_Core_Kernel_Objects_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the data structures and basic management logic for each core kernel object based on your sub-development plan.
+    *   Focus on the structural definition and internal consistency of these objects. The detailed methods/operations on these objects (invoked via `gRiTOS_KernelObject_Invoke`) will be implemented in a subsequent task (`M3_S2_T3`).
+    *   Ensure that object creation is tied to the static memory allocation strategy (SoP 1.4.3).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 4.1.2 (Kernel Objects), and relevant details from 2.1.1 (TCB), 2.1.2 (AddressSpace, UntypedMemory, MemoryObject), 2.1.3 (Endpoint, Notification), 2.1.4 (IRQHandlerObject), 2.3.3 (Capability).
+        *   `/gritos_product_requirements_full.md`, especially `GRITOS-REQ-ARC-KERNEL-OBJECTS-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, primarily:
+        *   The implementation of methods for each object type via `gRiTOS_KernelObject_Invoke` (`M3_S2_T3`).
+        *   Integration with the capability system for access control to these objects.
+        *   Testing strategies for verifying the integrity and basic management of each object type.
+    *   Save this document as `/plan/generated_subplans/kernel_core/M3_S2_T2_Implement_Core_Kernel_Objects_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 1.4 (Architectural Foundations), 2.1.1, 2.1.2, 2.1.3, 2.1.4, 2.3.3, 4.1.2 (Kernel Objects).
+-   **ReqFull IDs:** `GRITOS-REQ-ARC-KERNEL-OBJECTS-00001`, `GRITOS-REQ-CON-KERNEL-NODYNAMICMEM-00001`.
+-   These objects are the fundamental building blocks managed by the kernel, upon which all OS services are built.
+
+**Dependencies:**
+-   This task is foundational for most other kernel development.
+-   It relates to the static memory allocation strategy (`M3_S2_T4`).
+-   The definition of these objects will be used by the syscall implementation (`M3_S2_T1`) and method invocation task (`M3_S2_T3`).
+
+Focus on clear, robust, and secure data structure definitions for these critical kernel entities.
+Good luck, Jules!

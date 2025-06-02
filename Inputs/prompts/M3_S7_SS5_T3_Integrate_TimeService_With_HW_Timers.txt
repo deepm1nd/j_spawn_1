@@ -1,0 +1,56 @@
+Subject: Integrate Time Service with Hardware Timers in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.5. Time Services":
+"Task: Integrate with hardware timers via user-space drivers or HAL. (SoP 2.2.4)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for integrating the user-space Time Management Service with underlying hardware timer capabilities.
+    *   This plan should detail:
+        *   **Hardware Timer Source Identification:**
+            *   If using HAL functions: Specify which HAL timer functions (from `M3_S6_T1`, e.g., `hal_timer_get_current_ticks()`, `hal_timer_oneshot_arm()`) the Time Service will use to get monotonic time updates and to schedule wakeups for its own timer processing.
+            *   If using a user-space RTC driver: Define how the Time Service discovers and interacts with the RTC driver via IPC to get/set wall-clock time.
+        *   **Time Source Interaction Logic:**
+            *   For monotonic time: How the Time Service periodically reads the HAL system timer or how it configures a HAL timer to provide periodic interrupts to itself for updating its internal time representation and checking its software timer queue.
+            *   For software timer management: When the Time Service needs to schedule the next software timer expiry, how it calculates the required delay and uses `hal_timer_oneshot_arm()` (or similar) to get an interrupt from the HAL system timer at the correct time.
+            *   For wall-clock time (if RTC driver used): IPC messages to get/set time from the RTC driver.
+        *   **Error Handling:** How the Time Service handles potential errors from HAL timer functions or the RTC driver.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T3_Integrate_TimeService_With_HW_Timers_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the logic within the Time Management Service to interact with HAL timer functions and/or user-space RTC drivers, based on your sub-development plan.
+    *   This involves:
+        *   Calling HAL functions to get current hardware tick counts for monotonic time.
+        *   Configuring a HAL timer to generate interrupts for the Time Service itself, which it uses to process its queue of software timers.
+        *   If an RTC driver is used, implementing IPC client code within the Time Service to communicate with the RTC driver.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.4 (Time Services).
+        *   `/gritos_product_requirements_full.md`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Testing the accuracy of timekeeping against the hardware timer.
+        *   Verifying correct interaction with HAL timer interrupt mechanisms.
+        *   If an RTC is used, testing setting and getting wall-clock time.
+        *   Analyzing the latency and jitter of software timer expirations relative to hardware timer events.
+    *   Save this document as `/plan/generated_subplans/user_space_services/time_services/M3_S7_SS5_T3_Integrate_TimeService_With_HW_Timers_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.4.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-TIME-00001`.
+-   The Time Service relies on underlying hardware timers (accessed via HAL or a specific driver) to provide its functionality.
+
+**Dependencies:**
+-   Requires a functional Time Management Service core (`M3_S7_SS5_T1`).
+-   Requires implemented HAL timer functions (`M3_S6_T1`, `M3_S6_T2`).
+-   If an RTC is used, it depends on an RTC driver being available (this might be one of the core peripheral drivers from `M3_S7_SS2_T2`).
+-   The Time Service needs to handle interrupts (or receive notifications from a HAL timer interrupt handler) which involves kernel interrupt handling (`M3_S2_T10`) and IPC (`M3_S3`).
+
+Focus on establishing a reliable and accurate link between the Time Service and the hardware time sources.
+Good luck, Jules!

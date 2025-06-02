@@ -1,0 +1,62 @@
+Subject: Implement IPC Interfaces for File System Operations in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.7.3. File System Service":
+"Task: Implement IPC interfaces for file operations (open, close, read, write, stat, mkdir, rmdir, unlink), using capabilities for paths, buffers, and file descriptors. (SoP 2.2.2, GRITOS-REQ-FNC-SVC-FS-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan (IDL Definition & Client Library Design):**
+    *   Develop a detailed sub-development plan for defining and implementing the IPC interfaces for file system operations.
+    *   This plan should:
+        *   **IDL Definition:** Define the file system service interface using the system IDL (`M3_S5_T4`). This includes specifying methods like:
+            *   `FS_METHOD_OPEN(path_string_cap, path_length, flags) -> (error_code, fd_cap)`
+            *   `FS_METHOD_CLOSE(fd_cap) -> error_code`
+            *   `FS_METHOD_READ(fd_cap, offset, length, buffer_cap) -> (error_code, bytes_read)`
+            *   `FS_METHOD_WRITE(fd_cap, offset, length, buffer_cap) -> (error_code, bytes_written)`
+            *   `FS_METHOD_STAT(fd_or_path_cap, path_length_if_path, stat_buffer_cap) -> error_code` (where `stat_buffer_cap` is for returning data).
+            *   `FS_METHOD_MKDIR(path_string_cap, path_length, mode) -> error_code`
+            *   `FS_METHOD_RMDIR(path_string_cap, path_length) -> error_code`
+            *   `FS_METHOD_UNLINK(path_string_cap, path_length) -> error_code`
+            *   Define necessary data structures for parameters and return values (e.g., for file status information).
+        *   **Capability Usage:**
+            *   `path_string_cap`: Capability to a shared memory region containing the null-terminated path string.
+            *   `buffer_cap`: Capability to a shared memory region for read/write data.
+            *   `fd_cap`: A new type of capability representing an open file descriptor/handle, managed by the FS server. This capability would grant rights to perform read/write/stat operations on that specific open file.
+            *   `stat_buffer_cap`: Capability to a client-provided buffer where stat information is written.
+        *   **Client Library (Optional but Recommended):** Plan for a small user-space client library that wraps these IPC calls, providing a more traditional POSIX-like API (e.g., `open(path, flags)`, `read(fd, buffer, count)`) to applications. This library would handle capability management for shared buffers and marshalling/unmarshalling of IPC messages.
+    *   Save this plan as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T2_Implement_FS_IPC_Interfaces_dev_plan.md`.
+
+2.  **Implement the Task (IDL and Client Library Stubs):**
+    *   Create the IDL definition file for the file system service.
+    *   Use the IDL tool (`M3_S5_T4`) to generate the client-side stubs and server-side skeletons.
+    *   If a client library is planned, implement the basic structure of this library and the wrapper functions that use the generated client stubs.
+    *   The server-side implementation of these interfaces will be done as part of `M3_S7_SS3_T1`. This task focuses on defining the contract and providing the means for clients to use it.
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.2.2 (File System - IPC interface examples).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-SVC-FS-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Full implementation of the File System Server logic that serves these IPC requests (`M3_S7_SS3_T1`).
+        *   Testing client-server interaction using these interfaces.
+        *   Refinement of the interfaces and client library based on usage.
+    *   Save this document as `/plan/generated_subplans/user_space_services/file_system/M3_S7_SS3_T2_Implement_FS_IPC_Interfaces_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.2.2.
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-SVC-FS-00001`.
+-   These IPC interfaces are how user-space applications and services will interact with the file system.
+
+**Dependencies:**
+-   Requires the system IDL and tooling (`M3_S5_T4`).
+-   Requires kernel IPC (`M3_S3`) and capability system (`M3_S2_T11`).
+-   The File System Server (`M3_S7_SS3_T1`) will implement the server side of these interfaces.
+-   Client applications will use the defined interfaces (or client library).
+
+Focus on defining clear, robust, and capability-secure IPC interfaces for all file operations.
+Good luck, Jules!

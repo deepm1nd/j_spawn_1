@@ -1,0 +1,67 @@
+Subject: Implement Memory Fault Handling and Exception IPC Delivery in gRiTOS Kernel
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement memory fault handling: trap identification, delivery of exception IPC to user-space handlers. (SoP 2.1.2, GRITOS-REQ-FNC-KERNEL-MEM-00005)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing memory fault (e.g., page fault, MPU violation) handling within the kernel.
+    *   This plan should detail:
+        *   The interface between the architecture-specific fault trap handler (in HAL) and the generic kernel fault handler. The HAL part captures fault details (faulting address, access type, PC, SP, fault status register).
+        *   The kernel's logic for identifying the faulting thread and its process.
+        *   Determining if a fault handler endpoint is registered for the faulting thread/process (e.g., checking a field in the TCB or Process object that stores a capability to the fault handler endpoint, set via `TCB_METHOD_SET_FAULT_HANDLER_EP` or similar).
+        *   The structure of the 'exception IPC message' to be sent to the user-space fault handler. As per SoP 2.1.2, this includes:
+            *   `tag`: `SYS_EXCEPTION_TAG`
+            *   `data_words[0]`: `EXCEPTION_TYPE_MEMORY_FAULT`
+            *   `data_words[1]`: Faulting virtual address
+            *   `data_words[2]`: Program Counter (PC)
+            *   `data_words[3]`: Stack Pointer (SP)
+            *   `data_words[4]`: Fault status register value (arch-specific)
+            *   `data_words[5]`: Access type flags (Read, Write, Execute)
+            *   `cap_slots`: Potentially a capability to the faulting TCB.
+        *   The mechanism for sending this exception IPC (e.g., using a kernel-internal version of `gRiTOS_SendAsync` or directly constructing and delivering the message).
+        *   Suspending the faulting thread (`TS_BLOCKED_EXCEPTION` or similar state) pending action from the user-space handler.
+        *   Kernel action if no handler is registered or if the handler fails to resolve the fault and the thread is resumed (typically, terminate the faulting process).
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T6_Implement_Memory_Fault_Handling_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the generic kernel memory fault handling logic based on your sub-development plan.
+    *   This involves:
+        *   Writing the kernel code that receives fault details from the HAL.
+        *   Looking up the registered fault handler for the faulting context.
+        *   Constructing and sending the exception IPC message.
+        *   Managing the state of the faulting thread.
+        *   Implementing the default termination policy if no handler is present or successful.
+    *   Ensure that the construction of exception IPC messages adheres to security considerations (avoid leaking sensitive kernel data - `M3_S4_T7`).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.2 (Memory Fault Handling).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00005`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Implementation of the `TCB_METHOD_SET_FAULT_HANDLER_EP` (or equivalent) method for components to register their fault handlers.
+        *   Development of a user-space fault handling library/component to receive and process these exception messages.
+        *   Testing various fault scenarios (e.g., read to unmapped, write to read-only, execute from non-executable) and verifying correct delivery of exception IPC.
+        *   Rate limiting or other DoS mitigations for fault handlers (SoP 2.1.2 Cybersecurity Consideration).
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T6_Implement_Memory_Fault_Handling_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2 (Memory Management - Memory Fault Handling).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00005`, `GRITOS-REQ-SEC-IPC-EXCEPTIONMSG-00001`.
+-   This mechanism is crucial for enabling advanced memory management techniques like copy-on-write, demand paging, and for debugging memory access violations.
+
+**Dependencies:**
+-   Requires HAL support for trapping memory faults and providing necessary fault details to the kernel (a HAL task).
+-   Requires TCB/Process structures to store fault handler endpoint capabilities (`M3_S2_T2`, `M3_S2_T8`, `M3_S2_T9`).
+-   Requires IPC subsystem for sending the exception message (`M3_S3`).
+-   The format of the exception IPC message links to `M3_S3_T3`.
+-   Secure construction of the message is covered by `M3_S4_T7`.
+
+Focus on a reliable and informative fault reporting mechanism.
+Good luck, Jules!

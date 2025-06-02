@@ -1,0 +1,57 @@
+Subject: Implement MMU/MPU Configuration and Management for Memory Isolation in gRiTOS
+
+**Main Task Reference:**
+This task corresponds to the following item in `/plan/gritos_dev_plan.md`, section "3.4. Memory Management Subsystem":
+"Task: Implement MMU/MPU configuration and management for memory isolation (kernel/user, inter-component). (SoP 2.1.2, GRITOS-REQ-FNC-KERNEL-MEM-00001)"
+
+**Instructions:**
+
+1.  **Create Sub-Development Plan:**
+    *   Develop a detailed sub-development plan for implementing MMU/MPU configuration and management.
+    *   This plan should:
+        *   Define the kernel's strategy for managing page tables (for MMU-based systems) or region configurations (for MPU-based systems) to ensure isolation between kernel and user space, and between different user-space components.
+        *   Specify how the kernel will interact with the HAL (Hardware Abstraction Layer) to perform architecture-specific MMU/MPU operations (e.g., updating page table entries, setting region attributes, TLB management).
+        *   Detail the data structures used by the kernel to represent `AddressSpace` objects (defined in `M3_S2_T2`) and how these map to hardware page tables or MPU configurations. This includes handling page table walks, creation of new page tables, etc.
+        *   Describe the process of setting up initial kernel address space during boot.
+        *   Describe the process of creating and configuring a new address space for a user-space process, including initial kernel mappings (e.g., for syscalls, shared data).
+        *   Support standard page sizes (e.g., 4KB) and potentially larger page sizes if hardware permits.
+    *   Save this plan as `/plan/generated_subplans/memory_management/M3_S4_T1_Implement_MMU_MPU_Configuration_dev_plan.md`.
+
+2.  **Implement the Task:**
+    *   Implement the kernel-level logic for managing page tables or MPU regions based on your sub-development plan.
+    *   This includes:
+        *   Functions to create, modify, and manage `AddressSpace` objects.
+        *   Code that calls HAL functions to update hardware MMU/MPU settings when an `AddressSpace` is modified (e.g., due to memory mapping/unmapping operations from `M3_S4_T4`).
+        *   Logic to activate an `AddressSpace` during a context switch (the HAL context switch routine will likely call into this).
+        *   Initialization of the kernel's own address space at boot time.
+    *   Ensure that incorrect MMU/MPU configuration by the kernel is prevented through rigorous design and validation, as this is a critical vulnerability point (SoP 2.1.2 Cybersecurity Warning).
+    *   Adhere to the overall gRiTOS architecture, principles, and constraints outlined in:
+        *   `/plan/gritos_dev_plan.md`
+        *   `/plan/archive/gritos_product_specification.md` (SoP), especially section 2.1.2 (Memory Management - MMU/MPU isolation).
+        *   `/gritos_product_requirements_full.md`, particularly `GRITOS-REQ-FNC-KERNEL-MEM-00001`.
+
+3.  **Document Next Steps:**
+    *   Consider and document next steps, including:
+        *   Integration with memory mapping operations (`M3_S4_T4`).
+        *   Integration with context switching (`M3_S2_T7`) to switch address spaces.
+        *   Thorough testing of memory isolation: kernel/user separation, inter-process isolation.
+        *   Penetration testing scenarios targeting memory protection.
+        *   Handling of TLB shootdowns for multiprocessor systems (if SMP is considered later).
+    *   Save this document as `/plan/generated_subplans/memory_management/M3_S4_T1_Implement_MMU_MPU_Configuration_next_steps.md`.
+
+4.  **Commit Messages:**
+    *   Adhere strictly to the Information Exchange Protocol defined in section 7 of `/plan/gritos_dev_plan.md` for all commit messages.
+
+**Context & References:**
+-   **SoP Sections:** 2.1.2 (Memory Management), 4.1.2 (AddressSpace object), 4.6 (HAL/BSP for MMU/MPU control).
+-   **ReqFull IDs:** `GRITOS-REQ-FNC-KERNEL-MEM-00001`, `GRITOS-REQ-ARC-MEM-CAPABILITYBASEDMODEL-00001`.
+-   MMU/MPU management is fundamental for memory protection and isolation, a core security and safety feature.
+
+**Dependencies:**
+-   Requires `AddressSpace` object definition (`M3_S2_T2`).
+-   Requires HAL support for architecture-specific MMU/MPU operations (e.g., page table updates, TLB invalidation, region setup - this will be a separate HAL task, e.g., `HAL.2.x` in `concept/inputs/grit_dev_plan.md` style).
+-   Will be used by context switching logic to change address spaces.
+-   Will be used by memory mapping operations to update address spaces.
+
+Focus on a robust and secure implementation of address space management.
+Good luck, Jules!
