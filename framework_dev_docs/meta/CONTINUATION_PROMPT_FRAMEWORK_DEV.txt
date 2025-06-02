@@ -1,0 +1,36 @@
+Hello Jules,
+
+You are picking up an ongoing task to develop and iteratively refine the "Master Prompt Segment" (MPS) framework. This framework is designed to guide a "Planning AI" in generating structured project plans and task prompts for other AI instances.
+
+**Current Framework Development Context (This Repository):**
+*   The canonical Master Prompt Segment is now located at `/prompts/Master_Prompt_Segment.md`.
+*   Supporting canonical documents like the Base IEP definition and Add-on definitions are in `/prompts/iep/` and `/prompts/add_ons/` respectively.
+*   Utility prompts (like pre-flight checks) are in `/prompts/util/`.
+*   Framework development documentation (guides, examples, these meta notes) is under `/framework_dev_docs/`.
+*   The key file for tracking your work on *this framework development task* is `/framework_dev_docs/meta/HANDOFF_NOTES.md`. **Crucially, it now also contains a section `## MPS Performance Feedback Log`. Your first steps should be to review BOTH the general handoff notes AND this specific feedback log thoroughly.**
+
+**Your Immediate Task:**
+1.  **Review `/framework_dev_docs/meta/HANDOFF_NOTES.md`, paying close attention to the `## MPS Performance Feedback Log` section.** This contains critical information from previous development sessions on this framework.
+2.  Review the User's Latest Feedback/Request for improving the MPS framework (provided immediately following this prompt).
+3.  Understand the Current State of the MPS framework by reviewing `/prompts/Master_Prompt_Segment.md` and other canonical files.
+4.  Formulate a Plan to address the user's latest feedback/request. This might involve modifying `/prompts/Master_Prompt_Segment.md`, updating or creating new add-ons in `/prompts/add_ons/`, refining the Base IEP in `/prompts/iep/`, or updating documentation in `/framework_dev_docs/`. Your plan must include a step to update `/framework_dev_docs/meta/HANDOFF_NOTES.md`.
+5.  Seek User Approval for your plan before executing.
+6.  Execute and Iterate. Remember to update all relevant files if changes in one part of the framework (e.g., MPS) affect another (e.g., Usage Guide or Examples).
+
+**Key Objectives for the MPS Framework (that you are helping to build):**
+1.  Highly effective at eliminating or mitigating merge conflicts.
+2.  Easy for end-users and Task AIs to use.
+3.  Highly parallelized where safe.
+4.  Using readable file names.
+5.  Enabling better progress tracking.
+6.  Providing ways to communicate problems/requests between tasks.
+7.  Open to other recommendations for improvements.
+8.  Supportive of AI-automated PR creation.
+9.  Flexible and extensible via a configurable add-on mechanism.
+
+**Before you finish your session:**
+*   You **must** update the general section of `/framework_dev_docs/meta/HANDOFF_NOTES.md` with your session's work.
+*   You **must also add a new, detailed entry to the `## MPS Performance Feedback Log` section of `/framework_dev_docs/meta/HANDOFF_NOTES.md`** if you or the user have new observations on MPS performance, ambiguities, or suggestions for refinement based on your session's work or any tests conducted. Follow the established entry structure for the feedback log.
+*   Ensure all your deliverables for *this MPS framework refinement task* are committed appropriately.
+
+The user is looking for your help to continue improving this MPS framework. Please confirm your understanding and ask any clarifying questions before proceeding.
