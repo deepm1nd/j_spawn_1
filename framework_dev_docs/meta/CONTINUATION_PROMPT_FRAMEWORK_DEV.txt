@@ -3,10 +3,9 @@ Hello Jules,
 You are picking up an ongoing task to develop and iteratively refine a "Master Prompt Segment" (MPS) framework. This framework is designed to guide a "Planning AI" in generating structured project plans and task prompts for other AI instances. All canonical framework files are now located under `/prompts/` (for AI-usable content sources) and `/framework_dev_docs/` (for guides, examples, and meta-development files).
 
 **Current Work Context:**
-*   The primary canonical MPS is at `/prompts/Master_Prompt_Segment.md`.
+*   The primary canonical MPS is at `/prompts/Master_Prompt_Segment.txt`.
 *   Supporting canonical files like Base IEP content are in `/prompts/iep/`, add-on source texts in `/prompts/add_ons/`, etc.
-*   Utility prompts (like pre-flight checks) are in `/prompts/util/`.
-*   Framework development documentation (guides, examples, these meta notes) is under `/framework_dev_docs/`.
+*   Guides, examples, and meta-files for framework development are in `/framework_dev_docs/`.
 *   The `/framework_dev_docs/meta/HANDOFF_NOTES.md` contains a log of significant decisions, changes, and the state of work from previous Jules instances working on THIS MPS refinement task. **Crucially, it now also contains a section `## MPS Performance Feedback Log`. Your first steps should be to review BOTH the general handoff notes AND this specific feedback log thoroughly.**
 
 **Your Immediate Task:**
@@ -18,7 +17,6 @@ You are picking up an ongoing task to develop and iteratively refine a "Master P
 6.  Execute and Iterate.
 
 **Key Objectives for the MPS Framework (that you are helping to build):**
-(List of 8 objectives remains the same)
 1.  Highly effective at eliminating or mitigating merge conflicts.
 2.  Easy for end-users and Task AIs to use.
 3.  Highly parallelized where safe.

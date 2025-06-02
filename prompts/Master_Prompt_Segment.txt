@@ -55,12 +55,12 @@ C. **Input Definition Files (Base IEP):**
     You will also need to read certain definition files provided by the user. Specifically, the Base IEP content is expected at `/prompts/iep/Base_IEP.txt` (this path is relative to the repository root where you are invoked; it is in the repo). This will be referenced in Section III.C.1.
 
 **II. CORE PLANNING & TASK DEFINITION DIRECTIVES:**
-1.  **Understand User's Project:** Thoroughly analyze the user's project description (the part of the prompt *before* this MPS text), including any referenced input documents and exemplar plans. Perform research if indicated. Your primary deliverable is often a main development plan document (e.g., `project_dev_plan.md` as per user's request); your task prompts will break this main plan into executable pieces.
+1.  **Understand User's Project:** Thoroughly analyze the user's project description (the part of the prompt *before* this MPS text), including any referenced input documents and exemplar plans. Perform research if indicated. Your primary deliverable is often a main development plan document (e.g., `project_dev_plan.md`); your task prompts will break this main plan into executable pieces.
 2.  **Phased Structure:** Decompose the project into 2-5 logical phases.
 3.  **Task Granularity & Parallelism:** Define tasks within each phase to be as granular as possible while remaining meaningful, designed for maximum parallel execution.
 4.  **Merge Conflict Mitigation Strategy (HIGHEST PRIORITY):**
-    *   Your **highest priority** is to eliminate or severe mitigation of potential merge conflicts.
-    *   Actively identify tasks that might conflict (write to same file, or read file modified by concurrent task).
+    *   Your **highest priority** is to eliminate or severely mitigate potential merge conflicts.
+    *   Actively identify tasks that might conflict.
     *   If conflict identified:
         *   First, try to redesign tasks for separate files/parts. Task AIs should primarily create *new* files in their designated output directories (derived from `User-Specified Task Output Base Path`).
         *   If redesign fails, **must** serialize these tasks (different phases, or explicitly sequenced in TLP using 'Dependencies' field, see III.C.2). Task prompts must state these dependencies (e.g., "Note: This task depends on Task X (`[Task_X_Prompt_Filename]`). Ensure its deliverables are available...").
@@ -77,7 +77,7 @@ C. **Input Definition Files (Base IEP):**
     *   Aim for S or M. If L, ensure well-defined. **Avoid XL; decompose further.** If unavoidable, flag in TLP and suggest user review.
 7.  **Planning Confidence Assessment & Reporting:**
     *   After generating the complete plan, self-assess your confidence: **High, Medium, or Low.**
-    *   Base on: clarity of user request, task decomposition success (S/M/L sizes, avoiding XL), number of serializations, information completeness.
+    *   Base on: clarity of user request, task decomposition success, number of serializations, information completeness.
     *   Report score and rationale: 1. At top of `00_task_launch_plan.md`. 2. In your final commit message (`[PLANNING_CONFIDENCE]` block).
 8.  **Visual Plan Overview Generation (Mermaid Syntax):**
     *   Generate a Mermaid JS flowchart: phases as subgraphs, key tasks (Task IDs/short descriptions), dependencies as arrows, phase sequence.
@@ -88,7 +88,7 @@ C. **Input Definition Files (Base IEP):**
         (Adapt complexity; for large plans, show major tasks/flows).
 
 **III. OUTPUT GENERATION REQUIREMENTS:**
-All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGURATION]]` (which is repository root if '.').
+All paths for *your generated outputs* are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGURATION]]` (which is repository root if '.').
 
 **A. Main Development Plan Document (e.g., `gritos_dev_plan.md`):**
     *   Develop content based on user's request.
@@ -97,7 +97,7 @@ All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGUR
 **B. Task Prompt Files (`.txt`):**
     *   **Location:** The 'Prompts Folder' (e.g., `prompts/tasks/` if Main Iteration Folder is `.` and Prompts Folder is `prompts/tasks`).
     *   **For Each Task, Generate a Prompt File Containing:**
-        1.  **Task Overview:** Purpose, contribution, reference to Main Dev Plan section. If dependent (from TLP), reiterate dependency (e.g., "Depends on `TaskX_ID`...").
+        1.  **Task Overview:** Purpose, contribution, reference to Main Dev Plan. If dependent (from TLP), reiterate dependency (e.g., "Depends on `TaskX_ID`...").
         2.  **Sub-Development Plan Directive:** "Create `<PhaseTaskName>_dev_plan.md` in `[Actual User-Specified Path for Submodule Plans from [[USER PATH CONFIGURATION]]]`. List steps; mark progress."
         3.  **Detailed Task Execution Instructions:** Actionable steps, reference inputs.
         4.  **Output Management:** "Place new, task-specific files in `[Actual User-Specified Task Output Base Path]/<PhaseTaskName>/`. For modifying shared code in `[Actual User-Specified Task Output Base Path]`, be specific and use IEP `Owned-Files-Modules`."
@@ -107,17 +107,17 @@ All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGUR
         8.  **Retry Logic:** "```If retrying post-crash, investigate git log, `[Actual User-Specified Path for Submodule Plans]/<PhaseTaskName>_dev_plan.md`, output dir `[Actual User-Specified Task Output Base Path]/<PhaseTaskName>/`, and logs in `[Actual Path to Prompts Folder]/ipc/`. Document findings in `_dev_plan.md`. Continue without repeating.```"
         9.  **Path Referencing:** Append ", it is in the repo." to file paths.
         10. **Risk Assessment Directive:** "For each commit, assess risk (Low, Medium, High) based on scope, complexity, impact, test coverage, dependencies. Include in commit message: `[RISK_ASSESSMENT]` block with `- Risk-Level: <level>` and `- Justification: <explanation>` in `Notes-To-Next-Jules`."
-        11. **Append Selected Add-ons:** "Retrieve ordered list of selected add-ons from Section I.B. For each, append its full text to this prompt. Resolve placeholders (`[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, `[Actual User-Specified Task Output Base Path]`, `<ExactOriginalTaskPromptFilenameBase>`) within add-on text using values from `[[USER PATH CONFIGURATION]]` (Section I.A) and current task context."
+        11. **Append Selected Add-ons:** "Retrieve ordered list of selected add-ons from Section I.B. For each, append its full text to this prompt. Resolve placeholders (`[Actual Path to Prompts Folder]`, etc.) within add-on text using values from `[[USER PATH CONFIGURATION]]` (Section I.A) and current task context."
 
-**C. Supporting Documentation (in the 'Prompts Folder' for the target project, e.g. `prompts/tasks/`):**
+**C. Supporting Documentation (in the 'Prompts Folder' you generate for the target project, e.g. `prompts/tasks/`):**
 1.  **`Information_Exchange_Protocol.md`:**
     *   Read content from user-provided `/prompts/iep/Base_IEP.txt` (path relative to repo root where you operate; it is in the repo).
     *   Create `Information_Exchange_Protocol.md` in the 'Prompts Folder' you're generating (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md`).
     *   Write exact content from `/prompts/iep/Base_IEP.txt` into it. Ensure example `Notes-To-Next-Jules` in it includes an illustration of `[RISK_ASSESSMENT]` block (user's `Base_IEP.txt` should ideally have this).
 2.  **`00_task_launch_plan.md`:**
-    *   Create based on template. Dynamically replace placeholders (`[Project Name Placeholder]`, `[Iteration Placeholder XX]`, all `[Actual...Path...]` placeholders) with values from `[[USER PATH CONFIGURATION]]` and user request. Generate task listing.
-    *   **Launch Commands Path Logic:** Ensure launch paths are correct relative to repo root. E.g., if 'Main Iteration Folder' is `.` and 'Prompts Folder' is `prompts/tasks`, path is `prompts/tasks/p1_t1.txt...`. If 'Main Iteration Folder' is `iter_out` and 'Prompts Folder' is `iter_out/prompts/tasks`, path is `iter_out/prompts/tasks/p1_t1.txt...`.
-    *   **Missing Add-on Warnings:** If any add-ons selected in `[[USER_ADDON_SELECTION]]` were not found, add a warning section at the top of TLP (after Visual Plan Overview).
+    *   Create based on template. Dynamically replace placeholders.
+    *   **Launch Commands Path Logic:** Ensure launch paths are correct relative to repo root. E.g., if 'Main Iteration Folder' is `.` and 'Prompts Folder' (for your output) is `prompts/tasks`, path is `prompts/tasks/p1_t1.txt...`. If 'Main Iteration Folder' is `iter_out` and 'Prompts Folder' is `iter_out/prompts/tasks`, path is `iter_out/prompts/tasks/p1_t1.txt...`.
+    *   **Missing Add-on Warnings:** If add-ons from `[[USER_ADDON_SELECTION]]` were not found at `/prompts/add_ons/`, add a warning section at top of TLP.
     *   **TLP TEMPLATE:**
         \`\`\`markdown
         # Task Launch Plan for [Project Name Placeholder] - Iteration [Iteration Placeholder XX]
@@ -131,7 +131,7 @@ All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGUR
         [[[P-AI TO GENERATE MERMAID FLOWCHART DIAGRAM HERE]]]
         graph TD; A["T1"] --> B["T2"];
         \`\`\`
-        *(Diagram above is placeholder, to be replaced by actual plan.)*
+        *(Diagram above is placeholder...)*
 
         [[[P-AI TO INSERT WARNINGS ABOUT MISSING ADD-ONS HERE, IF ANY]]]
 
@@ -146,9 +146,7 @@ All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGUR
         ## 2. Execution Workflow
         1. Review Phases...
         2. Parallel Task Execution: ...unless "Dependencies" field indicates sequence...
-        3. Provide Prompts...
-        4. Monitor Progress (IEP at `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md`, `_dev_plan.md`s, IPC folder)...
-        5. Handle Crashes...
+        ...
         ## 3. Launching Tasks
         ---
         [[YOU MUST DYNAMICALLY GENERATE THE TASK LISTING BELOW]]
@@ -159,23 +157,23 @@ All paths are relative to the 'Main Iteration Folder' from `[[USER PATH CONFIGUR
         #### **Task: `<Full Prompt Filename>`**
         *   **Description:** <1-2 sentence objective>
         *   **Estimated Effort:** <S|M|L|XL>
-        *   **Dependencies:** <(P-AI Populates if Applicable) e.g., "Depends on: `p1_t1_other.txt` - Reason...">
+        *   **Dependencies:** <(P-AI Populates if Applicable)...>
         *   **Initial Launch:** \`\`\`[Path to Prompt File relative to Repo Root] is the prompt, it is in the repo.\`\`\`
         *   **Retry if Crashed:** \`\`\`[Path to Prompt File relative to Repo Root] is the prompt, ...continue task.\`\`\`
         ---
         [[END OF DYNAMIC TASK LISTING]]
         ## 4. Iteration Completion
-        Review `_next_steps.md` in `[Actual User-Specified Path for Submodule Plans]`. Good luck!
+        Review `_next_steps.md`... Good luck!
         \`\`\`
         (End of 00_task_launch_plan.md template)
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION:**
 A. **Planning AI Self-Correction and Verification Checks (MANDATORY):**
     Before finalizing, perform these checks on *each generated task prompt*:
-    1. Core Directives: `_dev_plan.md` creation? `_next_steps.md` (with `### Key Learnings & Discoveries`)? IEP reminder? Risk Assessment directive? Retry Logic?
-    2. Path Placeholders: All `[Actual...Path...]` and `<PhaseTaskName>` resolved correctly? Paths have ", it is in the repo."?
-    3. Mandated Add-on Inclusion: Logic for `[[USER_ADDON_SELECTION]]` applied? Selected add-ons appended with internal placeholders resolved?
-    4. Clarity: Task Overview & Instructions clear and actionable?
+    1. Core Directives: `_dev_plan.md`? `_next_steps.md` (with `### Key Learnings & Discoveries`)? IEP reminder? Risk Assessment directive? Retry Logic?
+    2. Path Placeholders: All `[Actual...Path...]` and `<PhaseTaskName>` resolved? Paths have ", it is in the repo."?
+    3. Selected Add-on Inclusion: Logic for `[[USER_ADDON_SELECTION]]` applied? Selected add-ons appended with internal placeholders resolved?
+    4. Clarity: Task Overview & Instructions clear?
     5. Dependency Statement: Coherent if task is dependent?
     Correct any discrepancies.
 B. **Final Commit Message by Planning AI:**

@@ -1,6 +1,6 @@
 # Base IEP - Design Notes and Philosophy
 
-This document provides context and design rationale for the Base Information Exchange Protocol (Base IEP). The canonical *content* of the Base IEP (for AI use) is stored in `/prompts/iep/Base_IEP.txt` in the framework development repository.
+This document provides context and design rationale for the Base Information Exchange Protocol (Base IEP). The canonical *content* of the Base IEP (for AI use by copying to target repo) is stored in `/prompts/iep/Base_IEP.txt` in this framework development repository.
 
 ## 1. Purpose and Philosophy
 (Content from existing Base_IEP_Definition.md - section 1)

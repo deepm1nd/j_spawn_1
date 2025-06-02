@@ -1,10 +1,18 @@
 # Base Information Exchange Protocol (Base IEP) - v0.2 (with Risk Assessment Example)
 
 ## 1. Purpose and Philosophy
-(Same as v0.1 in `/mps_01/prompts/ipc/Base_IEP.txt`)
+This document defines the Base Information Exchange Protocol (Base IEP), a minimal, universal set of fields for standardizing Git commit messages. The primary goals of the Base IEP are:
+
+*   **Clarity and Traceability:** Provide a consistent way to understand the purpose and context of every commit.
+*   **Universal Applicability:** Serve as a foundational communication structure for tasks performed by individual AI instances or teams of collaborating AI instances.
+*   **Extensibility:** Allow for specialized information to be added by specific "Prompt Add-ons" or for particular task types without altering the core fields. This ensures the base remains simple while accommodating diverse needs.
+
+The philosophy is to keep the top-level structure lean and rely on a designated free-form field (`Notes-To-Next-Jules`) for structured extensions.
 
 ## 2. Core Base IEP Fields
-(Same core fields as v0.1: Task-ID, Status, Summary, Files-Modified, Notes-To-Next-Jules)
+
+Every commit message **must** adhere to the following core field structure. These fields are considered fundamental for any task.
+
 \`\`\`
 Task-ID: <Unique identifier for the primary task or context this commit relates to. Often the filename of the initiating prompt or a higher-level tracker ID.>
 Status: <Overall status of the Task-ID (or a more specific Sub-Task-ID if provided in Notes-To-Next-Jules) *after* this commit is applied.>
@@ -25,9 +33,19 @@ Notes-To-Next-Jules:
 \`\`\`
 
 ## 3. Extensibility Mechanism
-(Same as v0.1)
 
-**Example of `Notes-To-Next-Jules` with Extensions (Illustrative):**
+The Base IEP is designed to be extended without altering its core fields. Extensions are primarily achieved by defining structured content (e.g., key-value pairs, special tags, Markdown sections) within the `Notes-To-Next-Jules` field.
+
+**Guidelines for Extensions:**
+
+*   **Prefixing/Tagging:** Extensions should use clear, unique prefixes or tags to identify their purpose and avoid clashes.
+    *   Example: `[ADDON_NAME_FEATURE_STATUS]: Details...`
+    *   Example: `[PROGRESS_TRACKING_PERCENT_COMPLETE]: 70%`
+*   **Documentation:** Any "Prompt Add-on" or process that introduces specific structured extensions to be used within `Notes-To-Next-Jules` **must** document these extensions as part of the add-on's definition or its usage guide.
+*   **Clarity:** Extensions should be human-readable and provide clear value.
+*   **Separation:** Use newlines or clear separators (like Markdown headings) within `Notes-To-Next-Jules` to distinguish different pieces of extended information from general notes.
+
+**Example of `Notes-To-Next-Jules` with Extensions (Illustrative - actual tags depend on add-ons used):**
 \`\`\`
 Notes-To-Next-Jules:
 This commit implements the core authentication logic and refactors the session manager.
@@ -54,6 +72,9 @@ Ensure Redis service is configured and running for subsequent tests.
 \`\`\`
 
 ## 4. Responsibilities
-(Same as v0.1)
+
+*   **AI Instances:** Must adhere to the Base IEP core fields in all commits. If guided by a Prompt Add-on that defines extensions, the AI must populate those extensions correctly within `Notes-To-Next-Jules`.
+*   **Prompt Add-on Designers:** Must clearly define any IEP extensions their add-on introduces and how they fit within the `Notes-To-Next-Jules` field. They should not redefine Base IEP core fields.
+*   **Users/Reviewers:** Can rely on the Base IEP fields for consistent top-level information and then parse `Notes-To-Next-Jules` for more detailed, structured information provided by various add-ons or task-specific reporting.
 
 This Base IEP, with its clear extensibility mechanism, provides a flexible yet standardized foundation for communication across diverse AI-driven tasks and workflows.
