@@ -21,8 +21,10 @@ User-Specified Task Output Base Path: dev/default_task_outputs
 # - Mark selection with '[x]' (case-insensitive for 'x').
 # - Add-ons must exist in the '/prompts/add_ons/' directory of this repository (i.e., the repo where the Planning AI runs).
 # - Ensure exact filenames, including extensions (e.g., .txt).
-# - Add-ons will be appended to task prompts in the order listed here.
+# - Add-ons will be appended to task prompts in the order listed here IF the task_spawning_addon.txt is also selected to generate task prompts.
+#   If task_spawning_addon.txt is NOT selected, other add-ons will be processed as per their own directives.
 
+# [x] task_spawning_addon.txt  # Select this to generate a full project plan and task prompts
 [x] task_resumption_addon.txt
 # [ ] example_coding_standards_addon.txt
 # [ ] example_security_checklist_addon.txt
