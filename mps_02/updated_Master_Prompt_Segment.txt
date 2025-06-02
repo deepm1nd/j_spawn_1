@@ -1,4 +1,4 @@
-[[START OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage): AI Project Planning & Task Generation Instructions]]
+[[START OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage, Effort Estimation, Risk Assessment Directive): AI Project Planning & Task Generation Instructions]]
 
 ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided immediately preceding this segment) and generate a comprehensive, phased execution plan. This involves creating detailed task prompts for subsequent AI instances ("Task AIs") and all necessary supporting documentation. Adhere strictly to the following instructions and output requirements.
 
@@ -37,6 +37,10 @@ classes, or sections of code to be modified, the nature of the changes, and any 
     *   Task Launch Plan: `00_task_launch_plan.md`.
     *   Submodule Dev Plans (created by Task AIs): `<prompt_filename_base>_dev_plan.md` (e.g., `p1_t1_database_schema_dev_plan.md`).
     *   Next Steps Docs (created by Task AIs): `<prompt_filename_base>_next_steps.md`.
+6.  **NEW: Task Effort Estimation (Heuristic):**
+    *   For each task you define, provide a heuristic estimate of its effort/complexity. Use T-shirt sizes: S (Small), M (Medium), L (Large), XL (Extra Large).
+    *   Base your estimate on factors like the perceived amount of work, number of components involved, apparent complexity of logic, and potential dependencies or unknowns.
+    *   Your goal is to break down work such that most tasks are S or M. If a task seems L, ensure it's well-defined. **Avoid generating XL tasks; if a part of the plan seems XL, you must attempt to decompose it further into smaller, more manageable tasks (S, M, L).** If decomposition of an XL item isn't feasible while meeting other constraints, clearly flag it as XL in the `00_task_launch_plan.md` and suggest user review for that specific item.
 
 **III. OUTPUT GENERATION REQUIREMENTS:**
 
@@ -52,14 +56,14 @@ All file paths below are relative to the "Main Iteration Folder" identified from
     *   **Location:** Create in the designated "Prompts Folder".
         *   This path is interpreted relative to the 'Main Iteration Folder'. For example, if 'Main Iteration Folder' is `gritos_mps_test_01` and 'Prompts Folder' is `gritos_mps_test_01/prompts`, files go into `gritos_mps_test_01/prompts/`. If 'Main Iteration Folder' is `.` and 'Prompts Folder' is `prompts`, then files go into `prompts/` at the repository root.
     *   **For Each Task Defined in your Main Development Plan, Generate a Prompt File Containing:**
-        1.  **Task Overview:** Purpose of this specific task, its contribution to the current phase and overall project. Reference the relevant section of the Main Development Plan document you created. **If this task has dependencies as noted in the `00_task_launch_plan.md`, reiterate them here briefly.**
+        1.  **Task Overview:** Purpose of this specific task, its contribution to the current phase and overall project. Reference the relevant section of the Main Development Plan document you created. **If this task has dependencies as noted in the `00_task_launch_plan.md` (due to serialization by Planning AI), reiterate them here briefly (e.g., "This task depends on `TaskX_ID` and should only start after its completion.").**
         2.  **Sub-Development Plan Directive:**
             *   "You must first create a detailed sub-development plan for this task. Save it as `<PhaseTaskName>_dev_plan.md` in the user-specified submodule plan destination folder: `[Actual User-Specified Path for Submodule Plans from [[USER PATH CONFIGURATION]]]`. This plan must list your detailed steps. Mark your progress in this file (e.g., using markdown checkboxes: `[ ] Step 1`, `[x] Step 2`)."
         3.  **Detailed Task Execution Instructions:** Clear, actionable steps to complete the task, referencing any necessary input documents (e.g., sections from the Main Development Plan, product specifications).
         4.  **Output Management:**
             *   "Place all new files, code, or artifacts created *specifically for this task* and not intended as direct modifications to existing shared project code into a dedicated task-specific subdirectory within the `User-Specified Task Output Base Path`. For this task, your primary output subdirectory should be `[Actual User-Specified Task Output Base Path]/<PhaseTaskName>/`. If this task involves modifying existing shared project code directly within `[Actual User-Specified Task Output Base Path]`, refer to the specific instructions above regarding those modifications and be meticulous with IEP commit messages and the `Owned-Files-Modules` field." (Ensure `<PhaseTaskName>` is specific to the task).
         5.  **Information Exchange Protocol (IEP) Adherence:**
-            *   "You **must** strictly adhere to the `Information_Exchange_Protocol.md` (located in `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`) for all your commit messages. Pay close attention to `Status`, `Owned-Files-Modules`, `[BLOCKERS / ISSUES]`, and `[PROGRESS]` sections."
+            *   "You **must** strictly adhere to the `Information_Exchange_Protocol.md` (located in `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`) for all your commit messages. Pay close attention to `Status`, `Owned-Files-Modules`, `[BLOCKERS / ISSUES]`, and `[PROGRESS]` sections. **Additionally, include the `[RISK_ASSESSMENT]` block as detailed below.**"
         6.  **"Next Steps & Improvements" Document Directive:**
             *   "After completing your primary task, create a document named `<PhaseTaskName>_next_steps.md` in the same location as your `_dev_plan.md` (`[Actual User-Specified Path for Submodule Plans]`). This document must include:
                 *   Potential next steps, enhancements, or optimizations for the content/code you developed.
@@ -70,18 +74,24 @@ All file paths below are relative to the "Main Iteration Folder" identified from
         8.  **Retry Logic (Verbatim Text):**
             *   "```If you are starting this task and a previous AI instance may have already worked on it and crashed, your first step is to thoroughly investigate and determine what that instance completed. Check version control (git log), the file system (especially in `[Actual User-Specified Path for Submodule Plans]/<PhaseTaskName>_dev_plan.md` and your task output directory `[Actual User-Specified Task Output Base Path]/<PhaseTaskName>/`), and any logs in `[Actual Path to Prompts Folder]/ipc/`. Document your findings in your `_dev_plan.md`. Then, proceed to complete the task fully from where the previous instance left off. Do not repeat successfully completed work.```" (Ensure `<PhaseTaskName>` is correctly substituted).
         9.  **Path Referencing:** When providing file paths to the Task AI, append ", it is in the repo." to aid discovery.
+        10. **NEW: Risk Assessment of Changes Directive:**
+            *   "For each commit you make, you must perform a risk assessment of your changes. Determine a risk level (Low, Medium, High) based on factors such as the scope and complexity of your changes, the potential impact on other modules or core functionality, the existing test coverage for the areas you modified, and any new dependencies introduced.
+            *   You must include this assessment in your commit message by adding an `[RISK_ASSESSMENT]` block within the `Notes-To-Next-Jules` field of the IEP. This block should include:
+                *   `- Risk-Level: <Your assessed Low/Medium/High level>`
+                *   `- Justification: <Your brief explanation for choosing this risk level, highlighting key factors.>`"
 
 **C. Supporting Documentation (in the designated "Prompts Folder" for the target project):**
 
 1.  **`Information_Exchange_Protocol.md`:**
     *   Read the content from the user-provided Base IEP file located at `/prompts/ipc/Base_IEP.txt` (this path is relative to the repository root where you, the Planning AI, are operating; it is in the repo).
     *   You **must** create a file named `Information_Exchange_Protocol.md` in the 'Prompts Folder' you are generating for the target project (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md`).
-    *   Write the exact, unmodified content read from `/prompts/ipc/Base_IEP.txt` into this new file. This ensures the target project uses the standard Base IEP provided by the user.
+    *   Write the exact, unmodified content read from `/prompts/ipc/Base_IEP.txt` into this new file.
+    *   **NEW: Ensure the example `Notes-To-Next-Jules` within the IEP content you write includes an illustration of the `[RISK_ASSESSMENT]` block (e.g., by adding it to the existing example or providing a dedicated small example).** This ensures Task AIs see how to format it.
 
 2.  **`00_task_launch_plan.md`:**
     *   Create this file. Its content **must be based on the following template.** You **must** dynamically replace placeholders like `[Project Name Placeholder]`, `[Iteration Placeholder XX]`, `[Actual Main Iteration Folder Path]`, `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, and `[Actual User-Specified Task Output Base Path]` with the actual values derived from the user's request and the `[[USER PATH CONFIGURATION]]` block. You must also dynamically generate the task listing.
     *   **CRITICAL FOR LAUNCH COMMANDS:** Ensure the launch paths in `00_task_launch_plan.md` are always correctly formed relative to the repository root. For example, if 'Main Iteration Folder' is `.` and 'Prompts Folder' is `prompts`, a launch path will be `prompts/p1_t1_task.txt is the prompt, it is in the repo.`. If 'Main Iteration Folder' is `iter_outputs` and 'Prompts Folder' is `iter_outputs/prompts`, the path will be `iter_outputs/prompts/p1_t1_task.txt is the prompt, it is in the repo.`.
-    *   **INSTRUCTIONS FOR TLP TEMPLATE (Pay attention to new "Dependencies" field and phase intro text):**
+    *   **UPDATED TLP TEMPLATE (incorporates "Estimated Effort" and "Dependencies" fields):**
         ```markdown
         # Task Launch Plan for [Project Name Placeholder] - Iteration [Iteration Placeholder XX]
 
@@ -116,6 +126,7 @@ All file paths below are relative to the "Main Iteration Folder" identified from
         [[FOR EACH TASK IN THE PHASE:]]
         #### **Task: `<Full Prompt Filename e.g., p2_t1_process_data.txt>`**
         *   **Description:** <A brief, 1-2 sentence user-friendly description of this task's objective, derived from your Main Development Plan.>
+        *   **Estimated Effort:** <S | M | L | XL (P-AI to populate this. Strive for S or M. Flag XL for user review if unavoidable)>
         *   **Dependencies:** <(P-AI Populates if Applicable) e.g., "Depends on: `p2_t0_fetch_data.txt` - Requires output file `raw_data.csv`." OR "Depends on: `p2_t2_update_config.txt` - Serialized due to shared access to `config.xml`." >
         *   **Initial Launch:**
             \`\`\`
@@ -143,4 +154,4 @@ The user may provide a "Task Resumption Add-on" to enhance task robustness.
 2.  **If Present, Incorporate:** If this file exists, for every task prompt you generate as per Section III.B above, you **must append** the complete and unmodified content of this "Task Resumption Add-on".
 3.  **Resolve Placeholders:** You are responsible for reading this file and including its content in each generated task prompt. Critically, ensure all path placeholders within the add-on text itself (e.g., `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, `[Actual User-Specified Task Output Base Path]`, `<ExactOriginalTaskPromptFilenameBase>`) are correctly resolved by you with the values from the `[[USER PATH CONFIGURATION]]` block (or your defaults) when you embed the add-on into the final task prompts for the target project.
 
-[[END OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage)]]
+[[END OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage, Effort Estimation, Risk Assessment Directive)]]
