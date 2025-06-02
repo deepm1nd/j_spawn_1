@@ -41,6 +41,20 @@ Each Jules instance concluding a work session on this task should append notes b
     6. Launching new Jules (Planning AI) with `"/prompts/p_gritos_spawn.md is the prompt..."`.
 **Next Steps (This Jules instance/session):** Await user action or conclude session.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Modularized `prompts/Master_Prompt_Segment.txt` by extracting its core planning instructions.
+- Created `prompts/iep/Core_Planning_Instructions.txt` to house these extracted instructions.
+- Updated `prompts/Master_Prompt_Segment.txt` to use an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive to load the core instructions.
+- Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to reflect these structural changes and provide updated instructions for users on preparing their target repositories.
+**State of Deliverables:** Modularization of `Master_Prompt_Segment.txt` is complete. The `MPS_Usage_Guide.md` is updated. Framework is ready for testing of this new structure or for further refinement.
+**Suggestions for Next Steps/Instance:**
+- Test the new modular MPS structure by having a Planning AI use it for a sample project.
+- Review the clarity of the `[[INCLUDE ...]]` directive and its processing requirements for the Planning AI.
+- Consider if other sections of `Master_Prompt_Segment.txt` (if any more are added later) or other core prompt files could benefit from similar modularization.
+---
 
 ## MPS Performance Feedback Log
 
@@ -59,4 +73,12 @@ This section logs specific feedback on the performance, clarity, and effectivene
 **Suggestion for MPS Refinement (if any):** N/A
 ---
 *(Future entries will be appended below this line)*
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request to Jules instance for refactoring).
+**MPS Version Referenced:** `prompts/Master_Prompt_Segment.txt` (approx. v0.3.2, prior to modularization) and the new modularized version (post this session's changes).
+**Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
+**Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
+**Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
 ---
