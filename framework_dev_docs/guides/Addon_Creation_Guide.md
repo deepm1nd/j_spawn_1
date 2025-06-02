@@ -4,6 +4,8 @@
 
 This guide provides a methodology for developing "Prompt Add-ons" (also referred to as Master Prompt Segments or MPS-like modules). These add-ons are blocks of instructional text that can be appended to a user's primary prompt to guide an AI instance (e.g., Jules) in performing tasks with specific behaviors, generating particular artifacts, or adhering to defined protocols.
 
+Add-ons are stored in the canonical path `/prompts/add_ons/` within the repository. An `available_addons_manifest.md` file in that same directory lists and briefly describes available add-ons.
+
 The goal is to create modular, reusable, and clear sets of instructions that enhance the capabilities and reliability of AI task execution. Designing with modularity also aids potential future integration into tools like a "Prompt Creation Webapp."
 
 ## 2. Core Principles for Add-on Design
@@ -27,61 +29,67 @@ The goal is to create modular, reusable, and clear sets of instructions that enh
 
 ### Step 3.2: Draft the Add-on Text
 
-This is the core instructional block. Structure it logically.
+This is the core instructional block. Store the add-on text in a file named `[your_addon_name].txt` within the `/prompts/add_ons/` directory.
 
 *   **Opening Directive:** Clearly state that the following text contains special instructions for the AI.
-    *   Example: `[[START OF 'TASK RESUMPTION' ADD-ON: Instructions for AI Task Management]]`
+    *   Example: `[[START OF 'TASK_RESUMPTION_ADDON' vX.Y: Instructions for AI Task Management]]` (Include a version number).
 *   **Core Instructions:** Detail the steps the AI must take.
     *   Use imperative verbs (e.g., "Create...", "Define...", "Append...", "Ensure...").
     *   Break down complex instructions into smaller, numbered, or bulleted steps.
     *   Specify any conditions or triggers for actions.
 *   **Interaction with Other Protocols/Documents (e.g., Base IEP):**
-    *   If the add-on requires the AI to use or extend a common protocol (like a Base Information Exchange Protocol), be explicit.
-    *   **Extending a Base IEP:** A common pattern is to use a small `Base_IEP_Definition.md` that defines core commit message fields. Add-ons can then extend this by instructing the AI to add specific structured tags or data within a general-purpose field like `Notes-To-Next-Jules`.
+    *   If the add-on requires the AI to use or extend a common protocol (like a Base Information Exchange Protocol, typically found at `/prompts/iep/Base_IEP.txt`), be explicit.
+    *   **Extending a Base IEP:** A common pattern is to use the Base IEP that defines core commit message fields. Add-ons can then extend this by instructing the AI to add specific structured tags or data within a general-purpose field like `Notes-To-Next-Jules`.
         *   Example: "When you perform action X as per this add-on, you must include the following in your commit message under `Notes-To-Next-Jules`: `[ADDON_XYZ_STATUS]: Completed_Action_X_Details`."
 *   **Error Handling/Edge Cases (Optional but Recommended):**
     *   Briefly consider common failure points and guide the AI on how to react or report them.
 *   **Closing Directive:** Clearly mark the end of the add-on.
-    *   Example: `[[END OF 'TASK RESUMPTION' ADD-ON]]`
+    *   Example: `[[END OF 'TASK_RESUMPTION_ADDON' vX.Y]]`
 
 ### Step 3.3: Design Supporting Artifacts (if any)
 
 *   If your add-on instructs the AI to create specific documents (e.g., a `Resumption_Prompt.txt`, a `Code_Review_Checklist_Report.md`), define the structure and content of these artifacts.
-*   If your add-on relies on a template that the AI should populate, provide this template text within the add-on itself or specify its location.
+*   If your add-on relies on a template that the AI should populate, provide this template text within the add-on itself or specify its location (preferably within the same add-on file or another file in `/prompts/add_ons/`).
 
 ### Step 3.4: Define Interaction with User-Specified Paths
 
-*   If the add-on's behavior or output locations can be customized by user-provided paths, clearly state:
-    *   What paths the user can specify.
-    *   The default paths if the user doesn't provide them.
-    *   How the AI should use these paths.
-    *   Example: "The Resumption Prompt you generate should be saved to the user-specified 'Task Output Directory'. If not specified, save it as `[Default Path]`."
+*   If the add-on's behavior or output locations can be customized by user-provided paths (defined in the MPS's `[[USER PATH CONFIGURATION]]` block), clearly state:
+    *   How placeholders like `[Actual User-Specified Path for Submodule Plans]` or `[Actual Path to Prompts Folder]` (which the Planning AI resolves) should be used by the Task AI executing the add-on's instructions.
+    *   Example: "The Resumption Prompt you generate should be saved to `[Actual User-Specified Path for Submodule Plans]/<ExactOriginalTaskPromptFilenameBase>_resumption_prompt.txt`."
 
 ### Step 3.5: Create an Example Usage Guide for the Add-on
 
-*   **Purpose:** Explain to an end-user (who wants to use your add-on) how to combine it with their primary prompt.
+*   **Purpose:** Explain to an end-user (who wants to use your add-on) how to select it and what to expect.
 *   **Content:**
     *   Briefly explain what the add-on does.
-    *   Show an example of how to append the add-on text to a typical user prompt.
+    *   Show how to select it using the `[[USER_ADDON_SELECTION]]` block in their main spawn prompt.
     *   Describe the expected outcome or behavior from the AI when the add-on is used.
-    *   Detail any user-configurable paths or parameters relevant to this add-on.
-*   Save this as `<YourAddonName>_Usage_Guide.md`.
+    *   Detail any specific placeholders the Planning AI needs to resolve within your add-on text.
+*   Save this usage guide in the `/framework_dev_docs/examples/` directory, e.g., `[your_addon_name]_example.md`.
 
-### Step 3.6: Test and Refine
+### Step 3.6: Update Add-on Manifest
 
-*   Append your drafted add-on to various test prompts and submit them to an AI instance.
-*   Evaluate the AI's response and output against your success criteria.
+*   Add an entry for your new add-on in `/prompts/add_ons/available_addons_manifest.md`. Include its filename, version, and a brief description.
+
+### Step 3.7: Test and Refine
+
+*   Craft a main spawn prompt that selects your add-on.
+*   Instruct a Planning AI to process this spawn prompt (which should include the MPS that supports add-on selection).
+*   Review the task prompts generated by the Planning AI to ensure your add-on text was correctly appended and its internal placeholders correctly resolved.
+*   If possible, have a Task AI execute one of these generated prompts. Evaluate the Task AI's response and output against your success criteria.
 *   Refine the add-on text, supporting artifact definitions, and usage guide based on test results until it performs reliably and clearly.
 
 ## 4. Example: Add-on for Task Resumption (Conceptual Outline)
 
+*   **Filename:** `/prompts/add_ons/task_resumption_addon.txt`
 *   **Purpose:** Instruct a Task AI to create a "Resumption Prompt" for its own task.
 *   **Add-on Text Would Include:**
     *   Instructions to summarize original goal, work done (referencing IEP commits), `_dev_plan.md` state, next steps.
-    *   Instruction on where to save the Resumption Prompt (e.g., user-defined path or default).
-    *   Instruction to log the creation/update of the Resumption Prompt in its commit message (e.g., `[RESUMPTION_PROMPT_STATUS]: Updated at path/to/file`).
-*   **Supporting Artifact:** The Resumption Prompt file format.
-*   **Usage Guide:** How to add this to any task prompt for a Task AI.
+    *   Instruction on where to save the Resumption Prompt (e.g., using `[Actual User-Specified Path for Submodule Plans]/<ExactOriginalTaskPromptFilenameBase>_resumption_prompt.txt`).
+    *   Instruction to log the creation/update of the Resumption Prompt in its commit message (e.g., `[TASK_RESUMPTION_PROMPT_STATUS]: Updated_At='[path/to/file]'`).
+*   **Supporting Artifact:** The Resumption Prompt file format (defined within the add-on text).
+*   **Usage Guide:** `/framework_dev_docs/examples/task_resumption_example.md`.
+*   **Manifest Entry:** Updated in `/prompts/add_ons/available_addons_manifest.md`.
 
 ## 5. Conclusion
 
