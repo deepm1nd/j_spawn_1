@@ -3,25 +3,25 @@ Hello Jules,
 You are picking up an ongoing task to develop and iteratively refine a "Master Prompt Segment" (MPS) framework. This framework is designed to guide a "Planning AI" in generating structured project plans and task prompts for other AI instances.
 
 **Current Iteration's Work Context:**
-*   The primary output of this ongoing effort is being developed within the `/mps_XX/` directory structure (e.g., `/mps_01/`, `/mps_02/`, etc., with the latest iteration being the current focus).
-*   Key deliverables within each iteration folder include:
-    *   `Master_Prompt_Segment.txt`: The core set of instructions for the Planning AI.
-    *   `prompts/Information_Exchange_Protocol.md`: Defines commit message standards.
-    *   `prompts/00_task_launch_plan.md`: A template for user guidance on launching tasks.
-    *   `Example_Usage_Guide.md`: Explains how users should utilize the MPS.
-    *   `HANDOFF_NOTES.md`: Contains a log of significant decisions, changes, and the state of work from previous Jules instances working on THIS MPS refinement task. **Your first step should be to review this file thoroughly.**
+*   The primary output of this ongoing effort is being developed within `/mps_XX/` directory structures (e.g., `/mps_01/`, `/mps_02/`). You will typically work on the latest or a specified version.
+*   Key deliverables within each `/mps_XX/` folder typically include:
+    *   `updated_Master_Prompt_Segment.txt` (or `Master_Prompt_Segment.txt`).
+    *   `prompts/ipc/Base_IEP.txt` (content for user's Base IEP).
+    *   `prompts/add_ons/task_resumption_addon.txt` (content for user's add-on).
+    *   `prompts/p_gritos_dev_plan_spawn_EXAMPLE.md` (example of how user structures their main spawn prompt).
+    *   Other guides and examples.
+*   `HANDOFF_NOTES.md`: Contains a log of significant decisions, changes, and the state of work from previous Jules instances. **Crucially, it now also contains a section `## MPS Performance Feedback Log`. Your first steps should be to review BOTH the general handoff notes AND this specific feedback log thoroughly.**
 
 **Your Immediate Task:**
-1.  **Review `HANDOFF_NOTES.md` in the latest `/mps_XX/` folder.** This file contains critical information about what the previous Jules instance (and any before it) accomplished, what feedback was incorporated, and what the state of the deliverables was.
-2.  **Review the User's Latest Feedback/Request:** The user (my name is [User's Name]) will provide their latest instructions or feedback immediately following this prompt.
-3.  **Understand the Current State:** Based on `HANDOFF_NOTES.md` and the current files in the latest `/mps_XX/` directory, understand the current version of the MPS framework.
-4.  **Formulate a Plan:** Propose a plan to address the user's latest feedback/request. This might involve modifying existing MPS framework documents, creating new supporting documents, or advising on the usage of the MPS. Your plan should also include a step to update `HANDOFF_NOTES.md`.
-5.  **Seek User Approval:** Present your understanding and your plan to the user for approval before executing.
-6.  **Execute and Iterate:** Upon approval, execute your plan. Remember to adhere to the established conventions (e.g., using the IEP for your own commits if you modify files related to the MPS framework).
+1.  **Review `HANDOFF_NOTES.md` in the relevant `/mps_XX/` folder, paying close attention to the `## MPS Performance Feedback Log` section.** This contains critical information.
+2.  Review the User's Latest Feedback/Request (provided immediately following this prompt).
+3.  Understand the Current State based on `HANDOFF_NOTES.md` and current files.
+4.  Formulate a Plan to address the user's request. This plan should also include a step to update both the general section of `HANDOFF_NOTES.md` and, if applicable, add a new entry to the `## MPS Performance Feedback Log`.
+5.  Seek User Approval for your plan.
+6.  Execute and Iterate.
 
 **Key Objectives for the MPS Framework (that you are helping to build):**
-The MPS framework itself aims to enable the generation of project plans that are:
-1.  Highly effective at eliminating or mitigating merge conflicts (top priority, potentially through task serialization).
+1.  Highly effective at eliminating or mitigating merge conflicts.
 2.  Easy for end-users and Task AIs to use.
 3.  Highly parallelized where safe.
 4.  Using readable file names.
@@ -31,11 +31,8 @@ The MPS framework itself aims to enable the generation of project plans that are
 8.  Supportive of AI-automated PR creation.
 
 **Before you finish your session:**
-*   You **must** update the `/mps_XX/HANDOFF_NOTES.md` file. Add a new entry detailing:
-    *   The user feedback/request you addressed.
-    *   A summary of the changes you made to the MPS framework documents.
-    *   The state in which you are leaving the deliverables.
-    *   Any pending items or suggestions for the *next* Jules instance that picks up this task.
-*   Ensure all your deliverables for *this MPS refinement task* are committed appropriately.
+*   You **must** update the general section of `/mps_XX/HANDOFF_NOTES.md` with your session's work.
+*   You **must also add a new, detailed entry to the `## MPS Performance Feedback Log` section of `/mps_XX/HANDOFF_NOTES.md`** if you or the user have new observations on MPS performance, ambiguities, or suggestions for refinement based on your session's work or any tests conducted. Follow the established entry structure for the feedback log.
+*   Ensure all your deliverables for this MPS refinement task are committed appropriately.
 
 The user is looking for your help to continue improving this MPS framework. Please confirm your understanding and ask any clarifying questions before proceeding.
