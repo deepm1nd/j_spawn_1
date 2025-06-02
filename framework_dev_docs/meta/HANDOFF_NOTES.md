@@ -55,6 +55,40 @@ Each Jules instance concluding a work session on this task should append notes b
 - Review the clarity of the `[[INCLUDE ...]]` directive and its processing requirements for the Planning AI.
 - Consider if other sections of `Master_Prompt_Segment.txt` (if any more are added later) or other core prompt files could benefit from similar modularization.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Completed a significant refactor to make the core task spawning/project planning functionality optional and add-on driven.
+- **Created `prompts/add_ons/task_spawning_addon.txt`**: This new add-on now houses the detailed instructions for generating a main development plan, Task Launch Plan (TLP), and individual task prompts. This logic was moved from `prompts/iep/Core_Planning_Instructions.txt`.
+- **Updated `prompts/iep/Core_Planning_Instructions.txt`**: This file now focuses on foundational framework logic: parsing user configurations (`[[USER PATH CONFIGURATION]]`, `[[USER_ADDON_SELECTION]]`), managing the add-on list, and implementing conditional logic to execute `task_spawning_addon.txt` (or other primary add-ons) if selected. It also handles utility outputs like `Information_Exchange_Protocol.md`.
+- **Modified `prompts/Master_Prompt_Segment.txt`**: Added `task_spawning_addon.txt` to the `[[USER_ADDON_SELECTION]]` block as a user-selectable option, clarifying its role.
+- **Updated `prompts/add_ons/available_addons_manifest.md`**: Added `task_spawning_addon.txt` with a description of its function and importance.
+- **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`**: Extensively revised the guide to explain the new optional task spawning mechanism, how to enable it, and the AI's behavior with and without `task_spawning_addon.txt` selected.
+**State of Deliverables:** The MPS framework now features optional, add-on-driven task spawning, significantly increasing its modularity and flexibility. Core logic for this is in place, and documentation has been updated. Ready for testing of various add-on combinations.
+**Suggestions for Next Steps/Instance:**
+- Thoroughly test the new conditional logic with `task_spawning_addon.txt` selected and not selected.
+- Test with combinations of `task_spawning_addon.txt` and other utility add-ons.
+- Evaluate if the instructions in `Core_Planning_Instructions.txt` regarding behavior *without* `task_spawning_addon.txt` (and no other primary add-on) are sufficiently clear and lead to sensible AI actions.
+- Consider if any further logic from `Core_Planning_Instructions.txt` can be either minimized or moved to more specialized utility add-ons.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Addressed user queries regarding add-on interactions, focusing on ensuring `task_spawning_addon.txt` is not inherited by Task AIs and clarifying add-on ordering for users.
+- **Refined `prompts/iep/Core_Planning_Instructions.txt` (Section I.B)**: Modified the add-on parsing logic to create two distinct collections:
+    - `All_Selected_Addons_Content_Map`: For Planning AI execution of all selected add-ons.
+    - `Inheritable_Addons_Content_Ordered_List`: A filtered, ordered list of add-on *contents* (excluding `task_spawning_addon.txt`) specifically for Task AI prompt inheritance. This ensures `task_spawning_addon.txt`'s logic is not passed to Task AIs.
+- **Updated `prompts/Master_Prompt_Segment.txt`**: Revised the `[[USER_ADDON_SELECTION]]` block to:
+    - Recommend listing `task_spawning_addon.txt` last for user clarity if it's selected.
+    - Add comments explaining that the order of other (inheritable) add-ons is preserved when appended to task prompts by `task_spawning_addon.txt`.
+- **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`**:
+    - Documented that `task_spawning_addon.txt` itself is not inherited by Task AI prompts.
+    - Clarified the significance of the listing order for inheritable add-ons in `[[USER_ADDON_SELECTION]]` and the recommendation for placing `task_spawning_addon.txt` last.
+- Confirmed these changes align with user expectations for clarity and safe add-on processing.
+**State of Deliverables:** Add-on processing logic and user guidance have been refined. The system is safer regarding add-on inheritance by Task AIs, and documentation provides clearer instructions on add-on ordering. Framework is robust and ready for submission or further advanced testing.
+---
 
 ## MPS Performance Feedback Log
 
@@ -81,4 +115,30 @@ This section logs specific feedback on the performance, clarity, and effectivene
 **Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
 **Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
 **Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request and illustrative example: `[ ] task_spawning_addon.txt` to Jules instance).
+**MPS Version Referenced:** The modularized MPS version (where `Core_Planning_Instructions.txt` was already separate) and the current version implementing optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User desired to further enhance the framework's modularity by making the entire project planning and task generation process an optional component, selectable by the user, rather than an inherent, non-optional function of the MPS.
+**Observation/Issue:** While `Core_Planning_Instructions.txt` was already separated, it still implicitly mandated the task spawning workflow. The framework lacked the flexibility to be used for other purposes without invoking this primary planning behavior.
+**Suggestion for MPS Refinement (Implemented):** The user's suggestion to make task spawning an optional add-on was implemented.
+    - The core logic for project planning, TLP generation, and task prompt creation was moved from `prompts/iep/Core_Planning_Instructions.txt` to a new file: `prompts/add_ons/task_spawning_addon.txt`.
+    - `prompts/iep/Core_Planning_Instructions.txt` was updated to include conditional logic. It now checks if `task_spawning_addon.txt` is selected by the user in `[[USER_ADDON_SELECTION]]` (within `Master_Prompt_Segment.txt`).
+    - If selected, the `task_spawning_addon.txt` is executed.
+    - If not selected, the AI is instructed to acknowledge this, skip default plan generation, and process any other selected add-ons.
+    - This change makes the MPS framework significantly more flexible, allowing users to engage the Planning AI for potentially different primary functions by selecting different combinations of add-ons, or by using it with only utility add-ons.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifying questions and specific directive regarding `task_spawning_addon.txt` inheritance and add-on ordering).
+**MPS Version Referenced:** The MPS version with optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User inquired about how multiple add-ons interact, particularly how `task_spawning_addon.txt` would affect other add-ons, and then specifically requested that `task_spawning_addon.txt` should not be inherited by the Task AIs it generates. User also sought clarity on the importance of add-on ordering in the selection block.
+**Observation/Issue:**
+    1. The previous add-on processing logic could have resulted in `task_spawning_addon.txt` (intended for the Planning AI) being appended to Task AI prompts, leading to overly verbose prompts and potential for unintended behavior.
+    2. The impact of add-on order in `[[USER_ADDON_SELECTION]]` on the final content of Task AI prompts was not explicitly documented, potentially leading to user confusion.
+**Suggestion for MPS Refinement (Implemented):**
+    - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
+    - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
+    - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
 ---
