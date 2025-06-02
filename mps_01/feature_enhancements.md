@@ -1,43 +1,37 @@
-# Potential Feature Enhancements for MPS Framework & Generated Plans
+# Potential Feature Enhancements for MPS Framework & Generated Plans (v2 List)
 
-This document lists potential features that could add further insight and utility to the Master Prompt Segment (MPS) framework or the project plans it helps generate.
+This document lists potential features brainstormed for further enhancing the Master Prompt Segment (MPS) framework, the capabilities of the Planning AI guided by it, or the Task AIs executing the generated plans.
 
-## For the MPS Framework & Generated Artifacts:
+1.  **Standardized Error Handling Add-on for Task AIs:**
+    *   **Concept:** Develop a new "Prompt Add-on" that provides Task AIs with a standardized way to handle and report errors (e.g., error categories, logging formats, escalation procedures).
+    *   **Benefit:** Improves consistency in error reporting, simplifies debugging, and enables more automated error analysis or recovery.
 
-1.  **Dynamic Risk Assessment Field in IEP:**
-    *   **Feature:** Add a `Risk-Level: <Low/Medium/High>` field to the Information Exchange Protocol (IEP). When a Task AI makes a commit, it assesses the risk/complexity of its changes.
-    *   **Insight:** Helps human reviewers prioritize, identify problematic commits sooner, and could inform automated testing strategies.
+2.  **Inter-Task Data Exchange Protocol/Mechanism:**
+    *   **Concept:** Define a formal way for tasks (especially parallel tasks within the same phase with data dependencies) to signal data readiness or share small, structured data payloads (e.g., via defined output/input variables and files in a shared IPC location).
+    *   **Benefit:** Facilitates more complex parallel workflows based on specific data products from prerequisite tasks.
 
-2.  **Estimated Time / Complexity in Task Prompts:**
-    *   **Feature:** The Planning AI, when generating task prompts, includes an *estimated effort* (e.g., T-shirt size: S, M, L, XL, or story points) for each task.
-    *   **Insight:** Aids in overall project timeline estimation, resource allocation, and identifying overly large tasks. Accuracy would be heuristic.
+3.  **Enhanced Task Progress Metrics & Reporting Standards:**
+    *   **Concept:** Augment IEP and `_dev_plan.md` directives to include more quantitative progress metrics (e.g., Task AI estimates % complete for sub-steps; optional `Progress-Percent` field in IEP for significant commits).
+    *   **Benefit:** Provides users with a more granular and quantitative view of task and project completion.
 
-3.  **Automated Dependency Linkage in `00_task_launch_plan.md`:**
-    *   **Feature:** The Planning AI, when generating `00_task_launch_plan.md`, explicitly includes a "Depends on: \[Task ID]" note within task descriptions if dependencies (especially serialized ones) are identified.
-    *   **Insight:** Makes task dependencies clearer to the user directly from the launch plan.
+4.  **Automated Test Stub Generation Guidance:**
+    *   **Concept:** An add-on or MPS instruction where the Planning AI, for coding tasks, provides a basic outline or list of suggested unit test cases/stubs for the Task AI to implement.
+    *   **Benefit:** Promotes Test-Driven Development (TDD)/Behavior-Driven Development (BDD), ensures baseline test coverage, and clarifies expected behavior/edge cases for Task AIs.
 
-4.  **"Knowledge Capture" Section in `_next_steps.md`:**
-    *   **Feature:** Task AIs are instructed to include a "Key Learnings & Discoveries" section in their `_next_steps.md` file.
-    *   **Insight:** Captures non-obvious insights, tricky aspects of the codebase, or clever workarounds, forming an organic knowledge base.
+5.  **'Criticality' or 'Priority' Field for Tasks in TLP:**
+    *   **Concept:** The Planning AI assigns a "Criticality: <High/Medium/Low>" or "Priority: <P0/P1/P2>" to each task in the `00_task_launch_plan.md`.
+    *   **Benefit:** Helps users (or orchestrator AIs) prioritize task launch and monitoring, especially with limited concurrent resources.
 
-5.  **Visual Plan Overview (Advanced):**
-    *   **Feature:** The Planning AI attempts to generate a simple visual representation of the plan (e.g., DOT language graph description or a Markdown mermaid chart) showing phases, tasks, and dependencies.
-    *   **Insight:** Provides an easier-to-grasp overview of complex plans.
+6.  **Configurable Add-on Stack in User's Main Spawn Prompt:**
+    *   **Concept:** Modify the MPS so the user's main spawn prompt (e.g., in a `[[USER_ADDON_CONFIGURATION]]` block) can list which available add-ons (from a central `/prompts/add_ons/` directory) should be activated and appended by the Planning AI to generated task prompts.
+    *   **Benefit:** Makes the MPS framework highly flexible and user-configurable, turning add-ons into plug-and-play capabilities. Simplifies core MPS text.
 
-6.  **Automated Sanity Checks for Task Prompts by Planning AI:**
-    *   **Feature:** The Planning AI includes a meta-routine to perform sanity checks on the prompts it generates (e.g., presence of `_dev_plan.md` creation instruction, IEP reference).
-    *   **Insight:** Improves consistency and quality of generated task prompts.
+7.  **Resource Requirement Hints for Tasks in TLP:**
+    *   **Concept:** The Planning AI adds a "Resource-Hints:" field to tasks in the `00_task_launch_plan.md`, suggesting potential needs (e.g., CPU-intensive, memory-intensive, network access, specific tools).
+    *   **Benefit:** Could help users or an orchestrator make better decisions about where/how to run certain Task AIs. Highly heuristic.
 
-7.  **Feedback Loop for MPS Refinement via `HANDOFF_NOTES.md`:**
-    *   **Feature:** The `HANDOFF_NOTES.md` (used for the MPS development task itself) could have a dedicated section for "MPS Performance Feedback." Users or Task AIs could note when prompts lead to confusion or suboptimal results.
-    *   **Insight:** Creates a direct mechanism for improving the MPS based on the performance of AIs using its output.
+8.  **Project Glossary / Key Terms Generation:**
+    *   **Concept:** For large projects, the Planning AI could generate a `project_glossary.md`, initially populated with terms from input documents or its main plan. Task AIs could be prompted to suggest additions.
+    *   **Benefit:** Helps maintain consistent terminology and understanding across a distributed team (AI or human).
 
-8.  **Confidence Score from Planning AI:**
-    *   **Feature:** The Planning AI provides a "Confidence Score" (e.g., 0-1.0) on how well it believes its generated plan meets all MPS constraints and user request specifics, especially for complex task breakdowns or merge conflict avoidance.
-    *   **Insight:** Signals to the user areas of the plan that might require more human scrutiny.
-
-## For the Process of Using the MPS:
-
-9.  **Pre-flight Check Prompt for User's High-Level Plan:**
-    *   **Feature:** A small, separate utility prompt for users to get AI feedback on the clarity and completeness of their high-level project plan *before* combining it with the MPS.
-    *   **Insight:** Improves the quality of input to the main MPS-driven planning process, leading to better outputs from the Planning AI.
+*(This list is for brainstorming and future design. Features would likely be implemented iteratively in new MPS versions or as standalone add-ons.)*
