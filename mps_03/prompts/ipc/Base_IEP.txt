@@ -1,0 +1,59 @@
+# Base Information Exchange Protocol (Base IEP) - v0.2 (with Risk Assessment Example)
+
+## 1. Purpose and Philosophy
+(Same as v0.1 in `/mps_01/prompts/ipc/Base_IEP.txt`)
+
+## 2. Core Base IEP Fields
+(Same core fields as v0.1: Task-ID, Status, Summary, Files-Modified, Notes-To-Next-Jules)
+\`\`\`
+Task-ID: <Unique identifier for the primary task or context this commit relates to. Often the filename of the initiating prompt or a higher-level tracker ID.>
+Status: <Overall status of the Task-ID (or a more specific Sub-Task-ID if provided in Notes-To-Next-Jules) *after* this commit is applied.>
+  Allowed values:
+    - Not-Started: Initial setup, planning, or pre-work for the task.
+    - In-Progress: Active work is ongoing for the task.
+    - Blocked: The task cannot proceed. (Details **must** be in Notes-To-Next-Jules).
+    - In-Review: Work for a significant milestone or the entire task is awaiting review.
+    - Completed: A defined piece of work or the entire task is considered complete and self-tested.
+    - Tested: The work has passed formal testing procedures.
+Summary: <A concise, imperative summary of the commit's primary purpose (max 72 characters). E.g., "Initialize project structure and add README">
+Files-Modified:
+  - path/to/file_1.ext: Brief note on change.
+  - path/to/file_2.ext: Brief note on change.
+  - ... (List key files. Summarize if many, but be clear).
+Notes-To-Next-Jules:
+<This is a multi-line field for detailed explanations, context, rationale, and crucially, for structured extensions defined by Prompt Add-ons or specific task requirements. See Section 3 for extensibility.>
+\`\`\`
+
+## 3. Extensibility Mechanism
+(Same as v0.1)
+
+**Example of `Notes-To-Next-Jules` with Extensions (Illustrative):**
+\`\`\`
+Notes-To-Next-Jules:
+This commit implements the core authentication logic and refactors the session manager.
+
+[PLANNING_MPS_PROGRESS]
+- Current step in \`_dev_plan.md\`: Step 4.3: Integrate session management
+- Percentage complete (approximate for this Sub-Task-ID): 90%
+- Key accomplishments in THIS commit:
+  - Session management refactored for Redis store.
+  - Old file-based session store removed.
+
+[TASK_RESUMPTION_ADDON_STATUS]
+- Resumption_Prompt_Location: project_alpha/outputs/p1_t1_auth_service_resumption_prompt.txt (Updated)
+
+[RISK_ASSESSMENT]
+- Risk-Level: Medium
+- Justification: Refactored a core session component; new dependency on Redis. Thoroughly unit tested, but integration testing is pending for this new store.
+
+[BLOCKERS]
+- None
+
+General Notes:
+Ensure Redis service is configured and running for subsequent tests.
+\`\`\`
+
+## 4. Responsibilities
+(Same as v0.1)
+
+This Base IEP, with its clear extensibility mechanism, provides a flexible yet standardized foundation for communication across diverse AI-driven tasks and workflows.
