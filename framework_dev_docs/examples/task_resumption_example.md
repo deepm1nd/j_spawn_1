@@ -3,7 +3,7 @@
 This document demonstrates how the "Task Resumption Add-on" (source text at `/prompts/add_ons/task_resumption_addon.txt` in the framework repo) would be used.
 
 ## 1. Scenario
-A Planning AI, guided by the Master Prompt Segment (which itself was configured by the user to include the Task Resumption Add-on via `[[USER_ADDON_SELECTION]]`), generates a task prompt for "Implement User Auth API".
+A Planning AI, guided by `/prompts/Master_Prompt_Segment.txt` (which itself was configured by the user to include the Task Resumption Add-on via `[[USER_ADDON_SELECTION]]`), generates a task prompt for "Implement User Auth API". The Planning AI is also configured with `Prompts Folder: prompts/tasks` and `Submodule Plan Destination: plan`.
 
 **Generated Task Prompt (`target_repo/prompts/tasks/p2_t1_auth_api_impl.txt` might look like this):**
 \`\`\`text
@@ -28,26 +28,9 @@ Your outputs go into `dev/src/kernel/p2_t1_auth_api_impl/`.
 \`\`\`
 
 ## 2. Task AI Execution
-
 The Task AI receiving this prompt would:
 1.  Create `plan/p2_t1_auth_api_impl_dev_plan.md`.
 2.  **As per the add-on:** Create an initial `plan/p2_t1_auth_api_impl_resumption_prompt.txt`.
-    Content example:
-    \`\`\`text
-    # Resumption Prompt for Task: Implement User Auth API
-
-    ## Original Task Goal:
-    Implement User Authentication API Endpoints (/register, /login, /logout, /me)...
-
-    ## Current Task State (as of 2023-10-27T10:00:00Z):
-    ### Last Completed Step (from _dev_plan.md):
-    Initial `_dev_plan.md` created.
-    ### Next Planned Step(s) (from _dev_plan.md):
-    - Step 1: Create file structure for auth module.
-    ...
-    \`\`\`
 3.  Make a commit. The commit message would include in `Notes-To-Next-Jules`:
     `[TASK_RESUMPTION_PROMPT_STATUS]: Updated_At='plan/p2_t1_auth_api_impl_resumption_prompt.txt'`
-4.  Proceed with task, updating `_dev_plan.md` and `_resumption_prompt.txt` at checkpoints.
-
-This illustrates how the add-on integrates into the Task AI's workflow.
+4.  Proceed with task...

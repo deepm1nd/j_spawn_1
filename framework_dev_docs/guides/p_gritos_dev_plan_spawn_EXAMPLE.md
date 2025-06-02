@@ -1,6 +1,7 @@
-# Example: User's Main Spawn Prompt (`p_gritos_dev_plan_spawn.md`)
+# Example: User's Main Spawn Prompt File for "gritos" Project
+# (e.g., what the user would create as `/prompts/p_gritos_dev_plan_spawn.txt` in their gritos target repo)
 
-This document illustrates the recommended structure for the main spawn prompt file that you, the user, would create in your target project's repository (e.g., in its `/prompts/` directory). You then instruct a "Planning AI" (e.g., a new Jules instance) to read and process this file.
+This document illustrates the structure for the main spawn prompt file that you, the user, create in your target repository and then instruct a "Planning AI" (e.g., a new Jules instance) to read and process.
 
 The Planning AI will use this spawn prompt to generate a detailed project plan, task prompts, etc., for the "gritos" project.
 
@@ -9,7 +10,7 @@ The Planning AI will use this spawn prompt to generate a detailed project plan, 
 2.  **Base IEP:** Create `/prompts/iep/Base_IEP.txt` in the target repo. Copy the content from this framework's `/prompts/iep/Base_IEP.txt` into it.
 3.  **Add-ons:** Create `/prompts/add_ons/` in the target repo. Copy desired add-on files (e.g., `task_resumption_addon.txt` from this framework's `/prompts/add_ons/`) into it. Consult this framework's `/prompts/add_ons/available_addons_manifest.md` for options.
 
-**Structure of Your Spawn Prompt File (e.g., `target_repo/prompts/p_gritos_dev_plan_spawn.md`):**
+**Structure of Your Spawn Prompt File (e.g., `target_repo/prompts/p_gritos_dev_plan_spawn.txt`):**
 
 The file should contain, in order:
 
@@ -18,7 +19,6 @@ The file should contain, in order:
 gritos Dev Plan (a003) - With gritos_product_specification.md and gritos_product_requirements_full.md as the primary source of information, develop a highly detailed development plan for this called gritos_dev_plan.md (the Plan).
 
 Suggested Steps
-
 Review documents in the concept/research folder of the repository as an input Review the documents in the docs folder as guidance
 You may review other documents in the plan folder but they should only be used to enhance or improve a task, activity, or end product.
 Perform deep research on modern OS architectures and specifically the OSes listed in the OS Kernal Comparison document. Include codebases referenced in the input documents in your research.
@@ -27,10 +27,10 @@ The /concept/inputs folder contains an exemplar development plan "grit_dev_plan.
 Present a plan to create gritos_dev_plan.md and highly detailed supporting subplans to the same level of detail and quality as the files in concept/inputs. Try to develop the plan such that it can be broken down into 2-5 phases with multiple tasks in each phase. The goal is to divide the tasks within each Phase such that they can be developed in parallel by multiple Jules instances.
 \`\`\`
 
-**B. The Full Content of the Canonical Master Prompt Segment (from this framework's `/prompts/Master_Prompt_Segment.md`):**
-(Copy the entire content and paste it here. **Then, you MUST edit the `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks at its top** to define where the Planning AI should put its outputs for THIS gritos project and which add-ons to use.)
+**B. The Full Content of the Canonical Master Prompt Segment (Copied and Edited):**
+(Copy the entire content of this framework's `/prompts/Master_Prompt_Segment.txt`. Then, **you MUST edit the `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks at its top** to define where the Planning AI should put its outputs for THIS gritos project and which add-ons to use.)
 
-Example of how the top of the pasted MPS content would look *after your edits*:
+Example of the *beginning* of the pasted & edited MPS content:
 \`\`\`text
 [[USER PATH CONFIGURATION]]
 # Instructions for User: Edit the paths below before using this MPS.
@@ -53,11 +53,10 @@ User-Specified Task Output Base Path: dev/src/kernel
 
 ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided by the user *before* this Master Prompt Segment begins) and then to follow the instructions within this segment...
 
-(... rest of the entire Master Prompt Segment text ...)
+(... rest of the entire Master Prompt Segment text from `/prompts/Master_Prompt_Segment.txt` ...)
 
 [[END OF MASTER PROMPT SEGMENT (v0.3.2 - Canonical Paths, Internal Configs, 8 Features)]]
 \`\`\`
-
 ---
-After creating this spawn prompt file in your target repo (e.g., `target_repo/prompts/p_gritos_dev_plan_spawn.md`), you invoke the Planning AI with:
-`"/prompts/p_gritos_dev_plan_spawn.md is the prompt, it is in the repo"`
+After creating this spawn prompt file, invoke the Planning AI:
+`"/prompts/p_gritos_dev_plan_spawn.txt is the prompt, it is in the repo"`

@@ -22,7 +22,7 @@ This document lists potential features brainstormed for further enhancing the Ma
     *   **Concept:** The Planning AI assigns a "Criticality: <High/Medium/Low>" or "Priority: <P0/P1/P2>" to each task in the `00_task_launch_plan.md`.
     *   **Benefit:** Helps users (or orchestrator AIs) prioritize task launch and monitoring, especially with limited concurrent resources.
 
-6.  **Configurable Add-on Stack in User's Main Spawn Prompt:** (This is now part of MPS v0.3.1 in `prompts/Master_Prompt_Segment.md`)
+6.  **Configurable Add-on Stack in User's Main Spawn Prompt:** (This is now part of MPS v0.3.2 in `prompts/Master_Prompt_Segment.txt`)
     *   **Concept:** Modify the MPS so the user's main spawn prompt (e.g., in a `[[USER_ADDON_SELECTION]]` block) can list which available add-ons (from a central `/prompts/add_ons/` directory) should be activated and appended by the Planning AI to generated task prompts.
     *   **Benefit:** Makes the MPS framework highly flexible and user-configurable, turning add-ons into plug-and-play capabilities. Simplifies core MPS text.
 
