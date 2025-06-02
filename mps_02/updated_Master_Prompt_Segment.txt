@@ -1,4 +1,4 @@
-[[START OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage, Effort Estimation, Risk Assessment Directive): AI Project Planning & Task Generation Instructions]]
+[[START OF MASTER PROMPT SEGMENT (v0.2.1 - incorporates Knowledge Capture, Sanity Checks): AI Project Planning & Task Generation Instructions]]
 
 ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided immediately preceding this segment) and generate a comprehensive, phased execution plan. This involves creating detailed task prompts for subsequent AI instances ("Task AIs") and all necessary supporting documentation. Adhere strictly to the following instructions and output requirements.
 
@@ -64,11 +64,12 @@ All file paths below are relative to the "Main Iteration Folder" identified from
             *   "Place all new files, code, or artifacts created *specifically for this task* and not intended as direct modifications to existing shared project code into a dedicated task-specific subdirectory within the `User-Specified Task Output Base Path`. For this task, your primary output subdirectory should be `[Actual User-Specified Task Output Base Path]/<PhaseTaskName>/`. If this task involves modifying existing shared project code directly within `[Actual User-Specified Task Output Base Path]`, refer to the specific instructions above regarding those modifications and be meticulous with IEP commit messages and the `Owned-Files-Modules` field." (Ensure `<PhaseTaskName>` is specific to the task).
         5.  **Information Exchange Protocol (IEP) Adherence:**
             *   "You **must** strictly adhere to the `Information_Exchange_Protocol.md` (located in `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`) for all your commit messages. Pay close attention to `Status`, `Owned-Files-Modules`, `[BLOCKERS / ISSUES]`, and `[PROGRESS]` sections. **Additionally, include the `[RISK_ASSESSMENT]` block as detailed below.**"
-        6.  **"Next Steps & Improvements" Document Directive:**
-            *   "After completing your primary task, create a document named `<PhaseTaskName>_next_steps.md` in the same location as your `_dev_plan.md` (`[Actual User-Specified Path for Submodule Plans]`). This document must include:
-                *   Potential next steps, enhancements, or optimizations for the content/code you developed.
-                *   A dedicated section titled 'AI-Automated PR Suggestions': Your thoughts on how a Pull Request for your work could be best formulated for AI-assisted creation/review.
-                *   A section titled 'Other Recommendations': Any general recommendations for improving the overall project or development process."
+        6.  **UPDATED: "Next Steps, Learnings & Improvements" Document Directive:**
+            *   "After completing your primary task, create a document named `<PhaseTaskName>_next_steps.md` in the same location as your `_dev_plan.md` (`[Actual User-Specified Path for Submodule Plans]`). This document **must include the following distinct sections:**
+                *   `### Potential Next Steps & Enhancements`: Specific ideas for improving or building upon the work you just completed (e.g., refactoring, new features for this component).
+                *   `### Key Learnings & Discoveries`: Document any non-obvious technical insights, unexpected challenges, clever solutions/workarounds you developed, critical assumptions made, or notable aspects (positive or negative) of the system you interacted with. This is for knowledge sharing.
+                *   `### AI-Automated PR Suggestions`: Your thoughts on how a Pull Request for your work could be best formulated for AI-assisted creation/review.
+                *   `### Other General Recommendations`: Any broader recommendations for improving the overall project or development process."
         7.  **Inter-AI Communication Directive:**
             *   "For persistent communication, detailed logs, or shared artifacts relevant to other AI tasks that don't fit commit messages, use the designated inter-AI communication folder: `[Actual Path to Prompts Folder]/ipc/`. Document any such usage in your commit messages."
         8.  **Retry Logic (Verbatim Text):**
@@ -86,7 +87,7 @@ All file paths below are relative to the "Main Iteration Folder" identified from
     *   Read the content from the user-provided Base IEP file located at `/prompts/ipc/Base_IEP.txt` (this path is relative to the repository root where you, the Planning AI, are operating; it is in the repo).
     *   You **must** create a file named `Information_Exchange_Protocol.md` in the 'Prompts Folder' you are generating for the target project (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md`).
     *   Write the exact, unmodified content read from `/prompts/ipc/Base_IEP.txt` into this new file.
-    *   **NEW: Ensure the example `Notes-To-Next-Jules` within the IEP content you write includes an illustration of the `[RISK_ASSESSMENT]` block (e.g., by adding it to the existing example or providing a dedicated small example).** This ensures Task AIs see how to format it.
+    *   **NEW: Ensure the example `Notes-To-Next-Jules` within the IEP content you write includes an illustration of the `[RISK_ASSESSMENT]` block (e.g., by adding it to the existing example or providing a dedicated small example).** This ensures Task AIs see how to format it. (This means the Base_IEP.txt provided by user should ideally already have this example).
 
 2.  **`00_task_launch_plan.md`:**
     *   Create this file. Its content **must be based on the following template.** You **must** dynamically replace placeholders like `[Project Name Placeholder]`, `[Iteration Placeholder XX]`, `[Actual Main Iteration Folder Path]`, `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, and `[Actual User-Specified Task Output Base Path]` with the actual values derived from the user's request and the `[[USER PATH CONFIGURATION]]` block. You must also dynamically generate the task listing.
@@ -145,8 +146,31 @@ All file paths below are relative to the "Main Iteration Folder" identified from
         ```
         (End of 00_task_launch_plan.md template)
 
-**IV. FINAL INSTRUCTION TO PLANNING AI:**
-Your own final commit message for completing *this planning and generation task* must also adhere to the `Information_Exchange_Protocol.md` (the one you copied from `/prompts/ipc/Base_IEP.txt`). Use a relevant Task-ID like "INITIAL_PROJECT_PLANNING_ITER_XX" (replace XX with the iteration number from `Main Iteration Folder` if it's not '.').
+**IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION:**
+
+**A. NEW: Planning AI Self-Correction and Verification Checks (MANDATORY):**
+Before you finalize the generation of all task prompts and supporting documents, you **must** perform the following sanity checks on *each individual task prompt* you have generated:
+
+1.  **Verify Core Directives:**
+    *   **`_dev_plan.md` Creation:** Confirm the prompt instructs the Task AI to create its `<PhaseTaskName>_dev_plan.md`.
+    *   **`_next_steps.md` Creation:** Confirm the prompt instructs the Task AI to create its `<PhaseTaskName>_next_steps.md` and that this directive includes asking for the **`### Key Learnings & Discoveries`** section.
+    *   **IEP Adherence:** Confirm the prompt includes a reminder to follow `Information_Exchange_Protocol.md`.
+    *   **Risk Assessment:** Confirm the prompt includes the directive for Task AIs to perform and log risk assessments in their commits.
+    *   **Retry Logic:** Confirm the standard retry logic for crashed instances is included.
+2.  **Path Placeholder Resolution:**
+    *   Internally verify that all path placeholders you used (e.g., `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, `[User-Specified Task Output Base Path]`, `<PhaseTaskName>`) have been correctly and fully resolved to specific paths based on the initial `[[USER PATH CONFIGURATION]]` and the task context.
+    *   Ensure file paths intended to be found in the repository are suffixed with ", it is in the repo."
+3.  **Mandated Add-on Inclusion:**
+    *   If instructed to include add-ons (like the "Task Resumption Add-on" as per Section V), verify that the *full and unmodified text* of each mandated add-on has been correctly appended to the task prompt, with all placeholders *within that add-on text* also correctly resolved.
+4.  **Clarity and Actionability:**
+    *   Briefly review the "Task Overview" and "Detailed Task Execution Instructions". Are they clear and actionable? Could a Task AI reasonably proceed without significant ambiguity?
+5.  **Dependency Statement (if applicable):**
+    *   If this task prompt contains an introductory note about a dependency on another task, ensure the prerequisite Task ID (prompt filename) is specific and correct.
+
+If you find any discrepancies during these checks, you **must** correct the generated task prompt before concluding your overall process. Your goal is to produce high-quality, consistent, and actionable prompts for the Task AIs.
+
+**B. Final Commit Message by Planning AI:**
+Your own final commit message for completing *this planning and generation task* must also adhere to the `Information_Exchange_Protocol.md` (the one you copied from `/prompts/ipc/Base_IEP.txt`). Use a relevant Task-ID like "INITIAL_PROJECT_PLANNING_ITER_XX" (replace XX with the iteration number from `Main Iteration Folder` if it's not '.'). **In this commit message, under `Notes-To-Next-Jules`, briefly state that the self-correction and verification checks (Section IV.A) were performed on all generated task prompts.**
 
 **V. TASK RESUMPTION ADD-ON INCORPORATION (MANDATORY, if specified by user setup):**
 The user may provide a "Task Resumption Add-on" to enhance task robustness.
@@ -154,4 +178,4 @@ The user may provide a "Task Resumption Add-on" to enhance task robustness.
 2.  **If Present, Incorporate:** If this file exists, for every task prompt you generate as per Section III.B above, you **must append** the complete and unmodified content of this "Task Resumption Add-on".
 3.  **Resolve Placeholders:** You are responsible for reading this file and including its content in each generated task prompt. Critically, ensure all path placeholders within the add-on text itself (e.g., `[Actual Path to Prompts Folder]`, `[Actual User-Specified Path for Submodule Plans]`, `[Actual User-Specified Task Output Base Path]`, `<ExactOriginalTaskPromptFilenameBase>`) are correctly resolved by you with the values from the `[[USER PATH CONFIGURATION]]` block (or your defaults) when you embed the add-on into the final task prompts for the target project.
 
-[[END OF MASTER PROMPT SEGMENT (v0.2 - incorporates Dependency Linkage, Effort Estimation, Risk Assessment Directive)]]
+[[END OF MASTER PROMPT SEGMENT (v0.2.1 - incorporates Knowledge Capture, Sanity Checks)]]
