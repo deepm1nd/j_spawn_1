@@ -1,80 +1,104 @@
-**I. USER-SPECIFIED PATHS, CONFIGURATIONS & ADD-ON SELECTIONS (Parse these first from the top of THIS MPS text):**
+**I. USER-SPECIFIED PATHS, CONFIGURATIONS, COMPONENT DISCOVERY & LOADING (Parse these first from the top of THIS MPS text):**
 
 A. **Parse User Path Configurations:**
-    You **must** parse the `[[USER PATH CONFIGURATION]]` block found at the very beginning of *this Master Prompt Segment*. Use the paths specified there by the user for generating *your outputs*.
-    *   If `Main Iteration Folder` is specified as `.` (dot), this signifies the repository root (where you are operating). All other relative paths specified in that configuration block (like for 'Prompts Folder' or 'Submodule Plan Destination') are then considered directly under this repository root (e.g., if `Prompts Folder` is `prompts/tasks`, it means `<repo_root>/prompts/tasks/`).
-    *   If `Main Iteration Folder` specifies a directory name (e.g., `my_project_outputs`), then other paths from the config block are typically nested within it (e.g., `my_project_outputs/prompts/tasks/`).
-    *   If any path (other than `Main Iteration Folder`) is missing from the `[[USER PATH CONFIGURATION]]` block, you may use a logical default *relative to the determined Main Iteration Folder*, but state this assumption clearly in any main output file you generate (e.g., `00_task_launch_plan.md`, if an active add-on generates such a file).
-    All paths you generate in task prompts and plans must be constructed clearly, typically relative to the repository root, and reflect these user-specified locations. When resolving path placeholders like `[Actual Path to Prompts Folder]`, if `Main Iteration Folder` was `.` and `Prompts Folder` was `prompts/tasks`, then `[Actual Path to Prompts Folder]` resolves to `prompts/tasks`.
+    You **must** parse the `[[USER PATH CONFIGURATION]]` block found at the very beginning of *this Master Prompt Segment*. Use the paths specified there by the user.
+    *   Expected general paths:
+        *   `Main Iteration Folder`: Root for current iteration outputs.
+        *   `Prompts Folder`: For generated prompts, TLP, IEP copy.
+        *   `Submodule Plan Destination`: For main plan and Task AI `_dev_plan.md` files.
+        *   `Inter-AI Communication Folder`: For IPC files.
+        *   `User-Specified Task Output Base Path`: Root for Task AI deliverables.
+    *   Expected component paths (you will use these for discovery):
+        *   `User_Path_Addons_Dir`: Base directory for add-on components (e.g., `prompts/add_ons/`).
+        *   `User_Path_Utils_Dir`: Base directory for utility components (e.g., `prompts/util/`).
+    *   If any path is missing (other than optional process-specific paths), you may use a logical default *relative to the determined Main Iteration Folder* IF AND ONLY IF the specific component relying on that path (e.g., an add-on) also defines that default. Otherwise, missing critical paths might be an error. State assumptions clearly.
+    *   All paths you generate must be constructed clearly, typically relative to the repository root.
 
-B. **Parse User Add-on Selections and Prepare Content:**
-    1.  Scan the `[[USER_ADDON_SELECTION]]` block found near the beginning of *this Master Prompt Segment*.
-    2.  If this block is found, parse each line within it.
-    3.  Identify lines that begin with `[x]` (case-insensitive for 'x'). For these lines, extract the subsequent filename. Trim whitespace.
-    4.  Compile an ordered list of these selected add-on filenames: `Selected_Addons_Filenames_Ordered`.
-    5.  Define `Known_Primary_Directive_Addons`: A list of filenames recognized as primary directive add-ons (e.g., `["task_spawning_addon.txt", "build_product_specs_process.txt"]`).
-    6.  Initialize:
-        *   `Active_Primary_Addon_Filename`: null
-        *   `All_Selected_Addons_Content_Map`: An empty map for `filename: content`.
-        *   `Inheritable_Addons_Content_Ordered_List`: An empty ordered list for content of non-primary add-ons.
-        *   `Loaded_Primary_Addon_Filenames`: An empty list to track all selected primary add-ons that were successfully loaded.
-    7.  **First Pass - Identify Active Primary Add-on and Load All Content:**
-        For each `filename` in `Selected_Addons_Filenames_Ordered`:
-        a.  The path to find the add-on text file will be `/prompts/add_ons/[filename]`.
+B. **Discover and Load Add-on Components:**
+    1.  **Scan for Available Add-on "Apps":**
+        a.  Identify all subdirectories within the `User_Path_Addons_Dir`. Each subdirectory name is considered an `addon_app_name`.
+        b.  For each discovered `addon_app_name`, the path to its primary instruction file is expected to be: `[User_Path_Addons_Dir]/[addon_app_name]/[addon_app_name].txt`.
+    2.  **Parse User Add-on Selections:**
+        a.  Scan the `[[USER_ADDON_SELECTION]]` block from `Master_Prompt_Segment.txt`.
+        b.  Identify lines beginning with `[x]` to extract the selected `addon_app_name`s.
+        c.  Compile an ordered list of these: `Selected_Addons_AppNames_Ordered`.
+    3.  **Define Known Primary Directive Add-on Apps:**
+        `Known_Primary_Directive_Addon_Apps`: A list of `addon_app_name`s recognized as primary directives (e.g., `["task_spawning_addon", "build_product_specs_process"]`). (Note: these are folder names, not .txt filenames).
+    4.  **Initialize Collections for Add-ons:**
+        *   `Active_Primary_Addon_AppName`: null
+        *   `All_Selected_Addons_Content_Map`: An empty map for `addon_app_name: content`.
+        *   `Inheritable_Addons_Content_Ordered_List`: An empty ordered list for content of selected non-primary add-ons.
+        *   `Loaded_Primary_Addon_AppNames`: An empty list to track all selected primary add-on apps that were successfully loaded.
+    5.  **Load Selected Add-on Content (First Pass - Identify Active Primary):**
+        For each `selected_app_name` in `Selected_Addons_AppNames_Ordered`:
+        a.  Construct the path: `path_to_primary_instruction_file = [User_Path_Addons_Dir]/[selected_app_name]/[selected_app_name].txt`.
         b.  Attempt to read the content of this file.
-        c.  If the file is successfully read:
-            i.  Store its content in `All_Selected_Addons_Content_Map` with `filename` as key.
-            ii. If `filename` is in `Known_Primary_Directive_Addons`:
-                *   Add `filename` to `Loaded_Primary_Addon_Filenames`.
-                *   If `Active_Primary_Addon_Filename` is still null, set `Active_Primary_Addon_Filename = filename`. (This makes the first selected primary add-on the active one).
-        d.  If an add-on file is not found: Prepare a warning message for that `filename`. Do not add it to any collections.
-    8.  **Second Pass - Populate Inheritable Add-ons List:**
-        For each `filename` in `Selected_Addons_Filenames_Ordered` (considering only those successfully loaded into `All_Selected_Addons_Content_Map`):
-        a.  If `filename` is NOT equal to `Active_Primary_Addon_Filename`, add its content (from `All_Selected_Addons_Content_Map[filename]`) to `Inheritable_Addons_Content_Ordered_List`.
-    9.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_Filenames` contains more than one filename, prepare a note/warning stating that multiple primary directive add-ons were selected and that only `Active_Primary_Addon_Filename` (the first one listed by the user) was chosen as the primary directive for this run. The others were loaded but will not be executed as primary. This note should be included in any summary or commit message.
-    10. If the `[[USER_ADDON_SELECTION]]` block is not found or no add-ons are marked `[x]`, all collections (`Selected_Addons_Filenames_Ordered`, `All_Selected_Addons_Content_Map`, `Inheritable_Addons_Content_Ordered_List`) will be empty, and `Active_Primary_Addon_Filename` remains null.
-    11. The `Active_Primary_Addon_Filename` and `All_Selected_Addons_Content_Map` are used for execution logic in Section II.
-    12. The `Inheritable_Addons_Content_Ordered_List` is for use by the `Active_Primary_Addon_Filename` if it generates sub-prompts and needs to append supplementary add-on texts.
+        c.  If successfully read:
+            i.  Store its content in `All_Selected_Addons_Content_Map` with `selected_app_name` as key.
+            ii. If `selected_app_name` is in `Known_Primary_Directive_Addon_Apps`:
+                *   Add `selected_app_name` to `Loaded_Primary_Addon_AppNames`.
+                *   If `Active_Primary_Addon_AppName` is still null, set `Active_Primary_Addon_AppName = selected_app_name`.
+        d.  If the primary instruction file is not found or unreadable for a `selected_app_name`: Prepare a warning: "Warning: Selected add-on app '[selected_app_name]' is missing its primary instruction file at '[path_to_primary_instruction_file]' and will be skipped." Do not add it to any collections.
+    6.  **Populate Inheritable Add-ons List (Second Pass):**
+        For each `loaded_app_name` in `Selected_Addons_AppNames_Ordered` (iterate based on original selection order, but only consider apps successfully loaded into `All_Selected_Addons_Content_Map`):
+        a.  If `loaded_app_name` is NOT equal to `Active_Primary_Addon_AppName`, add its content (from `All_Selected_Addons_Content_Map[loaded_app_name]`) to `Inheritable_Addons_Content_Ordered_List`.
+    7.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_AppNames` contains more than one app name, prepare a note/warning: "Warning: Multiple primary directive add-ons were selected: [list of Loaded_Primary_Addon_AppNames]. Only '[Active_Primary_Addon_AppName]' (the first one listed by the user) was chosen as the active primary directive for this run. Others were loaded but will not be executed as primary." This note must be included in any summary or commit message.
+    8.  If `[[USER_ADDON_SELECTION]]` was not found or no add-ons were marked `[x]`, relevant collections will be empty.
+    9.  The `Active_Primary_Addon_AppName` and `All_Selected_Addons_Content_Map` are used for execution logic in Section II.
+    10. The `Inheritable_Addons_Content_Ordered_List` is for use by the `Active_Primary_Addon_AppName` if it generates sub-prompts and needs to append supplementary add-on texts.
 
-C. **Input Definition Files (Base IEP):** (Content remains the same as previous version)
+C. **Input Definition Files (Base IEP):** (No change from previous version)
     You will also need to read certain definition files provided by the user. Specifically, the Base IEP content is expected at `/prompts/iep/Base_IEP.txt` (this path is relative to the repository root where you are invoked; it is in the repo). This will be referenced in Section III.C.1 below.
+
+D. **Discover and Load Utility Components ("Utils"):**
+    1.  **Scan for Available Util "Apps":**
+        a.  Identify all subdirectories within the `User_Path_Utils_Dir` (parsed from `[[USER PATH CONFIGURATION]]`). Each subdirectory name is considered a `util_app_name`.
+    2.  **Initialize Collection for Utils:**
+        *   `All_Available_Utils_Content_Map`: An empty map for `util_app_name: content`.
+    3.  **Load Util Content:**
+        For each discovered `util_app_name`:
+        a.  Construct the path: `path_to_primary_instruction_file = [User_Path_Utils_Dir]/[util_app_name]/[util_app_name].txt`.
+        b.  Attempt to read the content of this file.
+        c.  If successfully read: Store its content in `All_Available_Utils_Content_Map` with `util_app_name` as the key.
+        d.  If the primary instruction file is not found or unreadable for a `util_app_name`: Prepare a warning: "Warning: Discovered util app '[util_app_name]' is missing its primary instruction file at '[path_to_primary_instruction_file]' and cannot be loaded." Do not add it to the map.
+    4.  **Availability:** Utils in `All_Available_Utils_Content_Map` are now available for use by any primary add-on or other processes that are designed to explicitly call or incorporate them by their `util_app_name`. They are not executed automatically unless called by an active add-on.
 
 **II. ADD-ON EXECUTION AND CONDITIONAL LOGIC:**
 
 A. **Process Active Primary Add-on (if any):**
-    1.  If `Active_Primary_Addon_Filename` (identified in I.B.7.c.ii) is not null:
-        a.  Retrieve the content of the `Active_Primary_Addon_Filename` from `All_Selected_Addons_Content_Map`.
+    1.  If `Active_Primary_Addon_AppName` (identified in I.B.5) is not null:
+        a.  Retrieve the content of the `Active_Primary_Addon_AppName` from `All_Selected_Addons_Content_Map`.
         b.  Execute its instructions as the primary directive for this session. This add-on is responsible for the main outputs.
-        c.  If this primary add-on is designed to generate sub-prompts (e.g., task prompts from `task_spawning_addon.txt`), it should use the `Inheritable_Addons_Content_Ordered_List` (from I.B.8) to append the content of other selected, non-primary add-ons.
-        d.  Any other add-ons in `Inheritable_Addons_Content_Ordered_List` are considered supplementary to this primary add-on.
-    2.  **If `Active_Primary_Addon_Filename` IS NULL (no known primary add-on was selected or successfully loaded):**
-        a.  You **must** state clearly in your primary output or log (e.g., commit message) that no active primary directive add-on (like `task_spawning_addon.txt` or `build_product_specs_process.txt`) was selected or found.
-        b.  If `Inheritable_Addons_Content_Ordered_List` is not empty (meaning utility or other non-primary add-ons were selected):
-            i.  State that you will process these remaining utility/supplementary add-ons.
-            ii. For each add-on content in `Inheritable_Addons_Content_Ordered_List` (corresponding to successfully loaded add-ons not designated as primary for this run), execute its instructions if it appears to be self-executing. Be cautious, as these are normally intended for appending. If an add-on's purpose is unclear for standalone execution, note this.
+        c.  If this primary add-on is designed to generate sub-prompts (e.g., task prompts from `task_spawning_addon` app), it should use the `Inheritable_Addons_Content_Ordered_List` (from I.B.6) to append the content of other selected, non-primary add-ons.
+        d.  Any other add-ons whose content is in `Inheritable_Addons_Content_Ordered_List` are considered supplementary to this primary add-on for the purpose of inclusion in sub-prompts. Their own primary instructions (if any) are not executed unless they are also the `Active_Primary_Addon_AppName`.
+    2.  **If `Active_Primary_Addon_AppName` IS NULL (no known primary add-on was selected or successfully loaded):**
+        a.  You **must** state clearly in your primary output or log (e.g., commit message) that no active primary directive add-on was selected or found.
+        b.  If `Inheritable_Addons_Content_Ordered_List` is not empty (meaning utility or other non-primary add-ons were selected and loaded):
+            i.  State that you will process these remaining utility/supplementary add-ons if they appear self-executing.
+            ii. For each add-on content in `Inheritable_Addons_Content_Ordered_List`, briefly analyze its structure. If it contains clear imperative instructions for standalone execution, you may attempt to execute them. Be cautious, as these are normally intended for appending. If an add-on's purpose is unclear for standalone execution, note this and do not execute.
         c.  Generate the `Information_Exchange_Protocol.md` as per Section III.C.1 below.
-        d.  Conclude operations, stating that main directives were absent. Your commit message (Section IV.B) should reflect this. Include any warnings (e.g., missing add-ons from I.B.7.d, or multiple primary add-ons selected from I.B.9).
+        d.  Conclude operations, stating that main directives were absent. Your commit message (Section IV.B) should reflect this. Include any warnings generated during the process (e.g., missing add-ons, multiple primary add-ons selected, missing util files).
 
-**III. OUTPUT GENERATION REQUIREMENTS (Core Utilities):** (Content remains the same, but III.C.1's condition is affected by II.A.2.c)
+**III. OUTPUT GENERATION REQUIREMENTS (Core Utilities):** (Section C.1 condition slightly rephrased for clarity)
 
 **C. Supporting Documentation (Core Utilities):** 
-(Note: Specific documents like Main Development Plan, Task Prompts, and Task Launch Plan are typically handled by a selected `Active_Primary_Addon_Filename`.)
+(Note: Specific documents like Main Development Plan, Task Prompts, and Task Launch Plan are typically handled by a selected `Active_Primary_Addon_AppName`.)
 1.  **`Information_Exchange_Protocol.md`:**
-    *   This file should be generated if an `Active_Primary_Addon_Filename` was processed OR if no `Active_Primary_Addon_Filename` was identified but other conditions in II.A.2.c are met.
-    *   Read content from user-provided `/prompts/iep/Base_IEP.txt` (path relative to repo root where you operate; it is in the repo - see Section I.C).
-    *   Create `Information_Exchange_Protocol.md` in the 'Prompts Folder' you're generating (e.g., `[Actual Path to Target Project's Prompts Folder]/Information_Exchange_Protocol.md` - path from Section I.A).
-    *   Write exact content from `/prompts/iep/Base_IEP.txt` into it. Ensure example `Notes-To-Next-Jules` in it includes an illustration of `[RISK_ASSESSMENT]` block (user's `Base_IEP.txt` should ideally have this).
+    *   This file should be generated if an `Active_Primary_Addon_AppName` was processed OR if no `Active_Primary_Addon_AppName` was identified but other conditions in II.A.2 are met.
+    *   Read content from user-provided `/prompts/iep/Base_IEP.txt`.
+    *   Create `Information_Exchange_Protocol.md` in the 'Prompts Folder'.
+    *   Write exact content from `/prompts/iep/Base_IEP.txt` into it.
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION (Core):**
 
 B. **Final Commit Message by Planning AI:**
-    Adhere to IEP (from `/prompts/iep/Base_IEP.txt` - see Section I.C).
-    *   Task-ID should reflect the main operation (e.g., "PLANNING_VIA_TASK_SPAWNING_ADDON" if `task_spawning_addon.txt` was the `Active_Primary_Addon_Filename`, or "PRODUCT_SPECS_GENERATION" if `build_product_specs_process.txt` was active, or "CORE_ADDON_PROCESSING_ONLY" if no primary add-on was active).
+    Adhere to IEP (from `/prompts/iep/Base_IEP.txt`).
+    *   Task-ID should reflect the main operation (e.g., "PROCESSED_PRIMARY_ADDON_task_spawning_addon" if `task_spawning_addon` was the `Active_Primary_Addon_AppName`, or "PROCESSED_PRIMARY_ADDON_build_product_specs_process" if it was active, or "CORE_UTILITY_ADDON_PROCESSING_ONLY" if no primary add-on was active).
     *   Notes must state:
-        *   Which add-on, if any, was processed as the `Active_Primary_Addon_Filename`.
-        *   If multiple primary add-ons were selected by the user, list them and note that only the first was taken as active primary (as per I.B.9).
-        *   A summary of other add-ons processed from `Inheritable_Addons_Content_Ordered_List` (or all from `Selected_Addons_Filenames_Ordered` if no primary was active).
-        *   Note any add-ons that failed to load.
+        *   Which add-on, if any, was processed as the `Active_Primary_Addon_AppName`.
+        *   If multiple primary add-ons were selected by the user, list them and note that only the first was taken as active primary (as per I.B.7).
+        *   A summary of other add-ons processed from `Inheritable_Addons_Content_Ordered_List` (or all from `Selected_Addons_AppNames_Ordered` if no primary was active and they were self-executing).
+        *   Note any add-ons or utils that failed to load (missing primary .txt files).
         *   Self-checks performed (as per active add-on(s), if any).
         *   Include `[PLANNING_CONFIDENCE]` block (if applicable, typically generated by an active primary add-on).
         *   Any warnings generated during the process.

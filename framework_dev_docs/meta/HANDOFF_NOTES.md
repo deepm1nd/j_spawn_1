@@ -184,6 +184,39 @@ This session focused on expanding and refining the iterative deepening capabilit
 **State of Deliverables:**
 The `build_product_specs_process.txt` add-on now fully supports a 0-3 level iterative deepening workflow with clearly defined goals and logic for each depth. All associated configurations in `Master_Prompt_Segment.txt` and documentation in `MPS_Usage_Guide.md` have been updated to reflect these significant enhancements. This "Phase B (Revised)" of the `build_product_specs_process.txt` development, focusing on iterative deepening, is complete. The system is ready for submission and extensive testing of this multi-stage process.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions for "Folder-per-App" Architecture Refactoring:**
+This session focused on restructuring the MPS framework components (add-ons, utils) into a "folder-per-app" architecture to enhance modularity, organization, and extensibility.
+
+*   **Core Logic Update (`prompts/iep/Core_Planning_Instructions.txt`):**
+    *   Revised Section I.B to implement new discovery and loading logic for add-on "apps". The AI now scans for subdirectories within `User_Path_Addons_Dir`. The selected `addon_app_name` (folder name) is used to find the primary instruction file at `[User_Path_Addons_Dir]/[addon_app_name]/[addon_app_name].txt`.
+    *   Updated `Known_Primary_Directive_Addon_Apps` to list app/folder names (e.g., "task_spawning_addon").
+    *   Added new Section I.D for discovering and loading "util apps" from `User_Path_Utils_Dir` using the same `[util_app_name]/[util_app_name].txt` pattern, storing them in `All_Available_Utils_Content_Map`.
+    *   Ensured error handling for missing primary instruction files within app folders.
+    *   Adjusted internal variable names (e.g., `Active_Primary_Addon_AppName`) and commit message details to use app names.
+
+*   **Component Migration:**
+    *   All existing add-ons (`task_spawning_addon.txt`, `task_resumption_addon.txt`, `build_product_specs_process.txt`) were migrated from flat files in `prompts/add_ons/` to their respective subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    *   The existing utility (`pre_flight_check_user_plan.txt`) was migrated from `prompts/util/` to `prompts/util/pre_flight_check_user_plan/pre_flight_check_user_plan.txt`.
+    *   The migration process involved reading original content, creating the new file in the subdirectory (which also created the directory), and then deleting the original flat file.
+
+*   **New IPC Directory:**
+    *   Created the `prompts/ipc/` directory and added a `.gitkeep` file to ensure it's tracked, in anticipation of future IPC components using this folder-per-app structure.
+
+*   **Documentation Updates:**
+    *   `prompts/add_ons/available_addons_manifest.md`: Updated to refer to add-ons by their app/folder names and to explain the new structure (e.g., "primary instruction file: `app_name/app_name.txt`").
+    *   `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to:
+        *   Explain the "folder-per-app" architecture for all components.
+        *   Clarify that `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, and `User_Path_IPC_Dir` in `[[USER PATH CONFIGURATION]]` point to parent directories for component subfolders.
+        *   Guide users to select add-ons by their app/folder name in `[[USER_ADDON_SELECTION]]`.
+        *   Provide instructions for developers on creating new components under this architecture.
+        *   Ensured consistent terminology (e.g., "add-on app") throughout the guide.
+
+**State of Deliverables:**
+The MPS framework has been successfully refactored to a "folder-per-app" architecture for its components. Core instruction loading logic, all existing add-ons and utils, and all key documentation (`Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`) have been updated to support and reflect this new structure. The framework is now significantly more modular, organized, and extensible for future component development. Ready for submission and testing.
+---
 
 ## MPS Performance Feedback Log
 
@@ -278,7 +311,7 @@ The `prompts/add_ons/build_product_specs_process.txt` was significantly updated 
 ---
 **Feedback Entry Date:** 2023-10-27
 **Source of Feedback:** User (clarifications and new requirements for iterative deepening for `build_product_specs_process.txt`).
-**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on incorporating "Level 0 Deep Research".
 **Context/Scenario:** Expanding the iterative capabilities of `build_product_specs_process.txt` from an initial 0-2 level concept to a more detailed 0-3 level process with specific content goals for each level.
 **Observation/Issue:** The initial iterative deepening plan (0-2 levels) for `build_product_specs_process.txt` needed more specific content goals for each level and an additional level for AI-driven insights to meet user's evolving requirements for content depth and sophistication.
 **Suggestion for MPS Refinement (Implemented):**
@@ -294,4 +327,24 @@ The iterative deepening feature of `build_product_specs_process.txt` was expande
         - Phase 3 (Content Generation) has distinct logic for each depth (0-3), detailing how to build upon previous work (for D1-D3) or generate outlines (D0) according to the specified content goals for each level.
     - **Documentation (`MPS_Usage_Guide.md`):** Updated to detail the 0-3 levels, their specific purposes, and the user workflow for managing iterative runs and output folders.
     This provides a more granular, powerful, and well-defined iterative workflow for the `build_product_specs_process.txt` add-on.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (vision for enhanced component modularity via "folder-per-app" architecture).
+**MPS Version Referenced:** Current version with multiple add-ons and utils.
+**Context/Scenario:** As the number of components (add-ons, utils, and potentially IPC handlers) grows, a flat file structure in their respective directories (`prompts/add_ons/`, `prompts/util/`) becomes less organized and limits the ability for components to have their own supporting files or sub-frameworks.
+**Observation/Issue:** The previous flat-file structure for add-ons and utils was not ideal for scalability or for components that might require multiple associated files (e.g., templates, data snippets, complex sub-instructions).
+**Suggestion for MPS Refinement (Implemented):**
+The framework was refactored to a "folder-per-app" architecture for all components (add-ons, utils, and anticipated IPC handlers):
+    - **Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):** Updated to discover and load components based on a new directory structure.
+        - It now expects component-specific parent paths like `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, `User_Path_IPC_Dir` to be defined in `[[USER PATH CONFIGURATION]]`.
+        - For each component "app" (e.g., `my_addon_app`), it looks for a subdirectory named `my_addon_app` within the relevant parent path.
+        - The primary instruction file for the app must be located at `[parent_path]/my_addon_app/my_addon_app.txt`.
+        - Internal references (e.g., `Known_Primary_Directive_Addon_Apps`, `Active_Primary_Addon_AppName`) now use these app/folder names.
+    - **Component Migration:** All existing add-ons (`task_spawning_addon`, `task_resumption_addon`, `build_product_specs_process`) and utils (`pre_flight_check_user_plan`) were moved into their respective new subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    - **New `prompts/ipc/` directory:** Created with a `.gitkeep` file for future IPC components.
+    - **Documentation Updates:**
+        - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
+        - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
+    This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
 ---

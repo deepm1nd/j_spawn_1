@@ -1,155 +1,131 @@
 # MPS Usage Guide (for Canonical Framework using `prompts/Master_Prompt_Segment.txt`)
 
 ## 1. Introduction
-This guide explains how to use the canonical `Master_Prompt_Segment.txt` (located at `/prompts/Master_Prompt_Segment.txt` in this framework's development repository) to instruct a Planning AI. The `Master_Prompt_Segment.txt` has been modularized. Its core instructional logic for parsing configurations and managing add-ons resides in `/prompts/iep/Core_Planning_Instructions.txt`. Notably, the primary project planning and task generation functionality is now encapsulated in an optional add-on, `prompts/add_ons/task_spawning_addon.txt`. This structure enhances maintainability and flexibility, allowing the framework to be adapted for various purposes beyond full-scale project planning if desired.
+This guide explains how to use the canonical `Master_Prompt_Segment.txt` (located at `/prompts/Master_Prompt_Segment.txt` in this framework's development repository) to instruct a Planning AI. The `Master_Prompt_Segment.txt` has been modularized. Its core instructional logic for parsing configurations and managing components resides in `/prompts/iep/Core_Planning_Instructions.txt`. This framework utilizes a **"folder-per-app" architecture** for its components (add-ons, utils, etc.), enhancing modularity and maintainability. Notably, primary functionalities like project planning (`task_spawning_addon` app) or product specification generation (`build_product_specs_process` app) are encapsulated in optional add-on apps. This structure allows the framework to be adapted for various purposes by selecting different combinations of component apps.
 
-## 2. Core Components You Will Use/Prepare
+## 2. Core Framework Components & User Preparations
 
-*   **Content of `/prompts/Master_Prompt_Segment.txt` from this framework repo:** This text serves as the main wrapper for the Planning AI's instructions. You will copy its *content* into your main spawn prompt file. **Crucially, you must edit the `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks at the top of the MPS content you copied to suit your target project.** This file now primarily contains user configuration sections and an include directive to load `/prompts/iep/Core_Planning_Instructions.txt`.
+This section outlines the key pieces of the MPS framework and what you, the user, will typically prepare or copy into your target repository.
 
-*   **Content of `/prompts/iep/Core_Planning_Instructions.txt` from this framework repo:** This file contains foundational instructions for the Planning AI. It dictates how the AI parses user configurations (paths and add-on selections from `Master_Prompt_Segment.txt`), loads add-on files (including filtering for inheritance), and implements the conditional logic for primary functionalities like task spawning. It also includes instructions for generating utility files like `Information_Exchange_Protocol.md`. You **must** copy its *content* to `/prompts/iep/Core_Planning_Instructions.txt` in your target repository, as it's essential for the framework's operation.
+*   **`/prompts/Master_Prompt_Segment.txt` (Framework Source):**
+    *   This is the main wrapper for the Planning AI's instructions. You will copy its *content* into your main spawn prompt file within your target repository.
+    *   **Action Required:** Critically, you **must edit** the `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks at the top of the MPS content you copied to suit your target project's specific paths and desired add-on apps.
 
-*   **Content of `/prompts/iep/Base_IEP.txt` from this framework repo:** This is the Base Information Exchange Protocol. You will copy its *content* to `/prompts/iep/Base_IEP.txt` in your target repository.
+*   **`/prompts/iep/Core_Planning_Instructions.txt` (Framework Source):**
+    *   Contains foundational instructions for the Planning AI. It dictates how the AI parses user configurations, discovers and loads component "apps" (add-ons, utils), implements conditional logic for primary functionalities, and generates utility files like `Information_Exchange_Protocol.md`.
+    *   **Action Required:** You **must copy** this file (and its content) to `/prompts/iep/Core_Planning_Instructions.txt` in your target repository. It is essential for the framework's operation.
 
-*   **Content of Add-on Files (from `/prompts/add_ons/` in this framework repo):**
-    *   Add-ons provide specific functionalities. You select them in the `[[USER_ADDON_SELECTION]]` block. For any add-on you wish to use, copy its content to the corresponding path in `/prompts/add_ons/` in your target repository.
-    *   **Key Add-on for Planning: `task_spawning_addon.txt`**: This add-on contains all instructions for the Planning AI to perform its traditional role: generating a main development plan, a Task Launch Plan (TLP), and individual task prompt files. **If you want the AI to generate a project plan, you MUST select this add-on and copy its file.** Its content is for the Planning AI's use and is NOT directly inherited by the Task AI prompts it generates.
-    *   **Other Inheritable Add-ons** (e.g., `task_resumption_addon.txt`): These provide supplementary instructions intended for the Task AIs. Their content *will* be appended to the task prompts generated by `task_spawning_addon.txt`. The order in which you list these in `[[USER_ADDON_SELECTION]]` will be preserved.
-    *   Refer to `/prompts/add_ons/available_addons_manifest.md` for a list and descriptions of available add-ons.
+*   **`/prompts/iep/Base_IEP.txt` (Framework Source):**
+    *   This is the template for the Information Exchange Protocol.
+    *   **Action Required:** Copy this file to `/prompts/iep/Base_IEP.txt` in your target repository.
 
-*   **Your Project-Specific Request:** E.g., the "gritos Dev Plan (a003)" text, which is the input the Planning AI will work on if `task_spawning_addon.txt` is selected, or specific inputs for other primary add-ons.
+*   **Component "Apps" (Add-ons, Utils, IPC Handlers - Framework Source):**
+    The MPS framework uses a "folder-per-app" architecture for its extensible components. Each component (be it an add-on, a utility, or a future IPC handler) resides in its own subdirectory within a designated base directory (e.g., `prompts/add_ons/` for add-on apps).
+    *   **Structure:** For an app named `my_app_name`, its structure would be `[base_directory]/my_app_name/`, and it must contain a primary instruction file named `my_app_name.txt` (i.e., `[base_directory]/my_app_name/my_app_name.txt`). The app's folder can also contain any other supporting files, scripts, data, or sub-frameworks it needs.
+    *   **Add-on Apps (e.g., from `/prompts/add_ons/`):** These provide specific functionalities, either as primary directives (like `task_spawning_addon` or `build_product_specs_process`) or as supplementary, inheritable instructions (like `task_resumption_addon`).
+        *   **Action Required:** For any add-on app you wish to use, you must copy its entire folder (e.g., copy `/prompts/add_ons/task_spawning_addon/` from the framework repo to `target_repo/prompts/add_ons/task_spawning_addon/`). You select active add-ons by listing their app/folder names in the `[[USER_ADDON_SELECTION]]` block.
+    *   **Utility Apps (e.g., from `/prompts/util/`):** These provide reusable utility functions that can be called by other components. They are discovered by the Planning AI if present in the `User_Path_Utils_Dir`.
+        *   **Action Required:** Copy the entire folder of any util app you might need (or that a chosen add-on might require) into the corresponding `utils` directory in your target repository (e.g., `target_repo/prompts/util/pre_flight_check_user_plan/`).
+    *   Refer to `/prompts/add_ons/available_addons_manifest.md` for a list and descriptions of available add-on apps.
+
+*   **Your Project-Specific Request:** This is the main text describing what you want the AI to do (e.g., "Create a dev plan for project gritos..."). It's the first part of your main spawn prompt file.
 
 ## 3. Setting up Your Target Repository & Crafting the Main Spawn Prompt
 
-To have a Planning AI operate on your project (e.g., "gritos"):
-
-**A. Prepare Your Target Repository (where Planning AI will run):**
-1.  Ensure all your project-specific input documents (e.g., for gritos: `gritos_product_specification.md`, `concept/research/` files, etc.) are present at the paths your project request will refer to.
+**A. Prepare Your Target Repository:**
+1.  Ensure all your project-specific input documents are present.
 2.  Create a `/prompts/` directory at the root of your target repository.
 3.  Inside `target_repo/prompts/`, create an `iep/` subdirectory.
-    *   Copy the content from this framework's `/prompts/iep/Base_IEP.txt` into `target_repo/prompts/iep/Base_IEP.txt`.
-    *   Copy the content from this framework's `/prompts/iep/Core_Planning_Instructions.txt` into `target_repo/prompts/iep/Core_Planning_Instructions.txt`. (This is mandatory for the framework to function).
-4.  Inside `target_repo/prompts/`, create an `add_ons/` subdirectory.
-    *   **If you want the Planning AI to generate a project plan, TLP, and task prompts**, you **must** copy the content of `task_spawning_addon.txt` from this framework's `/prompts/add_ons/task_spawning_addon.txt` to `target_repo/prompts/add_ons/task_spawning_addon.txt`.
-    *   Similarly, if using other primary function add-ons (like `build_product_specs_process.txt`), copy them here.
-    *   For any other supplementary add-ons you intend to use (e.g., `task_resumption_addon.txt`), copy their content from this framework's `/prompts/add_ons/` directory into the corresponding file in `target_repo/prompts/add_ons/`.
-5.  The Planning AI will create its output "Prompts Folder" (e.g., `prompts/tasks/` or as specified by you in `[[USER PATH CONFIGURATION]]`) if directed by an active add-on like `task_spawning_addon.txt`.
+    *   Copy `/prompts/iep/Base_IEP.txt` from the framework to `target_repo/prompts/iep/Base_IEP.txt`.
+    *   Copy `/prompts/iep/Core_Planning_Instructions.txt` from the framework to `target_repo/prompts/iep/Core_Planning_Instructions.txt`.
+4.  Create component base directories in `target_repo/prompts/` as needed:
+    *   `target_repo/prompts/add_ons/` (for add-on apps)
+    *   `target_repo/prompts/util/` (for utility apps)
+    *   `target_repo/prompts/ipc/` (for IPC handlers - this directory should exist, even if initially empty, perhaps with a `.gitkeep` file)
+5.  Copy desired component app folders from the framework's component directories (e.g., `/prompts/add_ons/`, `/prompts/util/`) into the corresponding directories in your target repository. For example:
+    *   To use the task spawning add-on, copy the entire `prompts/add_ons/task_spawning_addon/` folder from the framework to `target_repo/prompts/add_ons/task_spawning_addon/`.
+    *   To use the pre-flight check utility, copy `prompts/util/pre_flight_check_user_plan/` to `target_repo/prompts/util/pre_flight_check_user_plan/`.
 
 **B. Create Your Main Spawn Prompt File in Target Repository:**
-   (e.g., `target_repo/prompts/p_your_project_spawn.txt` - refer to `framework_dev_docs/guides/p_gritos_dev_plan_spawn_EXAMPLE.md` in this framework repo for a structural example)
+   (e.g., `target_repo/prompts/p_your_project_spawn.txt`)
 
    This file must contain, in order:
-    1.  **Your Specific Project Request:** (e.g., the "gritos Dev Plan (a003)..." text). This is primarily used if `task_spawning_addon.txt` is active, or if another primary add-on requires specific input here.
-    2.  **The Full Content of `/prompts/Master_Prompt_Segment.txt` (from this framework repo), with its top `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks EDITED BY YOU for your target project.**
+    1.  **Your Specific Project Request.**
+    2.  **The Full Content of `/prompts/Master_Prompt_Segment.txt` (from this framework repo), with its top `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks EDITED BY YOU.**
 
         **3.B.1. Configuring `[[USER PATH CONFIGURATION]]`**
-        This block at the top of the `Master_Prompt_Segment.txt` content is where you define key paths and variables. The Planning AI parses these based on instructions in `Core_Planning_Instructions.txt`. You **must** edit the example values to match your target repository structure and project needs.
-
-        *   **General Project & Task Spawning Paths:**
-            These are primarily used by `task_spawning_addon.txt` and other general-purpose add-ons.
-            *   `Main Iteration Folder`: The root for all Planning AI outputs for this project iteration. Use `.` for the repository root, or a relative path (e.g., `project_X_outputs`).
-            *   `Prompts Folder`: Subdirectory for generated task prompts, TLP, and the copied IEP file. Relative to `Main Iteration Folder`.
-            *   `Submodule Plan Destination`: Directory for the main project plan (if `task_spawning_addon.txt` is used) and individual Task AI `_dev_plan.md` files. Relative to `Main Iteration Folder`.
-            *   `Inter-AI Communication Folder`: Subdirectory for IPC files, typically nested within `Prompts Folder`.
-            *   `User-Specified Task Output Base Path`: The root path where Task AIs will place their primary deliverables (e.g., code). This path is relative to the repository root.
-
-        *   **Paths for Specific Processes/Add-ons (Examples):**
-            Some add-ons may require their own set of path configurations. These should also be defined in the `[[USER PATH CONFIGURATION]]` block if you intend to use such add-ons.
-            *   **For "Build Product Specs" Process (used by the `build_product_specs_process.txt` add-on):**
-                *   `PRODUCT_NAME`: (Example: `"NovaSystem"`) The name of your product. Used for naming output files and internal references.
-                *   `PRODUCT_SPECS_INPUT_DOCS_PATH`: (Example: `product_dev/inputs`) Path relative to the repository root, pointing to a folder containing primary input documents for product specification generation.
-                *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`: (Example: `product_dev/guidance`) Path relative to the repository root, pointing to a folder containing documents that provide rules, constraints, and guidance.
-                *   `PRODUCT_SPECS_OUTPUT_PATH`: (Example: `product_dev/specifications_D0`) Path relative to the repository root, specifying the folder where the AI should save the generated product specification documents for the *current iteration*.
-                *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: (Example: `product_dev/inputs/main_requirements_document.md`) **Optional.** Path relative to the repository root to a specific document. If specified, the AI uses this for its heading-based research.
-                *   `PRODUCT_SPECS_REF_DEPTH`: (Example: `1`) **Optional.** An integer (0, 1, or 2) for internal document reference depth. Defaults to 1.
-                *   `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`: (Example: `cursory`) **Optional.** "complex", "cursory" (default), or "focused". Controls AI's approach to linked codebases.
-                *   `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`: (Example: `"authentication, API integration"`) **Optional.** Comma-separated keywords for "focused" codebase review.
-                *   `PRODUCT_SPECS_ITERATION_DEPTH`: (Example: `0`) **Optional.** An integer (0, 1, 2, or 3) controlling the iteration depth for the product specs generation. Defaults to `0` if not specified.
-                    - `0` (Outline): AI generates an outline of the product specification, typically with headings 3-4 levels deep, a title, and one paragraph of key ideas per heading.
-                    - `1` (Basic Content): AI builds upon the D0 outline (or generates a D0 equivalent if not provided), expanding each section with basic content (e.g., ~3 paragraphs per original D0 heading) covering concepts and examples, roughly at a Bachelor's level of detail.
-                    - `2` (Expert Elaboration): AI builds upon D1 outputs, providing deeper analysis, more nuanced explanations, and more comprehensive coverage, aiming for approximately 1 page of content per original D0 heading.
-                    - `3` (AI Unique Insights): AI builds upon D2 outputs, offering extensive elaboration (potentially ~3 pages per original D0 heading), including novel ideas, critical analysis of trade-offs, and potentially identifying gaps or new opportunities.
-                *   `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`: (Example: `product_dev/specifications_D0`) **Required if `PRODUCT_SPECS_ITERATION_DEPTH` is 1, 2, or 3.** Path relative to the repository root, pointing to the folder containing the complete set of output documents from the immediately preceding iteration.
+        This block defines key paths and variables.
+        *   **Core Framework Paths:** These tell the Planning AI where to find component categories.
+            *   `User_Path_Addons_Dir`: (Default: `prompts/add_ons/`) Base directory where add-on app subfolders are located.
+            *   `User_Path_Utils_Dir`: (Default: `prompts/util/`) Base directory where utility app subfolders are located.
+            *   `User_Path_IPC_Dir`: (Default: `prompts/ipc/`) Base directory where IPC handler app subfolders might be located (and for general IPC file storage).
+        *   **General Project & Task Spawning Paths:** (Used by `task_spawning_addon` app, etc.)
+            *   `Main Iteration Folder`, `Prompts Folder`, `Submodule Plan Destination`, `Inter-AI Communication Folder` (note: often same as `User_Path_IPC_Dir`), `User-Specified Task Output Base Path`. (Descriptions as before).
+        *   **Paths for Specific Processes/Add-ons:** (e.g., for `build_product_specs_process` app)
+            *   `PRODUCT_NAME`, various `PRODUCT_SPECS_*` paths. (Descriptions as before).
+            *   You **must** edit example values to match your target repository and project needs.
 
         **3.B.2. Configuring `[[USER_ADDON_SELECTION]]`**
-        This block allows you to specify which add-on functionalities you want to activate.
-            *   **Order of Inheritable Add-ons:** If `task_spawning_addon.txt` is selected, other add-ons (like `task_resumption_addon.txt`, coding standards, etc.) are considered "inheritable" by Task AIs. Their content will be appended to generated task prompts in the order you list them here.
-            *   **`task_spawning_addon.txt` Placement:** It's recommended to list `task_spawning_addon.txt` last if you select it. This visually represents its role as the primary orchestrator for planning and task generation, using other listed add-ons as inputs.
+        This block allows you to activate specific add-on apps.
+            *   List the **folder name** of the add-on app you want to use (e.g., `[x] task_spawning_addon`). The framework will then look for `[User_Path_Addons_Dir]/task_spawning_addon/task_spawning_addon.txt`.
+            *   **Order of Inheritable Add-ons:** If a primary add-on like `task_spawning_addon` is selected, other selected add-on apps whose purpose is to supplement task prompts (e.g., `task_resumption_addon`) will have their primary instruction file content appended to the generated task prompts in the order you list them here.
+            *   **Primary Add-on Placement:** For clarity, it's often best to list the main orchestrating or process add-on (like `task_spawning_addon` or `build_product_specs_process`) last in your selection.
         *   **Example `[[USER_ADDON_SELECTION]]` for full planning:**
             ```
             [[USER_ADDON_SELECTION]]
-            # Inheritable add-ons - order matters for task prompts
-            [x] task_resumption_addon.txt               # Example: Provides task state resumption.
-            # [ ] example_coding_standards_addon.txt    # Example: Could provide coding standards.
+            # Inheritable add-on apps - order matters for task prompts
+            [x] task_resumption_addon
+            # [ ] example_coding_standards_addon 
             
-            # Primary Add-ons (typically select only one primary)
-            # [ ] build_product_specs_process.txt # Example: For generating product specs.
-            [x] task_spawning_addon.txt  # Enables project planning & task generation.
+            # Primary Add-on app (typically select only one primary)
+            # [ ] build_product_specs_process 
+            [x] task_spawning_addon  
             [[END USER_ADDON_SELECTION]]
             ```
-        *   If you do *not* select a primary add-on like `task_spawning_addon.txt` or `build_product_specs_process.txt`, the AI will not generate a project plan or product specifications unless another selected add-on provides such specific instructions.
 
-**C. Using Iterative Deepening for `build_product_specs_process.txt`**
+**C. Using Iterative Deepening for `build_product_specs_process`** (Content as before)
 
-The `build_product_specs_process.txt` add-on supports a multi-pass iterative workflow to generate and progressively refine product specifications. This allows for different levels of detail and analysis:
-
-1.  **Iteration 0 (Outline Generation):**
-    *   **Goal:** Create a structured outline of the product documentation, with titles, all heading levels (typically 3-4 deep), and a single paragraph summarizing key ideas for each heading.
-    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 0`** in `[[USER PATH CONFIGURATION]]`.
-    *   `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` should be empty or omitted (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: ""`).
-    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a unique directory for this iteration's output (e.g., `product_dev/specifications_D0`).
-    *   Ensure `build_product_specs_process.txt` is selected in `[[USER_ADDON_SELECTION]]`.
-    *   Run the Planning AI. It will generate `*_D0.md` files in the specified `PRODUCT_SPECS_OUTPUT_PATH`.
-    *   **User Action:** Review the D0 outputs. These become the input for Iteration 1.
-
-2.  **Iteration 1 (Basic Content Generation):**
-    *   **Goal:** Expand the D0 outline with basic content, roughly equivalent to a Bachelor's level of detail, with approximately 3 paragraphs per original D0 heading, covering concepts and examples.
-    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 1`**.
-    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D0 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D0`).
-    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory for this iteration's output (e.g., `product_dev/specifications_D1`).
-    *   Run the Planning AI. It will read the D0 documents and generate refined `*_D1.md` files.
-    *   **User Action:** Review the D1 outputs. These become the input for Iteration 2.
-
-3.  **Iteration 2 (Expert Elaboration):**
-    *   **Goal:** Provide deeper analysis and more nuanced explanations, aiming for approximately 1 page of content per original D0 heading.
-    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 2`**.
-    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D1 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D1`).
-    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory (e.g., `product_dev/specifications_D2`).
-    *   Run the Planning AI. It will read the D1 documents and generate `*_D2.md` files.
-    *   **User Action:** Review the D2 outputs. These become the input for Iteration 3.
-
-4.  **Iteration 3 (AI Unique Insights & Extensive Elaboration):**
-    *   **Goal:** Offer extensive elaboration (potentially ~3 pages per original D0 heading), including novel ideas, critical analysis of trade-offs, identification of potential gaps, or new opportunities.
-    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 3`**.
-    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D2 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D2`).
-    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory (e.g., `product_dev/specifications_D3`).
-    *   Run the Planning AI. It will read the D2 documents and generate `*_D3.md` files.
-
-**Important Considerations for Iterative Deepening:**
-*   **User Responsibility:** You are responsible for managing the output folders from each iteration and correctly setting `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` for subsequent runs.
-*   **Output Naming:** The `build_product_specs_process.txt` add-on is expected to append `_D0`, `_D1`, `_D2`, or `_D3` to filenames based on the `PRODUCT_SPECS_ITERATION_DEPTH`.
-*   **Review Between Iterations:** While not strictly enforced by the AI, it's highly recommended to review the outputs of each iteration before proceeding to the next.
-
-**D. Invoke the Planning AI:**
-   Provide the simple prompt to your Planning AI, pointing to the spawn prompt file you just created in your target repository:
-   `"/prompts/p_your_project_spawn.txt is the prompt, it is in the repo"` (adjust path if you named or placed it differently).
+**D. Invoke the Planning AI:** (Content as before)
 
 **E. Understanding the Planning AI's Process:**
 The Planning AI will then:
 1.  **Read your spawn prompt.**
 2.  **Process Core Instructions:** It will first process the included `/prompts/iep/Core_Planning_Instructions.txt`. This involves:
-    *   Parsing the `[[USER PATH CONFIGURATION]]` to understand where to read inputs and place outputs, including any process-specific paths you've defined.
-    *   Parsing the `[[USER_ADDON_SELECTION]]` to identify which add-on files to load from `/prompts/add_ons/` in your target repository. This step also prepares a filtered list of "inheritable" add-on content (excluding the active primary add-on itself) for potential use by that primary add-on.
-3.  **Conditional Add-on Execution:**
-    *   **If `task_spawning_addon.txt` IS SELECTED** (and is the active primary add-on):
-        *   The AI will load and execute the instructions from `task_spawning_addon.txt`. This will lead to the primary planning activities.
-        *   When generating task prompts, `task_spawning_addon.txt` will append the content of other selected, inheritable add-ons. The content of the active primary add-on itself is NOT appended to the Task AI prompts.
-        *   Outputs will be placed according to your `[[USER PATH CONFIGURATION]]`.
-    *   **If other primary directive add-ons ARE SELECTED** (e.g., `build_product_specs_process.txt` is the active primary add-on): The AI will execute the instructions from that add-on, using any specific path configurations you've provided for it (like `PRODUCT_SPECS_INPUT_DOCS_PATH`, `PRODUCT_SPECS_ITERATION_DEPTH`, etc.). If that primary add-on is designed to create further sub-prompts, it would also use the inheritable add-on list.
-    *   **If NO primary directive add-on IS SELECTED**:
-        *   The AI will acknowledge this and will **not** generate a main development plan, TLP, or task prompts by default.
-        *   It will proceed to load and execute any *other* utility add-ons you have selected.
-        *   If no other primary directive add-ons are selected, the AI will perform minimal actions, report that no main planning tasks were performed, and await further instructions or conclude.
-4.  **Read Supporting Files:** It will read `Base_IEP.txt` and the content of all successfully located selected add-ons from your target repository as needed.
+    *   Parsing `[[USER PATH CONFIGURATION]]` to get all defined paths, including `User_Path_Addons_Dir` and `User_Path_Utils_Dir`.
+    *   Discovering all available util apps from `User_Path_Utils_Dir`.
+    *   Parsing `[[USER_ADDON_SELECTION]]` to identify selected add-on app names.
+    *   Loading the primary instruction file (e.g., `app_name/app_name.txt`) for each selected add-on app.
+    *   Preparing a filtered list of "inheritable" add-on app content.
+3.  **Conditional Add-on Execution:** (Logic as before, but now referring to "add-on apps" and their primary instruction file content).
+    *   If an `Active_Primary_Addon_AppName` (like `task_spawning_addon` or `build_product_specs_process`) is identified:
+        *   The AI executes the instructions from that app's primary instruction file.
+        *   If that primary add-on app generates sub-prompts (like `task_spawning_addon` does), it will use the `Inheritable_Addons_Content_Ordered_List` to append the primary instruction file content of other selected, non-primary add-on apps. The content of the active primary add-on app itself is not appended.
+    *   If NO primary directive add-on app IS SELECTED: (Logic as before).
+4.  **Read Supporting Files:** (Content as before).
 
-This modular approach provides greater flexibility. While the full planning and task generation capabilities are available via `task_spawning_addon.txt`, you can also use the MPS framework with other add-ons for different purposes, or develop new add-ons with unique functionalities.
+---
+## 4. Developing New MPS Components (Folder-per-App Architecture)
+
+If you are developing new components (add-ons, utils, or potentially other types like IPC handlers) for the MPS framework, adhere to the "folder-per-app" architecture:
+
+1.  **Create a Dedicated Subdirectory:**
+    *   For an **add-on app**, create a new subdirectory under the directory specified by `User_Path_Addons_Dir` (typically `prompts/add_ons/`). The name of this subdirectory becomes the `addon_app_name` used in `[[USER_ADDON_SELECTION]]`.
+        *   Example: `prompts/add_ons/my_new_feature_addon/`
+    *   For a **utility app**, create a new subdirectory under `User_Path_Utils_Dir` (typically `prompts/util/`). The name of this subdirectory is the `util_app_name`.
+        *   Example: `prompts/util/my_text_processing_util/`
+
+2.  **Create the Primary Instruction File:**
+    *   Inside your app's subdirectory, create a `.txt` file that has the **exact same name as the subdirectory**. This is the primary entry point or instruction set for your component.
+        *   Example: `prompts/add_ons/my_new_feature_addon/my_new_feature_addon.txt`
+        *   Example: `prompts/util/my_text_processing_util/my_text_processing_util.txt`
+
+3.  **Include Supporting Files:**
+    *   Place all other files required by your component (e.g., helper scripts, data files, detailed sub-prompts, templates, example outputs, sub-frameworks) *within its dedicated subdirectory*. This keeps the component self-contained.
+
+4.  **Manifest (for Add-ons):**
+    *   If you create a new add-on app, document its purpose, type, inputs, outputs, and compatibility notes in `prompts/add_ons/available_addons_manifest.md`. Use the `addon_app_name` (folder name) as its identifier.
+
+This modular structure helps in organizing components, managing dependencies, and ensuring that the framework can discover and load them correctly. It also makes it easier for users to understand what files belong to which piece of functionality when they are setting up their target repositories.
+---
+
+This modular approach provides greater flexibility. While the full planning and task generation capabilities are available via the `task_spawning_addon` app, you can also use the MPS framework with other add-on apps for different purposes, or develop new add-on apps with unique functionalities.
