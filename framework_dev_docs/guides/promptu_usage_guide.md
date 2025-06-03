@@ -12,9 +12,9 @@ This guide explains how to use the Promptu Framework, focusing on its core confi
 *   **Fixed System Paths:** Component discovery paths are hardcoded in `core_planning_instructions.txt` (e.g., `promptu/apps/`, `promptu/add_ons/`, `promptu/util/`).
 *   **Utility Discovery:** Utilities are found in `promptu/util/` either as `utility_name.txt` or `utility_name/utility_name.txt`. If both exist, the subdirectory version is prioritized.
 *   **Component-Specific Configurations:** Managed via:
-    1.  `user_component_name_config.txt` (template/persistent storage).
-    2.  `[[USER_CONFIG_FOR_componentName]]` blocks in `post_promptu.txt` (run-specific overrides).
-    3.  `defaultConfigOverrides` in promptApp manifest (task-specific overrides).
+        1.  `user_component_name_config.txt` (template/persistent storage, uses `lowercase_snake_case` for parameter names).
+        2.  `[[USER_CONFIG_FOR_componentName]]` blocks in `post_promptu.txt` (run-specific overrides, uses `lowercase_snake_case` for parameter names).
+        3.  `defaultConfigOverrides` in promptApp manifest (task-specific overrides, uses `lowercase_snake_case` for parameter names).
 *   **Optional Primary Functionality:** The primary mode of operation can be a selected promptApp (configured in `post_promptu.txt`). Alternatively, standalone add-ons can define the AI's main task.
 
 This guide details how to set up your project and interact with the Promptu Framework.
@@ -26,14 +26,14 @@ This section outlines key pieces of the Promptu Framework and what you, the user
 *   **`/promptu/pre_promptu.txt` (Framework Source - Optional):**
     *   This **template** allows you to run utilities *before* your main project request in `post_promptu.txt` is processed.
     *   Copy its content to `target_repo/promptu/pre_promptu.txt`.
-    *   Configure by selecting utilities in the `[[USER_UTIL_SELECTION]]` block and providing any necessary `[[USER_CONFIG_FOR_utilityName]]` blocks.
+    *   Configure by selecting utilities in the `[[USER_UTIL_SELECTION]]` block and providing any necessary `[[USER_CONFIG_FOR_utilityName]]` blocks (parameter names within these blocks should be `lowercase_snake_case`).
     *   To use it, you first invoke the AI with a directive pointing to this file (e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /promptu/pre_promptu.txt]]`). The AI processes the selected utilities. Then, for your main project, you'll make a separate call pointing to `post_promptu.txt`.
 
 *   **`/promptu/post_promptu.txt` (Framework Source - Main):**
     *   This file serves as the **template** for your main project instruction file (formerly `Master_Prompt_Segment.txt`).
     *   Copy its content to `target_repo/promptu/my_project_post_promptu.txt` (or similar).
     *   Add your high-level project request at the very beginning of this new file.
-    *   Edit user configuration blocks (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, `[[USER_FRAMEWORK_SETTINGS]]`, etc.).
+    *   Edit user configuration blocks (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, `[[USER_FRAMEWORK_SETTINGS]]`, etc.). (Parameter names within component-specific config blocks like `[[USER_CONFIG_FOR_componentName]]` should be `lowercase_snake_case`).
     *   It includes `core_planning_instructions.txt` to handle the logic.
 
 *   **`/promptu/core/core_planning_instructions.txt` (Framework Source):**
@@ -107,9 +107,9 @@ You'll typically prepare `pre_promptu.txt` (optional) and your project-specific 
     3.  **Edit Configuration Blocks:** Within the template content, edit:
         *   `[[USER_APP_SELECTION]]`
         *   `[[USER_ADDON_SELECTION]]`
-        *   `[[USER_FRAMEWORK_SETTINGS]]` (e.g., for `Full_Handoff_Notes_Logging_Enabled`)
+        *   `[[USER_FRAMEWORK_SETTINGS]]` (e.g., for `log_full_handoff_notes` and `log_performance_feedback`)
         *   `[[USER_promptAPP_NAME_CONFIGURATION]]` (if promptApp selected)
-        *   `[[USER_CONFIG_FOR_componentName]]` blocks for parameter overrides.
+        *   `[[USER_CONFIG_FOR_componentName]]` blocks for parameter overrides (using `lowercase_snake_case` for parameter names).
 
     **Step 3: Invoke Main Framework**
     *   Use directive: `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /promptu/my_project_post_promptu.txt]]`
@@ -121,14 +121,14 @@ You'll typically prepare `pre_promptu.txt` (optional) and your project-specific 
 
         **3.B.1. Path Configurations**
         *   **Fixed System Paths:** Used by `core_planning_instructions.txt` for component discovery (e.g., `promptu/apps/`).
-        *   **Component-Specific Paths:** Managed via parameters in `user_..._config.txt` files, overridden by `[[USER_CONFIG_FOR_componentName]]` blocks in your `post_promptu.txt`.
+        *   **Component-Specific Paths:** Managed via parameters (in `lowercase_snake_case`) in `user_..._config.txt` files, overridden by `[[USER_CONFIG_FOR_componentName]]` blocks (also using `lowercase_snake_case` parameters) in your `post_promptu.txt`.
 
         **3.B.2. Configuring Workflows (in `post_promptu.txt`)**
 
         *   **i. `promptApp` Workflow:**
             *   **Selection (`[[USER_APP_SELECTION]]`):** E.g., `[x] CompliancePLM_App`. AI seeks `promptu/apps/[AppName]/[app_name]_manifest.json`.
             *   **Task Config (`[[USER_promptAPP_NAME_CONFIGURATION]]`):** Check `[x]` for tasks. See `prompt_app_manifest_guide.md`.
-            *   **Component Config:** Parameter precedence:
+            *   **Component Config:** Parameter names are `lowercase_snake_case`. Precedence:
                     1.  `[[USER_CONFIG_FOR_componentName]]` in `post_promptu.txt`.
                     2.  User-edits in component's `user_..._config.txt`.
                     3.  `defaultConfigOverrides` in promptApp manifest.
@@ -139,8 +139,8 @@ You'll typically prepare `pre_promptu.txt` (optional) and your project-specific 
 
         *   **ii. Standalone Add-ons (if no promptApp):**
             *   **Selection (`[[USER_ADDON_SELECTION]]`):** E.g., `[x] create_research_report`. AI seeks `promptu/add_ons/[addonName]/[addonName].txt`.
-            *   **Parameter Config:** Similar precedence as promptApp components.
-                *   Configure e.g., `task_spawning_addon` via `[[USER_CONFIG_FOR_task_spawning_addon]]` or by editing `promptu/add_ons/task_spawning_addon/user_task_spawning_addon_config.txt`.
+            *   **Parameter Config:** Similar precedence as promptApp components (parameters are `lowercase_snake_case`).
+                *   Configure e.g., `task_spawning_addon` via `[[USER_CONFIG_FOR_task_spawning_addon]]` (using `lowercase_snake_case` parameters like `base_output_path`) or by editing `promptu/add_ons/task_spawning_addon/user_task_spawning_addon_config.txt`.
 
 **D. Invoking the Planning AI:** (Covered by 3.B Steps 1 & 3)
 
@@ -193,18 +193,38 @@ Notes on logging and history.
 
 **A. Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`)**
 
-*   **Verbosity Control:** Use `[[USER_FRAMEWORK_SETTINGS]]` in `post_promptu.txt` to manage AI (Jules) logging detail in `handoff_notes.md`.
-    *   `[ ] Full_Handoff_Notes_Logging_Enabled`:
-        *   `[x]` (Checked): Detailed session summaries.
-        *   `[ ]` (Unchecked - default): Concise summaries.
-
-*   **"Performance Feedback Log" Status:** This section was removed from `handoff_notes.md` to simplify it. Detailed feedback logging mechanisms are under review.
+*   **Verbosity Control:** Use `[[USER_FRAMEWORK_SETTINGS]]` in `post_promptu.txt` to manage AI (Jules) logging detail.
+    *   `[ ] log_full_handoff_notes`: (Formerly `Full_Handoff_Notes_Logging_Enabled`)
+        *   `[x]` (Checked): Detailed session summaries in `framework_dev_docs/meta/handoff_notes.md`.
+        *   `[ ]` (Unchecked - default): Concise summaries in `framework_dev_docs/meta/handoff_notes.md`.
+    *   `[ ] log_performance_feedback`:
+        *   `[x]` (Checked): Enables logging of detailed performance feedback to `framework_dev_docs/meta/performance_feedback_log.md`.
+        *   `[ ]` (Unchecked - default): No entry is made in the performance feedback log.
 
 **B. Handoff Notes Archive**
 
-*   Older, verbose notes might be in `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
-*   Jules is instructed by `core_planning_instructions.txt` **not to read this archive** normally.
-*   Access only if critical for a current request and with explicit user permission.
-*   Primary reference is the current `framework_dev_docs/meta/handoff_notes.md`.
+*   Older, verbose handoff notes (including the old performance feedback log) might be in `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
+*   Jules is instructed by `core_planning_instructions.txt` **not to read or write to this archive file** for new session summaries or performance feedback.
+*   Access only if critical for historical context and with explicit user permission.
+*   Primary reference for ongoing handoff notes is the current `framework_dev_docs/meta/handoff_notes.md`.
+
+**C. Performance Feedback Log**
+
+*   A dedicated log for performance feedback is maintained at `framework_dev_docs/meta/performance_feedback_log.md`.
+*   Logging to this file is controlled by the `log_performance_feedback` setting in `[[USER_FRAMEWORK_SETTINGS]]` within your `post_promptu.txt`.
+*   Entries use a structured Markdown format:
+    ```markdown
+    ---
+    Date: YYYY-MM-DD
+    Source: User Request | AI Observation | Component Test | Framework Issue
+    Version: component_name@version_or_date | core_planning_instructions@YYYY-MM-DD
+    Context: Brief, one-line description of the situation, task, or component interaction being observed.
+    Observation: One-line summary of what was observed or the issue identified.
+    Details: (Optional) Multi-line, more granular details if the one-line Observation is insufficient. Omit if not needed.
+    Suggestion: One-line summary of the implemented solution, proposed refinement, or next step.
+    Status: Implemented | Proposed | For Review | Deferred | No Action Needed
+    ---
+    ```
+*   The old performance log previously appended to `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md` is deprecated for new entries.
 
 The Promptu Framework, with its `pre_promptu.txt` and `post_promptu.txt` structure, offers enhanced modularity and flexibility for AI-driven project planning and execution.

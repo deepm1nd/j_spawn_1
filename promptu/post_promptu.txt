@@ -1,84 +1,9 @@
-# === POST-PROMPTU TEMPLATE INSTRUCTIONS FOR USER ===
-#
-# This file (`post_promptu.txt`) is a template. To use this framework:
-#
-# 1. **COPY TO YOUR PROJECT:**
-#    Copy the entire content of this file into a new file within your own project's
-#    `promptu` directory (e.g., `my_project_repo/promptu/my_project_main_post_promptu.txt`).
-#
-# 2. **ADD YOUR PROJECT REQUEST (IN YOUR COPY):**
-#    At the VERY BEGINNING of your new file (e.g., `my_project_main_post_promptu.txt`),
-#    add your high-level project request. It is **highly recommended** to wrap
-#    your request in `[[USER_PROJECT_REQUEST]]` and `[[END_USER_PROJECT_REQUEST]]` tags.
-#    For example:
-#
-#    [[USER_PROJECT_REQUEST]]
-#    My project is to design and plan for a new automated hydroponics system
-#    for urban farming, focusing on modularity and water efficiency.
-#    [[END_USER_PROJECT_REQUEST]]
-#
-#    (The rest of this template's content, starting with `[[USER_APP_SELECTION]]`
-#    or other initial blocks, should follow immediately after your project request.)
-#
-# 3. **CONFIGURE YOUR `post_promptu.txt` FILE (IN YOUR COPY):**
-#    Edit the user configuration blocks within your new file as needed:
-#    *   `[[USER_APP_SELECTION]]`: Select a promptApp if you are using one.
-#    *   `[[USER_ADDON_SELECTION]]`: Select standalone add-ons if not using a promptApp.
-#    *   `[[USER_FRAMEWORK_SETTINGS]]`: Configure framework-level settings (see new block below).
-#    *   `[[USER_promptAPP_NAME_CONFIGURATION]]`: If you selected a promptApp, define
-#       which of its tasks to run. (See examples in this template).
-#    *   `[[USER_CONFIG_FOR_componentName]]`: Provide specific configurations for
-#       any components that require them.
-#
-# 4. **INVOKE THE MPS FRAMEWORK (YOUR ACTUAL PROMPT TO THE AI SYSTEM):**
-#    Your actual prompt to the AI planning system will then be a single directive
-#    pointing to YOUR prepared file. For example:
-#
-#    `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /promptu/my_project_main_post_promptu.txt]]`
-#
-#    The AI system will load your file, find your project request within the
-#    `[[USER_PROJECT_REQUEST]]` tags, and then process your configurations.
-#
-# === END OF POST-PROMPTU TEMPLATE INSTRUCTIONS ===
-
+# For detailed instructions on using this file, including how to add [[USER_PROJECT_REQUEST]], please see /promptu/README.md
 [[USER_APP_SELECTION]]
-# Instructions for user:
-# - List desired "promptApp" names below, one per line.
-# - **Select at most ONE promptApp.** Mark selection with '[x]' (case-insensitive for 'x').
-# - promptApp "apps" must exist as subdirectories in `promptu/apps/` in the target repository.
-# - Each promptApp folder must contain a manifest file: `[appName]/[app_name]_manifest.json`.
-# - If a promptApp is selected, it will be the primary workflow. You will also need to provide a
-#   corresponding `[[USER_promptAPP_NAME_CONFIGURATION]]` block (see example section below)
-#   to specify which tasks within the promptApp to execute.
-# - If no promptApp is selected, you can select one or more add-ons from `[[USER_ADDON_SELECTION]]`
-#   to define the AI's task.
-
 # [ ] CompliancePLM_App # Example: Select this to run the Compliance PLM workflow
 [[END_USER_APP_SELECTION]]
 
 [[USER_ADDON_SELECTION]]
-# Instructions for user:
-# - If no promptApp is selected in `[[USER_APP_SELECTION]]`, you can select one or more add-on "apps" here
-#   to define the AI's operation.
-# - If a promptApp *is* selected, the tasks within that promptApp will define which components (including add-ons)
-#   are run. Add-ons selected here might be ignored if a promptApp is active, or they might provide
-#   supplementary, inheritable instructions if the promptApp's design allows for it (consult promptApp documentation).
-#   Generally, a selected promptApp takes precedence.
-#
-# - List desired add-on "app names" (folder names) below, one per line.
-# - Mark selection with '[x]' (case-insensitive for 'x').
-# - Add-on apps must exist as subdirectories in `promptu/add_ons/` in the target repository.
-# - Each add-on app folder must contain a primary instruction file: `[app_name]/[app_name].txt`.
-#
-# - If a primary add-on like 'task_spawning_addon' is selected (and no promptApp is active), other selected add-on apps
-#   listed *before* it will typically have their primary instruction file content appended to the
-#   generated task prompts, preserving their listed order.
-#
-# - App-specific configurations: Some add-on apps (and components used by promptApps) may use parameters
-#   defined in a `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` block, which you would
-#   place in your main prompt file. Refer to the component's documentation or its
-#   `user_app_name_config.txt` template file for details.
-
 [x] task_resumption_addon               # Example: Provides task state resumption capabilities for Task AIs.
 # [ ] create_research_report          # Example: Select to generate a research report.
 # [ ] task_spawning_addon             # CRITICAL (if no promptApp selected): Enables project planning & task generation.
@@ -87,66 +12,17 @@
 
 [[USER_FRAMEWORK_SETTINGS]]
 # --- Handoff Notes Granularity ---
-# Controls the level of detail Jules will record in the HANDOFF_NOTES.md file at the end of its session.
-# If checked, Jules will record detailed session notes, similar to traditional verbose logging.
-# If unchecked (default), Jules will only record a concise summary focusing on major architectural changes, key decisions, and the state of deliverables.
-[ ] Full_Handoff_Notes_Logging_Enabled
+# Controls the level of detail Jules will record in the handoff_notes.md file at the end of its session.
+# If checked, Jules will record detailed session notes.
+# If unchecked (default), Jules will only record a concise summary.
+[ ] log_full_handoff_notes
+
+# --- Performance Feedback Logging ---
+# Controls whether detailed performance feedback is logged to /framework_dev_docs/meta/performance_feedback_log.md.
+# If checked, Jules will record detailed feedback at the end of its session.
+# If unchecked (default), no performance feedback entry will be made.
+[ ] log_performance_feedback
 [[END_USER_FRAMEWORK_SETTINGS]]
-
-[[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
-# Instructions for user:
-# - If you select a promptApp in `[[USER_APP_SELECTION]]` (e.g., `CompliancePLM_App`), you MUST provide a
-#   corresponding configuration block in your main prompt file, formatted as:
-#   `[[USER_CompliancePLM_App_CONFIGURATION]] ... [[END_USER_CompliancePLM_App_CONFIGURATION]]`.
-# - This block allows you to specify which phases and tasks defined in the promptApp's manifest
-#   you want to execute.
-# - The Planning AI will use this block to determine the workflow.
-# - For each task you select to run, you may also need to provide standard app-specific configuration
-#   blocks (e.g., `[[USER_CONFIG_FOR_componentName]]`) if the underlying component used by that
-#   task requires parameters beyond its defaults or any overrides set in the promptApp manifest.
-
-# Example for `[[USER_CompliancePLM_App_CONFIGURATION]]` block:
-# [[USER_CompliancePLM_App_CONFIGURATION]]
-# # Instructions:
-# # 1. Review the phases and tasks below, which correspond to the CompliancePLM app's manifest.
-# # 2. Mark the tasks you want to execute for the current session with '[x]'.
-# # 3. For tasks that use configurable components (like 'create_research_report' or 'task_spawning_addon'),
-# #    ensure you also provide the necessary `[[USER_CONFIG_FOR_componentName]]` blocks
-# #    in your main prompt if the defaults (from the component's user_config.txt or
-# #    the promptApp manifest's defaultConfigOverrides) are not sufficient for your needs.
-# #    Consult the component's `user_..._config.txt` file or the mps_usage_guide.md for parameter details.
-#
-# # --- Concept Phase ---
-# [ ] Research
-# [ ] Architectural Specification
-# [ ] Product Specification
-# [ ] Product Requirements
-#
-# # --- Plan Phase ---
-# [ ] Development Planning
-# [ ] Change Management Planning
-# [ ] Document Management Planning
-# [ ] Requirements Management Planning
-# [ ] Safety Planning
-# [ ] CyberSecurity Planning
-#
-# # --- Development Phase ---
-# [ ] Design
-# [ ] Develop
-# [ ] Test
-# [ ] Review
-#
-# # --- Release Phase ---
-# # (No specific tasks defined in manifest yet - selecting this phase currently has no direct action
-# # unless future framework versions allow phase-level directives without specific tasks)
-# # [ ] *Placeholder for future Release Task 1*
-#
-# # --- Retire Phase ---
-# # (No specific tasks defined in manifest yet - selecting this phase currently has no direct action)
-# # [ ] *Placeholder for future Retire Task 1*
-# [[END_USER_CompliancePLM_App_CONFIGURATION]]
-
-[[END_USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
 
 --------------------------------------------------------------------------------------------------------------
 [[START OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]

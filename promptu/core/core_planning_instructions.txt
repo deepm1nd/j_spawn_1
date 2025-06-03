@@ -108,20 +108,30 @@ H. **Parse User PromptApp Selection & Configuration:**
         e.  If the block is found but no tasks are checked `[x]`: Issue a warning: "Warning: PromptApp '[Selected_PromptAppName]' configuration block found, but no tasks were selected with '[x]'. No tasks will be run." Set `Selected_PromptAppName` to null.
 
 I. **Parse User Framework Settings:**
-    1.  Initialize `Framework_Full_Handoff_Notes_Enabled`: `false`.
-    2.  Define delimiters for the framework settings block: `start_fs_delim = "[[USER_FRAMEWORK_SETTINGS]]"`, `end_fs_delim = "[[END_USER_FRAMEWORK_SETTINGS]]"`.
-    3.  Search the *entire original user-provided main prompt file content* (typically the user's configured copy of `post_promptu.txt`) for text between these delimiters.
-    4.  If the `[[USER_FRAMEWORK_SETTINGS]]` block is found:
-        a.  Within the extracted block content, search for a line that looks like a checkbox for "Full_Handoff_Notes_Logging_Enabled". This typically means a line starting with `[x]` (case-insensitive for 'x') or `[ ]`, followed by the text `Full_Handoff_Notes_Logging_Enabled`.
-        b.  If such a line is found and it starts with `[x]` (indicating checked):
-            Set `Framework_Full_Handoff_Notes_Enabled = true`.
-            INFO "Full_Handoff_Notes_Logging_Enabled is TRUE."
-        c.  Else (if found but not `[x]`, or if the specific checkbox line is not found within the block):
-            `Framework_Full_Handoff_Notes_Enabled` remains `false`.
-            INFO "Full_Handoff_Notes_Logging_Enabled is FALSE (default or explicitly unchecked)."
-    5.  Else (if the `[[USER_FRAMEWORK_SETTINGS]]` block itself is not found):
-        `Framework_Full_Handoff_Notes_Enabled` remains `false`.
-        INFO "[[USER_FRAMEWORK_SETTINGS]] block not found. Full_Handoff_Notes_Logging_Enabled is FALSE (default)."
+    1.  Initialize `framework_log_full_handoff_notes`: `false`.
+    2.  Initialize `framework_log_performance_feedback`: `false`.
+    3.  Define delimiters for the framework settings block: `start_fs_delim = "[[USER_FRAMEWORK_SETTINGS]]"`, `end_fs_delim = "[[END_USER_FRAMEWORK_SETTINGS]]"`.
+    4.  Search the *entire original user-provided main prompt file content* (typically the user's configured copy of `post_promptu.txt`) for text between these delimiters.
+    5.  If the `[[USER_FRAMEWORK_SETTINGS]]` block is found:
+        a.  Within the extracted block content, search for a line for "log_full_handoff_notes" (typically starts with `[x]` or `[ ]`).
+        b.  If found and checked (`[x]`):
+            Set `framework_log_full_handoff_notes = true`.
+            INFO "framework_log_full_handoff_notes is TRUE."
+        c.  Else:
+            `framework_log_full_handoff_notes` remains `false`.
+            INFO "framework_log_full_handoff_notes is FALSE (default or explicitly unchecked/not found)."
+        d.  Within the extracted block content, search for a line for "log_performance_feedback" (typically starts with `[x]` or `[ ]`).
+        e.  If found and checked (`[x]`):
+            Set `framework_log_performance_feedback = true`.
+            INFO "framework_log_performance_feedback is TRUE."
+        f.  Else:
+            `framework_log_performance_feedback` remains `false`.
+            INFO "framework_log_performance_feedback is FALSE (default or explicitly unchecked/not found)."
+    6.  Else (if the `[[USER_FRAMEWORK_SETTINGS]]` block itself is not found):
+        `framework_log_full_handoff_notes` remains `false`.
+        INFO "[[USER_FRAMEWORK_SETTINGS]] block not found. log_full_handoff_notes is FALSE (default)."
+        `framework_log_performance_feedback` remains `false`.
+        INFO "[[USER_FRAMEWORK_SETTINGS]] block not found. log_performance_feedback is FALSE (default)."
 
 **II. PRIMARY EXECUTION LOGIC (Revised for PromptApps):**
 
@@ -241,15 +251,15 @@ B. **Final Commit Message by Planning AI:**
             *   Self-checks, confidence, etc.
 
 C. **Update Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`):**
-    1.  **Review `Framework_Full_Handoff_Notes_Enabled` (determined in Section I.I).**
-    2.  **IF `Framework_Full_Handoff_Notes_Enabled` is `true`:**
+    1.  **Review `framework_log_full_handoff_notes` (determined in Section I.I).**
+    2.  **IF `framework_log_full_handoff_notes` is `true`:**
         a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should include:
             *   User feedback/requests you addressed.
             *   A detailed account of changes made to this framework's documents or other deliverables (e.g., `core_planning_instructions.txt`, `available_add_ons_manifest.md`, `compliance_plm_manifest.json`).
             *   The state in which deliverables were left (e.g., specific commits, branches).
             *   Any pending items or suggestions for the next Jules instance.
         b.  IMPORTANT: Ensure the 'Framework Performance Feedback Log' section within `handoff_notes.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'Framework Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
-    3.  **ELSE (if `Framework_Full_Handoff_Notes_Enabled` is `false`):**
+    3.  **ELSE (if `framework_log_full_handoff_notes` is `false`):**
         a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should focus *only* on:
             *   Major architectural changes implemented.
             *   Key decisions made that affect the framework's evolution.
@@ -258,9 +268,18 @@ C. **Update Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`):**
         c.  IMPORTANT: Ensure the 'Framework Performance Feedback Log' section within `handoff_notes.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'Framework Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
     4.  **General Note on Handoff Notes Archive:**
         a.  Be aware that a more detailed historical archive of handoff notes might exist at `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
-        b.  You should NOT read this archive file unless you determine it is critical for understanding specific historical context to fulfill the current user request AND you explicitly ask for and receive user permission to do so. Your primary source for ongoing handoff information is the main `handoff_notes.md` file.
+        b.  You MUST NOT read OR WRITE to the archive file `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md` unless you determine it is critical for understanding specific historical context to fulfill the current user request AND you explicitly ask for and receive user permission to do so. This file is an archive and should not be modified for logging new session summaries or new performance feedback.
 
-D. **Self-Correction and Learning:**
+D. **Update Performance Feedback Log (`framework_dev_docs/meta/performance_feedback_log.md`):**
+    1.  **Review `framework_log_performance_feedback` (determined in Section I.I).**
+    2.  **IF `framework_log_performance_feedback` is `true`:**
+        a.  At the end of your session, you MUST append a new, detailed entry to `framework_dev_docs/meta/performance_feedback_log.md`.
+        b.  This entry should capture: Source of Feedback (e.g., User Request, AI Observation), Promptu Version/Component Referenced, Context/Scenario, Observation/Issue, and any Suggestion for Promptu Refinement (Implemented or Proposed).
+        c.  The entry MUST use the structured Markdown format defined at the top of `framework_dev_docs/meta/performance_feedback_log.md`. Ensure all required fields (Date, Source, Version, Context, Observation, Suggestion, Status) are present and values are concise. Use the 'Details' field only if essential.
+    3.  **ELSE (if `framework_log_performance_feedback` is `false`):**
+        a.  You MUST NOT make any entry in `framework_dev_docs/meta/performance_feedback_log.md`.
+
+E. **Self-Correction and Learning:**
     *   Review all warnings and errors generated during this session.
     *   If a component's `user_..._config.txt` was updated due to AI-assisted parameter gathering, ensure this is noted.
     *   Reflect on any ambiguities in component instructions or the framework (`core_planning_instructions.txt`) itself.

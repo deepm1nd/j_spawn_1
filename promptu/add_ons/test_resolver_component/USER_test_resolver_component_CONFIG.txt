@@ -2,5 +2,5 @@
 # Requirement: Optional | DefaultType: Accepted
 # Description: A dummy parameter.
 # Default: global_default
-DUMMY_PARAM: [USER_VALUE_START] global_default [USER_VALUE_END]
+dummy_param: [USER_VALUE_START] global_default [USER_VALUE_END]
 [[END_USER_CONFIG_FOR_test_resolver_component]]

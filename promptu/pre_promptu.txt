@@ -1,45 +1,12 @@
-# === PRE-PROMPTU TEMPLATE INSTRUCTIONS FOR USER ===
-#
-# This file (`pre_promptu.txt`) is a template for configuring and running utilities
-# *before* your main project request is processed by `post_promptu.txt`.
-#
-# 1. **COPY TO YOUR PROJECT (if not already there):**
-#    Ensure this file (or a copy you configure) is in your project's
-#    `promptu/` directory (e.g., `my_project_repo/promptu/pre_promptu.txt`).
-#
-# 2. **CONFIGURE YOUR `pre_promptu.txt` FILE:**
-#    Edit the user configuration blocks within this file as needed:
-#    *   `[[USER_UTIL_SELECTION]]`: Select utilities to run.
-#    *   `[[USER_CONFIG_FOR_utilityName]]`: Provide specific configurations for
-#       any selected utilities that require them.
-#
-# 3. **INVOKE THE PRE-PROMPTU FRAMEWORK (YOUR ACTUAL PROMPT TO THE AI SYSTEM):**
-#    Your actual prompt to the AI planning system for these pre-processing utilities
-#    will be a single directive pointing to THIS prepared file. For example:
-#
-#    `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /promptu/pre_promptu.txt]]`
-#
-#    The AI system will load this file and process your utility selections and configurations.
-#
-# === END OF PRE-PROMPTU TEMPLATE INSTRUCTIONS ===
-
+# For detailed instructions on using this file, please see /promptu/README.md
 [[USER_UTIL_SELECTION]]
-# Instructions for user:
-# - List desired utility "app names" (folder names or direct .txt filenames) below, one per line.
-# - Mark selection with '[x]' (case-insensitive for 'x').
-# - Utilities must exist in `promptu/util/` in the target repository, either as
-#   `promptu/util/utility_name.txt` or `promptu/util/utility_name/utility_name.txt`.
-# - If a utility requires specific configuration, ensure you provide a corresponding
-#   `[[USER_CONFIG_FOR_utilityName]]` block later in this file.
-
 # Example:
-# [x] promptimizer  # Assuming promptimizer is a utility available in promptu/util/
+# [x] promptimizer
 # [ ] another_utility
 [[END_USER_UTIL_SELECTION]]
 
 # Example of a utility-specific configuration block:
 # [[USER_CONFIG_FOR_promptimizer]]
-# # Add any parameters promptimizer might need here
 # # Example_Param: Example_Value
 # [[END_USER_CONFIG_FOR_promptimizer]]
 

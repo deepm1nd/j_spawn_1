@@ -2,5 +2,5 @@
 This is the GLOBAL version of the 'test_resolver_component'.
 It should ONLY be executed if no app-specific version is found by a promptApp.
 If run standalone, this global version will execute.
-DUMMY_PARAM value: {{DUMMY_PARAM}}
+DUMMY_PARAM value: {{dummy_param}}
 [[END OF 'test_resolver_component' ADD-ON (GLOBAL VERSION)]]

@@ -1,5 +1,5 @@
 [[START OF 'test_resolver_component' (CompliancePLM APP-SPECIFIC VERSION)]]
 This is the APP-SPECIFIC version of 'test_resolver_component' for CompliancePLM.
 It SHOULD be executed when called from the CompliancePLM promptApp.
-DUMMY_PARAM value: {{DUMMY_PARAM}}
+DUMMY_PARAM value: {{dummy_param}}
 [[END OF 'test_resolver_component' (CompliancePLM APP-SPECIFIC VERSION)]]

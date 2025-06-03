@@ -274,3 +274,183 @@ This compacted summary provides a chronological overview of the MPS framework's 
 -   Review the updated `promptu/core/core_planning_instructions.txt` (Section II.A).
 -   **Clarify the specific desired behavior or content for the "continuation prompt"** mentioned in Scenario 2 (post_promptu with no request, no app, no add-ons). The current implementation instructs the AI to engage in a general requirements discussion.
 -   Test the new fallback behaviors by invoking `pre_promptu.txt` and `post_promptu.txt` in the described empty/incomplete states to ensure the framework behaves as expected.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested updates to handoff notes files (`framework_dev_docs/meta/handoff_notes.md` and `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`) with details of recent changes (new invocation scenario handling in `core_planning_instructions.txt`).
+- Specifically, for `handoff_notes_full_archive_20250602.md`, a new detailed entry was to be added to the `## MPS Performance Feedback Log` section.
+
+**Summary of Changes Made This Session:**
+1.  **Updated `framework_dev_docs/meta/handoff_notes.md`:**
+    *   Appended a new concise session summary detailing the changes to `promptu/core/core_planning_instructions.txt` regarding invocation scenario handling, noting the review of `promptu_usage_guide.md` (no changes needed), and outlining next steps for the user (clarify "continuation prompt", test new fallbacks).
+
+2.  **Updated `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`:**
+    *   Appended a new detailed entry under the `## MPS Performance Feedback Log` heading.
+    *   The entry (dated 2025-06-07) detailed the source of feedback (user request), version referenced (`core_planning_instructions.txt` of current session), context (implementing fallbacks for empty inputs), observation (previous lack of graceful handling), and the implemented suggestion (new Section II.A.0 in `core_planning_instructions.txt` with three specific scenarios and their AI instructions).
+    *   Noted that the "continuation prompt" for Scenario 2 requires further user clarification.
+
+**State of Deliverables:**
+- Both `framework_dev_docs/meta/handoff_notes.md` and `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md` are updated as per user request.
+
+**Next Steps (User):**
+- As per previous session summary: Review updated `core_planning_instructions.txt`, clarify "continuation prompt", and test new fallback behaviors.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested creation of `promptu/README.md` populated with user documentation extracted from `promptu/pre_promptu.txt` and `promptu/post_promptu.txt`.
+
+**Summary of Changes Made This Session:**
+1.  **Extracted Documentation from `promptu/pre_promptu.txt`:**
+    *   Initial 'TEMPLATE INSTRUCTIONS FOR USER' block.
+    *   Instructional comments from `[[USER_UTIL_SELECTION]]`.
+    *   Instructional comments from example `[[USER_CONFIG_FOR_promptimizer]]`.
+2.  **Extracted Documentation from `promptu/post_promptu.txt`:**
+    *   Initial 'POST-PROMPTU TEMPLATE INSTRUCTIONS FOR USER' block.
+    *   Instructional comments from `[[USER_APP_SELECTION]]`.
+    *   Instructional comments from `[[USER_ADDON_SELECTION]]`.
+    *   Instructional comments from `[[USER_FRAMEWORK_SETTINGS]]`.
+    *   Entire `[[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]`.
+3.  **Created and Populated `promptu/README.md`:**
+    *   Initialized with a main title and structured content logically:
+        *   Overall Introduction to Promptu.
+        *   Core Concepts (pre_promptu, post_promptu, core_planning_instructions, components, workflow).
+        *   Setting Up Your Project.
+        *   Using `pre_promptu.txt` (with extracted instructions).
+        *   Using `post_promptu.txt` (with extracted instructions, including project request, app/addon selection, framework settings, and the promptApp config examples).
+        *   Invocation using `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM ...]]`.
+    *   Language was made user-friendly.
+    *   `pre_promptu.txt` and `post_promptu.txt` were not modified in this step.
+
+**State of Deliverables:**
+- `promptu/README.md` created and populated with user documentation.
+
+**Next Steps (User):**
+- Review the new `promptu/README.md` for clarity and completeness.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested streamlining of `promptu/pre_promptu.txt` and `promptu/post_promptu.txt` by removing instructional comments already moved to `promptu/README.md` and adding a reference to the README.
+
+**Summary of Changes Made This Session:**
+1.  **Streamlined `promptu/pre_promptu.txt`:**
+    *   Removed the initial 'TEMPLATE INSTRUCTIONS FOR USER' block.
+    *   Removed instructional comment lines from `[[USER_UTIL_SELECTION]]` (kept examples).
+    *   Removed instructional comments from the example `[[USER_CONFIG_FOR_promptimizer]]`.
+    *   Added `# For detailed instructions on using this file, please see /promptu/README.md` at the top.
+2.  **Streamlined `promptu/post_promptu.txt`:**
+    *   Removed the initial 'POST-PROMPTU TEMPLATE INSTRUCTIONS FOR USER' block.
+    *   Removed instructional comment lines from `[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, and `[[USER_FRAMEWORK_SETTINGS]]`.
+    *   Removed the entire `[[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]`.
+    *   Added `# For detailed instructions on using this file, including how to add [[USER_PROJECT_REQUEST]], please see /promptu/README.md` at the top.
+
+**State of Deliverables:**
+- `promptu/pre_promptu.txt` and `promptu/post_promptu.txt` are streamlined, with detailed instructions now centralized in `promptu/README.md`.
+
+**Next Steps (User):**
+- Review the streamlined `pre_promptu.txt` and `post_promptu.txt` to ensure they are clean and correctly reference the README.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested refactoring of performance feedback logging: create a new log file, add a configuration setting, and update `core_planning_instructions.txt`.
+
+**Summary of Changes Made This Session:**
+1.  **Created `framework_dev_docs/meta/performance_feedback_log.md`:**
+    *   Initialized with a header and placeholder for future entries.
+2.  **Modified `promptu/post_promptu.txt`:**
+    *   Added `Performance_Feedback_Logging_Enabled` checkbox to `[[USER_FRAMEWORK_SETTINGS]]`.
+3.  **Modified `promptu/core/core_planning_instructions.txt`:**
+    *   Section I.I: Added parsing for `Performance_Feedback_Logging_Enabled` into `Framework_Performance_Feedback_Logging_Enabled`.
+    *   Section IV.C.4.b (Handoff Notes Archive): Updated warning to forbid writing new logs to the archive.
+    *   New Section IV.D (Update Performance Feedback Log): Added logic to conditionally append to `performance_feedback_log.md` based on the new setting. Renumbered old IV.D to IV.E.
+
+**State of Deliverables:**
+- New performance feedback log file created.
+- Configuration setting added to `post_promptu.txt`.
+- Core instructions updated to use the new system and protect the archive.
+
+**Next Steps (User):**
+- Review the new logging setup and the changes in `core_planning_instructions.txt`.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested definition and implementation of a new reduced footprint format for performance feedback entries.
+
+**Summary of Changes Made This Session:**
+1.  **Modified `framework_dev_docs/meta/performance_feedback_log.md`:**
+    *   Replaced placeholder comment with a definition for a structured Markdown log entry format (Date, Source, Version, Context, Observation, Details (Optional), Suggestion, Status).
+    *   Added `<!-- New log entries will be appended below this line -->` placeholder.
+2.  **Modified `promptu/core/core_planning_instructions.txt`:**
+    *   Updated Section IV.D to instruct the AI to use the newly defined structured Markdown format when `Framework_Performance_Feedback_Logging_Enabled` is true, referencing the format definition in `performance_feedback_log.md`.
+
+**State of Deliverables:**
+- The new performance feedback log format is defined in `performance_feedback_log.md`.
+- `core_planning_instructions.txt` now directs the AI to use this new format.
+
+**Next Steps (User):**
+- Review the defined format in `performance_feedback_log.md` and the updated instructions in `core_planning_instructions.txt`.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested standardization of configuration names to `lowercase_snake_case`.
+    - Phase 1: Framework settings parameters.
+    - Phase 2: Component-specific parameters in `USER_..._CONFIG.txt` files and their parsing logic.
+
+**Summary of Changes Made This Session:**
+1.  **Phase 1: Framework Settings:**
+    *   **`promptu/post_promptu.txt`:**
+        *   Renamed `Full_Handoff_Notes_Logging_Enabled` to `log_full_handoff_notes`.
+        *   Renamed `Performance_Feedback_Logging_Enabled` to `log_performance_feedback`.
+    *   **`promptu/core/core_planning_instructions.txt` (Section I.I & IV.C/D):**
+        *   Updated parsing logic for new setting names.
+        *   Renamed internal variables to `framework_log_full_handoff_notes` and `framework_log_performance_feedback`.
+        *   Updated INFO messages and logic referencing these variables.
+2.  **Phase 2: Component-Specific Parameters:**
+    *   **`create_research_report` add-on:**
+        *   `USER_create_research_report_CONFIG.txt`: Converted all parameter names (e.g., `PROPOSED_TABLE_OF_CONTENTS` to `proposed_table_of_contents`).
+        *   `create_research_report.txt`: Updated parameter parsing and internal variable names accordingly.
+    *   **`task_spawning_addon` add-on:**
+        *   `USER_task_spawning_addon_CONFIG.txt`: Converted all parameter names (e.g., `PROJECT_NAME` to `project_name`).
+        *   `task_spawning_addon.txt`: Updated internal variable names (e.g., `Resolved_TSA_Project_Name` to `resolved_tsa_project_name`) and their usage.
+    *   **`test_resolver_component` add-on (Global):**
+        *   `USER_test_resolver_component_CONFIG.txt`: `DUMMY_PARAM` to `dummy_param`.
+        *   `test_resolver_component.txt`: Template `{{DUMMY_PARAM}}` to `{{dummy_param}}`.
+    *   **`test_resolver_component` (App-specific for `compliance_plm`):**
+        *   `user_test_resolver_component_config.txt`: `DUMMY_PARAM` to `dummy_param`.
+        *   `test_resolver_component.txt`: Template `{{DUMMY_PARAM}}` to `{{dummy_param}}`.
+
+**State of Deliverables:**
+- Framework settings and specified component configuration parameters are now standardized to `lowercase_snake_case`.
+- Core instructions and component logic updated to use new naming.
+
+**Next Steps (User):**
+- Review all modified configuration files and instruction files for consistency.
+- Test framework with new configuration names.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested updates to `promptu/README.md` and `framework_dev_docs/guides/promptu_usage_guide.md` to reflect the standardized configuration names and the refactored performance feedback logging.
+
+**Summary of Changes Made This Session:**
+1.  **Modified `promptu/README.md`:**
+    *   Updated `[[USER_FRAMEWORK_SETTINGS]]` examples to `log_full_handoff_notes` and `log_performance_feedback`.
+    *   Added notes that component parameters in `[[USER_CONFIG_FOR_componentName]]` blocks and `user_component_name_config.txt` files are now `lowercase_snake_case`.
+    *   Corrected examples of parameter names to `lowercase_snake_case`.
+2.  **Modified `framework_dev_docs/guides/promptu_usage_guide.md`:**
+    *   Updated parameter naming convention to `lowercase_snake_case` in relevant sections (3.B.1, 3.B.2.i, 3.B.2.ii).
+    *   Updated `[[USER_FRAMEWORK_SETTINGS]]` explanation with new names (`log_full_handoff_notes`, `log_performance_feedback`) and added details about the new `log_performance_feedback` setting.
+    *   Updated Section 5 (Logging):
+        *   5.A refers to `log_full_handoff_notes`.
+        *   Added new subsection 5.C explaining the new `framework_dev_docs/meta/performance_feedback_log.md`, its controlling setting, its structured format, and deprecation of old log in archive.
+
+**State of Deliverables:**
+- `promptu/README.md` and `framework_dev_docs/guides/promptu_usage_guide.md` are updated to align with the latest framework changes regarding configuration naming and performance feedback logging.
+
+**Next Steps (User):**
+- Review the updated documentation for accuracy and clarity.
