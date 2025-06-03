@@ -1,22 +1,27 @@
 Hello Jules,
 
-You are picking up an ongoing task to develop and iteratively refine a "Master Prompt Segment" (MPS) framework. This framework is designed to guide a "Planning AI" in generating structured project plans and task prompts for other AI instances. All canonical framework files are now located under `/prompts/` (for AI-usable content sources) and `/framework_dev_docs/` (for guides, examples, and meta-development files).
+You are picking up an ongoing task to develop and iteratively refine a "Promptu framework" (Promptu). This framework is designed to guide a "Planning AI" in generating structured project plans and task prompts for other AI instances. All canonical framework files are now located under `/promptu/` (for AI-usable content sources) and `/framework_dev_docs/` (for guides, examples, and meta-development files).
 
 **Current Work Context:**
-*   The primary canonical MPS is at `/prompts/Master_Prompt_Segment.txt`.
-*   Supporting canonical files like Base IEP content are in `/prompts/iep/`, add-on source texts in `/prompts/add_ons/`, etc.
+*   The primary canonical Promptu is at `/promptu/post_promptu.txt`.
+*   Supporting canonical files like Base IEP content are in `/promptu/core/`, add-on source texts in `/promptu/add_ons/`, etc.
 *   Guides, examples, and meta-files for framework development are in `/framework_dev_docs/`.
-*   The `/framework_dev_docs/meta/HANDOFF_NOTES.md` contains a log of significant decisions, changes, and the state of work from previous Jules instances working on THIS MPS refinement task. **Crucially, it now also contains a section `## MPS Performance Feedback Log`. Your first steps should be to review BOTH the general handoff notes AND this specific feedback log thoroughly.**
+*   The `/framework_dev_docs/meta/handoff_notes.md` (ensure snake_case) contains a log of significant decisions, changes, and the state of work from previous Jules instances working on THIS Promptu framework refinement task. The detailed, historical `## MPS Performance Feedback Log` can be found in `/framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`. Your first steps should be to review BOTH the main `handoff_notes.md` AND this specific feedback log in the archive thoroughly.
 
 **Your Immediate Task:**
-1.  **Review `/framework_dev_docs/meta/HANDOFF_NOTES.md`, paying close attention to the `## MPS Performance Feedback Log` section.**
+**IMPORTANT NOTE FOR NEXT JULES INSTANCE:** As of the last session, the user was still in the process of completing some file and folder renaming operations to ensure full `snake_case` compliance and correct paths for the Promptu framework. Specifically, the following were pending:
+*   All files under `/framework_dev_docs/guides/` (e.g., `mps_usage_guide.md`).
+*   The `CompliancePLM` promptApp: its main folder `promptu/apps/CompliancePLM` to `promptu/apps/compliance_plm`, its manifest `CompliancePLM_manifest.json` to `compliance_plm_manifest.json`, and all its contents.
+**Before proceeding with any other tasks, please verify with the user that these renaming operations have been completed. If not, remind the user, as internal framework references depend on the correct `snake_case` names and paths.**
+
+1. **Review `/framework_dev_docs/meta/handoff_notes.md` and the `## MPS Performance Feedback Log` section within `/framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.**
 2.  Review the User's Latest Feedback/Request (provided immediately following this prompt).
-3.  Understand the Current State based on `HANDOFF_NOTES.md` and current files in `/prompts/` and `/framework_dev_docs/`.
-4.  Formulate a Plan to address the user's request. This plan should also include updating `/framework_dev_docs/meta/HANDOFF_NOTES.md` (both general notes and the feedback log if applicable).
+3.  Understand the Current State based on `handoff_notes.md` and current files in `/promptu/` and `/framework_dev_docs/`.
+4.  Formulate a Plan to address the user's request. This plan should also include updating `/framework_dev_docs/meta/handoff_notes.md` (both general notes and the feedback log if applicable).
 5.  Seek User Approval for your plan.
 6.  Execute and Iterate.
 
-**Key Objectives for the MPS Framework (that you are helping to build):**
+**Key Objectives for the Promptu Framework (that you are helping to build):**
 1.  Highly effective at eliminating or mitigating merge conflicts.
 2.  Easy for end-users and Task AIs to use.
 3.  Highly parallelized where safe.
@@ -27,8 +32,8 @@ You are picking up an ongoing task to develop and iteratively refine a "Master P
 8.  Supportive of AI-automated PR creation.
 
 **Before you finish your session:**
-*   You **must** update the general section of `/framework_dev_docs/meta/HANDOFF_NOTES.md` with your session's work.
-*   You **must also add a new, detailed entry to the `## MPS Performance Feedback Log` section** if applicable.
+*   You **must** update the general section of `/framework_dev_docs/meta/handoff_notes.md` with your session's work.
+*   You **must also add a new, detailed entry to the `## MPS Performance Feedback Log` section in `/framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`** if applicable.
 *   Ensure all your deliverables (changes to framework files) are committed.
 
-The user is looking for your help to continue improving this MPS framework.
+The user is looking for your help to continue improving this Promptu framework.
