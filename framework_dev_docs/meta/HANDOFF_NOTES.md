@@ -89,6 +89,36 @@ Each Jules instance concluding a work session on this task should append notes b
 - Confirmed these changes align with user expectations for clarity and safe add-on processing.
 **State of Deliverables:** Add-on processing logic and user guidance have been refined. The system is safer regarding add-on inheritance by Task AIs, and documentation provides clearer instructions on add-on ordering. Framework is robust and ready for submission or further advanced testing.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+This session focused on introducing a new "process" type add-on, `build_product_specs_process.txt`, and significantly enhancing the core framework's ability to manage different types of primary directive add-ons.
+
+*   **`build_product_specs_process.txt` Add-on Development:**
+    *   Conceptualized and created the new add-on `prompts/add_ons/build_product_specs_process.txt` to guide an AI in generating comprehensive product specification documents.
+    *   Defined necessary user configuration variables in `prompts/Master_Prompt_Segment.txt` for this process:
+        *   `PRODUCT_NAME`
+        *   `PRODUCT_SPECS_INPUT_DOCS_PATH`
+        *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`
+        *   `PRODUCT_SPECS_OUTPUT_PATH`
+        *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE` (optional, for heading-based research focus)
+        *   `PRODUCT_SPECS_REF_DEPTH` (optional, 0-2, for controlling internal document reference following)
+    *   Detailed the multi-phase logic within `build_product_specs_process.txt` covering initialization, input ingestion, guided deep research (including primary document heading focus and configurable reference depth), decision making, and structured output generation (product spec, requirements list, optional architectural spec).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` to include `build_product_specs_process.txt` with its type, purpose, inputs, and outputs.
+    *   Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to document the new configuration variables and explain their use with the `build_product_specs_process.txt` add-on.
+
+*   **`Core_Planning_Instructions.txt` Framework Refinement:**
+    *   To robustly support diverse primary add-ons (like the new `build_product_specs_process.txt` alongside `task_spawning_addon.txt`), the add-on handling logic in `prompts/iep/Core_Planning_Instructions.txt` was enhanced:
+        *   Introduced `Known_Primary_Directive_Addons`: A defined list of add-on filenames recognized as capable of being the main directive for a session.
+        *   Implemented logic to identify an `Active_Primary_Addon_Filename`: The first add-on selected by the user that matches an entry in `Known_Primary_Directive_Addons` takes precedence.
+        *   Added handling for scenarios where multiple known primary add-ons are selected, ensuring only the first one (by user order) is active and a warning/note is made.
+        *   Generalized the non-inheritance mechanism: The `Inheritable_Addons_Content_Ordered_List` (for appending to sub-prompts) now correctly excludes the content of whatever add-on is currently the `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt` by its hardcoded name. This makes the filtering dynamic.
+        *   Updated commit message instructions to reflect which primary add-on was active.
+
+**State of Deliverables:**
+The new `build_product_specs_process.txt` add-on is created, documented, and integrated with new configuration options. The core MPS framework's add-on handling is now significantly more robust, extensible to multiple primary directive add-ons, and clearly defines precedence and inheritance rules. All relevant documentation (`MPS_Usage_Guide.md`, `available_addons_manifest.md`, `Master_Prompt_Segment.txt`) has been updated. The system is ready for submission and testing of these new capabilities.
+---
 
 ## MPS Performance Feedback Log
 
@@ -141,4 +171,31 @@ This section logs specific feedback on the performance, clarity, and effectivene
     - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
     - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
     - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process, initial broad research needed focusing mechanisms for efficiency and user guidance.
+**Suggestion for MPS Refinement (Implemented):**
+    1.  Created the `prompts/add_ons/build_product_specs_process.txt` add-on, outlining detailed phases: Initialization, Input Ingestion, Deep Research, Decision Making, Output Generation, and Finalization. This provides a template for "process" type add-ons.
+    2.  Introduced specific `[[USER PATH CONFIGURATION]]` variables for this process (`PRODUCT_NAME`, `PRODUCT_SPECS_INPUT_DOCS_PATH`, etc.).
+    3.  To give users more control over the research phase within this add-on:
+        *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
+        *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
+    These enhancements make the product specification generation process more guided and configurable.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** Jules (proactive refinement during development of `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** The introduction of `build_product_specs_process.txt` as a new "primary directive" add-on (similar in role to `task_spawning_addon.txt` but with a different function) highlighted the need to generalize how the core framework selects and manages such add-ons.
+**Observation/Issue:** The existing logic in `prompts/iep/Core_Planning_Instructions.txt` was somewhat hardcoded around `task_spawning_addon.txt` for determining the main execution path and for non-inheritance of add-on content into sub-prompts. This would not scale well if many different primary add-ons were developed.
+**Suggestion for MPS Refinement (Implemented):**
+    - Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B and II) to:
+        - Define a list of `Known_Primary_Directive_Addons`.
+        - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
+        - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
+    - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
 ---

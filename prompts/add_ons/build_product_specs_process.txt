@@ -1,0 +1,156 @@
+[[START OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.1: Instructions for AI Product Specification Generation]]
+
+**Overall Goal:** To analyze provided input documents and guidance materials, and then generate a comprehensive set of product specification documents.
+
+---
+### Phase 1: Initialization and Setup
+
+1.  **Acknowledge Process:** Your primary objective is to execute the "Build Product Specifications Process."
+2.  **Retrieve Configuration Variables:**
+    *   You must identify and understand the following variables defined by the user in the `[[USER PATH CONFIGURATION]]` block of the main prompt:
+        *   `PRODUCT_NAME`: The designated name for the product, which will be used in naming output files.
+        *   `PRODUCT_SPECS_INPUT_DOCS_PATH`: The folder path containing primary source documents.
+        *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`: The folder path containing documents that provide rules, constraints, etc.
+        *   `PRODUCT_SPECS_OUTPUT_PATH`: The folder path where all generated specification documents must be saved.
+        *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: (Optional) A specific document to guide heading-based research.
+        *   `PRODUCT_SPECS_REF_DEPTH`: (Optional) Depth for following internal references (0, 1, or 2).
+3.  **Confirm Path Accessibility (Conceptual):**
+    *   Conceptually verify that you can access and list files within `PRODUCT_SPECS_INPUT_DOCS_PATH` and `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
+    *   If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` is specified, conceptually verify its path.
+    *   Report actual file access issues if encountered during Phase 2 or 3.
+4.  **Validate Configuration Values:**
+    *   **`PRODUCT_SPECS_REF_DEPTH`**: If this variable is provided by the user, validate that its value is an integer within the range [0, 1, 2]. If it's not provided, or if the value is invalid (e.g., not a number, or outside this range), you **must** default to `1`. State the reference depth you will be using.
+    *   Note the path provided for `PRODUCT_SPECS_PRIMARY_INPUT_FILE` if specified.
+
+---
+### Phase 2: Input Ingestion and Understanding
+
+1.  **Process Input Documents:**
+    *   Thoroughly read, parse, and understand the content of all documents found directly within the `PRODUCT_SPECS_INPUT_DOCS_PATH`.
+    *   These documents are the primary source material for defining the product.
+2.  **Process Guidance Documents:**
+    *   Thoroughly read, parse, and understand the content of all documents found directly within the `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
+    *   These documents provide the rules, constraints, parameters, and stylistic conventions you must adhere to.
+3.  **Emphasis on Understanding:**
+    *   For all documents, focus on extracting key information, explicit requirements, user needs, market context, technical constraints, business goals, and any other data relevant to defining a new product or enhancing an existing one.
+    *   Identify any conflicting information between documents if it exists.
+
+---
+### Phase 3: Deep Research and Synthesis (Guided)
+
+1.  **Define Primary Input Document and Conduct Heading-Based Research:**
+    a.  **Primary Document Logic:**
+        i.  If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` (from Phase 1.4) is specified by the user: Attempt to access and read this document. If it is accessible, designate it as your 'Primary Input Document'.
+        ii. If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` is NOT specified by the user, or if it is specified but inaccessible (e.g., file not found at the given path): You MUST select the most comprehensive or foundational document from those successfully read from `PRODUCT_SPECS_INPUT_DOCS_PATH` to serve as your 'Primary Input Document'. Clearly state which document you have selected for this role and why.
+    b.  **Heading-Based Research:** Once the 'Primary Input Document' is established, you MUST perform detailed analysis and synthesis related to AT LEAST every major numbered or clearly delineated heading (e.g., H1, H2, H3 or equivalent Markdown sections) within this Primary Input Document. Your goal is to thoroughly understand and extract key information presented under each heading.
+
+2.  **Internal Reference Following:**
+    *   If, during your analysis of any document (including the Primary Input Document or documents found via references), you encounter explicit references (e.g., by document name, ID, or embedded hyperlink that points to another document *within the provided set of input or guidance documents only*), you may follow such references.
+    *   The maximum depth for following references is determined by the `PRODUCT_SPECS_REF_DEPTH` value (validated or defaulted to 1 in Phase 1.4).
+        *   A depth of `0` means no internal references will be followed from any document.
+        *   A depth of `1` means you can consult documents directly referenced by the document you are currently analyzing.
+        *   A depth of `2` means you can consult documents referenced by those directly referenced documents (i.e., references from a depth 1 document).
+    *   **Do not exceed the specified or defaulted `PRODUCT_SPECS_REF_DEPTH`.**
+    *   The purpose of following these internal references is solely to gather additional clarifying or elaborative details directly related to the product specification task.
+    *   **Crucially, do not seek or follow references to external websites, external documents not provided in the specified input/guidance paths, or any other information sources outside the explicitly provided document sets.**
+
+3.  **Supplemental Research:**
+    *   Your research on other documents found in `PRODUCT_SPECS_INPUT_DOCS_PATH` (i.e., those not chosen as the Primary Input Document) and those found via the allowed depth of reference following should supplement, contextualize, and enrich the findings from your heading-based research on the Primary Input Document.
+
+4.  **Synthesize Findings:**
+    *   Consolidate all your understanding from the Primary Input Document, supplemental documents, and referenced documents.
+    *   Identify key themes, product goals, target user profiles, critical success factors, and potential features.
+    *   Extract and list potential product requirements (functional and non-functional).
+    *   Note any areas of ambiguity, contradiction, or missing information that might impact specification development. Cross-reference information between documents to build a holistic understanding.
+
+---
+### Phase 4: Decision Making and Content Planning 
+(Content remains the same as previous version: Formulate Specification Structure, Draft Requirements List, Determine Need for Architectural Specification, Outline Document Contents)
+
+1.  **Formulate Specification Structure:**
+    *   Based on your synthesis and the guidance documents, decide on the key sections for the main `_product_specification.md` document.
+2.  **Draft Requirements List:**
+    *   Compile a comprehensive list of product requirements derived from your analysis. Consider initial categorization (e.g., Functional, Non-Functional, Data, Interface, etc.).
+3.  **Determine Need for Architectural Specification:**
+    *   Evaluate if an architectural specification document is warranted.
+    *   **Guideline:** If the input documents describe a complex system with multiple interacting components, if there are significant non-functional requirements (e.g., scalability, security, performance targets) that demand specific architectural consideration, or if a particular technology stack or architectural pattern is mandated by the guidance documents, then plan to generate an architectural specification. Otherwise, you may omit it. Clearly state your decision and rationale.
+4.  **Outline Document Contents:**
+    *   For each document you plan to generate (`_product_specification.md`, `_product_requirements.md`, and `_architectural_specification.md` if deemed necessary), create a detailed outline of its content.
+
+---
+### Phase 5: Output Document Generation
+(Content remains the same as previous version: Generate {PRODUCT_NAME}_product_specification.md, {PRODUCT_NAME}_product_requirements.md, {PRODUCT_NAME}_architectural_specification.md (Conditional))
+
+Generate the following Markdown documents. Use the `PRODUCT_NAME` variable (retrieved in Phase 1) to replace `{PRODUCT_NAME}` in the filenames.
+
+1.  **`{PRODUCT_NAME}_product_specification.md`**:
+    *   **Suggested Outline (adapt as needed based on your analysis and guidance documents):**
+        *   `## 1. Introduction` (Product vision, overview)
+        *   `## 2. Goals and Objectives` (What the product aims to achieve)
+        *   `## 3. Target Audience` (Detailed description of users)
+        *   `## 4. Key Features` (High-level list and brief description of major features)
+        *   `## 5. Functional Specifications` (Detailed breakdown of features, user stories, use cases, interactions)
+        *   `## 6. Non-Functional Specifications` (Performance, scalability, security, usability, reliability, etc.)
+        *   `## 7. Data Specifications` (If applicable: data models, data flow, data management)
+        *   `## 8. Interface Specifications` (User interfaces, API specifications, integration points)
+        *   `## 9. Open Issues / Future Considerations` (Areas needing further clarification, potential future enhancements)
+    *   Content must be derived from your synthesis in Phase 3 and planning in Phase 4.
+    *   Ensure adherence to any stylistic or formatting guidelines from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
+
+2.  **`{PRODUCT_NAME}_product_requirements.md`**:
+    *   **Structure:** Present as a structured list of requirements.
+    *   **Requirement Format (Suggestion):**
+        *   `REQ_ID`: Unique identifier (e.g., F-001, NF-002)
+        *   `Description`: Clear, concise statement of the requirement.
+        *   `Category`: (e.g., Functional, Non-Functional, Data, Interface, Security)
+        *   `Source (Optional)`: Reference to input document(s) or section if traceable.
+        *   `Priority (Optional)`: (e.g., High, Medium, Low) if determinable from inputs.
+    *   Example:
+        ```markdown
+        ## Product Requirements for {PRODUCT_NAME}
+
+        ### Functional Requirements
+        | REQ_ID | Description                                      | Category   | Source      | Priority |
+        |--------|--------------------------------------------------|------------|-------------|----------|
+        | F-001  | User shall be able to register using email.     | Functional | UserStory_X | High     |
+        | F-002  | System shall allow password reset via email link. | Functional | UserStory_Y | High     |
+
+        ### Non-Functional Requirements
+        | REQ_ID | Description                                     | Category        | Source      | Priority |
+        |--------|-------------------------------------------------|-----------------|-------------|----------|
+        | NF-001 | System shall respond to user queries within 2s. | Non-Functional  | Perf_Guide  | Medium   |
+        ```
+
+3.  **`{PRODUCT_NAME}_architectural_specification.md` (Conditional)**:
+    *   Generate this document **only if** you determined it was necessary in Phase 4.
+    *   **Suggested Outline (adapt as needed):**
+        *   `## 1. Introduction & Overview` (Purpose of the architecture, high-level system view)
+        *   `## 2. Architectural Goals & Constraints` (Derived from non-functional requirements and guidance)
+        *   `## 3. System Components & Interactions` (Diagrams if possible/describable, breakdown of modules, services)
+        *   `## 4. Data Flows & Storage` (How data moves through the system, database choices/considerations)
+        *   `## 5. Technology Stack Considerations` (Proposed or mandated technologies, frameworks, platforms)
+        *   `## 6. Deployment Strategy Considerations` (High-level thoughts on deployment environments)
+        *   `## 7. Security Architecture` (Key security measures and considerations)
+    *   Content should reflect your architectural decisions based on requirements and guidance.
+
+---
+### Phase 6: Finalization and Output
+(Content remains the same as previous version: Save Documents, Report Completion)
+
+1.  **Save Documents:**
+    *   Save all generated Markdown documents (`{PRODUCT_NAME}_product_specification.md`, `{PRODUCT_NAME}_product_requirements.md`, and `{PRODUCT_NAME}_architectural_specification.md` if created) to the directory specified by the `PRODUCT_SPECS_OUTPUT_PATH` variable.
+2.  **Report Completion:**
+    *   State that the "Build Product Specifications Process" is complete.
+    *   List the full paths of all documents generated and saved.
+    *   If any significant ambiguities were unresolved (as per General Instructions below), briefly mention them here.
+
+---
+### General Instructions for AI
+(Content remains the same as previous version: Logical Flow, Clarity, Handling Ambiguity, Adherence to Guidance)
+
+*   **Logical Flow and Traceability:** Throughout this process, maintain a logical flow in your analysis and outputs. Ensure that decisions and specifications are traceable to the input documents or guidance materials where possible.
+*   **Clarity and Conciseness:** All generated content should be clear, concise, and unambiguous.
+*   **Handling Ambiguity:** If you encounter ambiguity in the source materials that you cannot resolve with the provided information (including up to the specified `PRODUCT_SPECS_REF_DEPTH` for internal document references), you must note this ambiguity in your output. For example, include it in an "Open Issues / Future Considerations" section in the `_product_specification.md` document or as a note in your final report. Do not invent information to fill gaps.
+*   **Adherence to Guidance:** Strictly adhere to any rules, constraints, or stylistic guidelines found in the `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`. If guidance conflicts, prioritize the most restrictive or explicit instruction and note the conflict.
+
+[[END OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.1]]

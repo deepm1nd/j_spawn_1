@@ -1,5 +1,7 @@
 [[USER PATH CONFIGURATION]]
 # Instructions for User: Edit the paths below before using this MPS.
+
+# --- General Project & Task Spawning Paths (used by task_spawning_addon.txt and other general purpose add-ons) ---
 # - Main Iteration Folder: Where the Planning AI will place all its outputs for the target project.
 #   Use '.' for the repository root, or a relative path like 'project_X_outputs'.
 # - Prompts Folder: Subdirectory for generated task prompts, TLP, IEP. Relative to Main Iteration Folder.
@@ -13,6 +15,14 @@ Prompts Folder: prompts/tasks
 Submodule Plan Destination: plan
 Inter-AI Communication Folder: prompts/tasks/ipc
 User-Specified Task Output Base Path: dev/default_task_outputs
+
+# --- Variables for "Build Product Specs" Process (used by build_product_specs_process.txt add-on) ---
+# PRODUCT_NAME: Your_Product_Name_Here                 # e.g., "NovaSystem", "QuantumLeap CRM". Used for naming output files.
+# PRODUCT_SPECS_INPUT_DOCS_PATH: product_dev/inputs   # Relative to repo root. Folder containing market research, user feedback, competitive analysis, etc.
+# PRODUCT_SPECS_GUIDANCE_DOCS_PATH: product_dev/guidance # Relative to repo root. Folder containing branding guides, compliance docs, technical constraints, style guides.
+# PRODUCT_SPECS_OUTPUT_PATH: product_dev/specifications # Relative to repo root. Folder where generated specification documents (e.g., PRD, MRD, technical specs) will be saved.
+# PRODUCT_SPECS_PRIMARY_INPUT_FILE: product_dev/inputs/main_requirements_document.md # Optional: Specific document (path relative to repo root) to guide heading-based research.
+# PRODUCT_SPECS_REF_DEPTH: 1 # Optional: Depth for following internal references within provided documents (0, 1, or 2). Default is 1 if not specified.
 [[END USER PATH CONFIGURATION]]
 
 [[USER_ADDON_SELECTION]]
@@ -33,6 +43,7 @@ User-Specified Task Output Base Path: dev/default_task_outputs
 # [ ] example_coding_standards_addon.txt    # Example: Could provide coding standards for Task AIs.
 # [ ] example_security_checklist_addon.txt  # Example: Could provide security checks for Task AIs.
 #
+# [ ] build_product_specs_process.txt # Example: Select to generate product specification documents.
 # [ ] task_spawning_addon.txt  # CRITICAL: Select this to enable project planning & task generation by the Planning AI.
                                # If selected, it's generally best listed last as it orchestrates the use of other add-ons for Task AIs.
 [[END USER_ADDON_SELECTION]]
