@@ -217,7 +217,7 @@ This compacted summary provides a chronological overview of the MPS framework's 
     4.  Move `promptu/util/promptimizer/promptimizer.txt` to `promptu/util/promptimizer.txt` (as per user request for single-file utilities).
 -   After all renaming and moves are complete, the user should run the continuation prompt for this Jules instance to proceed with any final checks or the next phase of work.
 ---
-**Session Summary - 2025-06-03**
+**Session Summary - 2025-06-03** (Note: Date appears to be out of order, this was inserted by a previous agent version. Correcting sequence for future entries.)
 **Instance:** Jules (this instance)
 **User Feedback/Requests Addressed:**
 - User confirmed that some file/folder renaming to `snake_case` (mandated in 2025-06-06 session) is still pending their action.
@@ -248,3 +248,29 @@ This compacted summary provides a chronological overview of the MPS framework's 
 
 **Next Steps (This Jules instance/session):**
 -   Commit these changes to `continuation_prompt_framework_dev.txt` and `handoff_notes.md`.
+---
+**Session Summary - 2025-06-07**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User requested implementation of new invocation scenario handling in `promptu/core/core_planning_instructions.txt` for situations where initial user input (project goal, app/add-on selections) might be missing or incomplete.
+
+**Summary of Changes Made This Session:**
+1.  **`promptu/core/core_planning_instructions.txt` Update (Section II.A):**
+    *   A new step "0. Determine Invocation Context and Handle Special Empty States:" was inserted at the beginning of Section II.A.
+    *   This new logic handles three specific scenarios:
+        1.  **`pre_promptu.txt` invoked with no project request:** Instructs AI to engage user to elicit requirements before proceeding with utility selections.
+        2.  **`post_promptu.txt` invoked with no project request, no app, no add-ons:** Instructs AI to engage user to elicit project requirements or intended use (placeholder for user-defined "continuation prompt").
+        3.  **`post_promptu.txt` invoked with no project request, but a promptApp is selected:** Allows fall-through to promptApp execution, making the app responsible for handling the missing project goal.
+    *   Standard execution proceeds if none of these special empty states are met.
+
+2.  **`promptu_usage_guide.md` Review:**
+    *   The `promptu_usage_guide.md` was reviewed in the context of these changes. No immediate updates were deemed necessary as the core functionality described in the guide remains consistent, and these new handling rules are internal to the framework's planning logic.
+
+**State of Deliverables:**
+-   `promptu/core/core_planning_instructions.txt` is updated with the new invocation scenario handling logic in Section II.A.
+-   Handoff notes (`framework_dev_docs/meta/handoff_notes.md` and `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`) are being updated in this session.
+
+**Next Steps (User):**
+-   Review the updated `promptu/core/core_planning_instructions.txt` (Section II.A).
+-   **Clarify the specific desired behavior or content for the "continuation prompt"** mentioned in Scenario 2 (post_promptu with no request, no app, no add-ons). The current implementation instructs the AI to engage in a general requirements discussion.
+-   Test the new fallback behaviors by invoking `pre_promptu.txt` and `post_promptu.txt` in the described empty/incomplete states to ensure the framework behaves as expected.
