@@ -22,16 +22,16 @@ BEGIN_PHASE_1
   # Define expected parameters and their sources
   PARAMETER_DEFINITION_BLOCK PARAMS_TO_RESOLVE
     # ParameterName | SourceType (USER_CONFIG or INTERNAL_DEFAULT) | DefaultValue (if SourceType is INTERNAL_DEFAULT) | IsRequired (true/false) | ValidationType (e.g., PATH_EXISTS, INTEGER_RANGE(0,3))
-    PROPOSED_TABLE_OF_CONTENTS | USER_CONFIG | "[No Table of Contents Provided]" | false | NONE
-    GUIDELINES_DOC_PATHS | USER_CONFIG | "[No Guidelines Provided]" | false | PATH_LIST_EXISTS_OR_URL_LIST
-    ADDITIONAL_WEB_LINKS_FILE | USER_CONFIG | "[No Additional Web Links File Provided]" | false | PATH_EXISTS_OR_URL
+    PROPOSED_TOC | USER_CONFIG | "[No Table of Contents Provided]" | false | NONE # Renamed
+    GUIDELINE_DOCS_PATHS | USER_CONFIG | "[No Guidelines Provided]" | false | PATH_LIST_EXISTS_OR_URL_LIST # Renamed
+    WEB_LINKS_FILE | USER_CONFIG | "[No Additional Web Links File Provided]" | false | PATH_EXISTS_OR_URL # Renamed
     EXEMPLAR_DOCS | USER_CONFIG | "[No Exemplar Documents Provided]" | false | PATH_LIST_EXISTS_OR_URL_LIST
     GENERAL_INPUT_DOCS | USER_CONFIG | "[Please provide paths to general input documents]" | true | PATH_LIST_EXISTS_OR_URL_LIST
-    PRIMARY_INPUT_DOC_PATH | USER_CONFIG | "[Please provide a path to the primary input document]" | true | PATH_EXISTS_OR_URL
+    PRIMARY_INPUT_DOC | USER_CONFIG | "[Please provide a path to the primary input document]" | true | PATH_EXISTS_OR_URL # Renamed
     ITERATIVE_OUTPUT_DEPTH | USER_CONFIG | "0" | true | INTEGER_RANGE(0,3)
     REFERENCE_FOLLOWING_DEPTH | USER_CONFIG | "1" | true | INTEGER_RANGE(0,2)
-    PREVIOUS_ITERATION_OUTPUT_PATH | USER_CONFIG | "[Path to previous iteration output or N/A]" | false | PATH_EXISTS_OR_PLACEHOLDER_OR_NA # Conditional requirement handled below
-    REPORT_BASENAME | USER_CONFIG | "[Enter Report Basename]" | true | NON_EMPTY_STRING
+    # PREVIOUS_ITERATION_OUTPUT_PATH | USER_CONFIG | "[Path to previous iteration output or N/A]" | false | PATH_EXISTS_OR_PLACEHOLDER_OR_NA # Removed
+    REPORT_NAME | USER_CONFIG | "[Enter Report Basename]" | true | NON_EMPTY_STRING # Renamed
     REPORT_OUTPUT_PATH | USER_CONFIG | "[Enter Report Output Path]" | true | WRITABLE_PATH
   END_PARAMETER_DEFINITION_BLOCK
 
@@ -68,18 +68,18 @@ BEGIN_PHASE_1
           END_IF
         ELSE # User has not provided a value or it's the default placeholder
           IF "[ParamIsRequired]" == "true" THEN
-            # Specific check for conditionally required PREVIOUS_ITERATION_OUTPUT_PATH
-            IF "[ParamName]" == "PREVIOUS_ITERATION_OUTPUT_PATH" THEN
-              GET_INTERNAL_VARIABLE "ITERATIVE_OUTPUT_DEPTH" store_as "Internal_ITERATIVE_OUTPUT_DEPTH"
-              IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
-                 FAIL_PROCESS "Required parameter [ParamName] not provided and ITERATIVE_OUTPUT_DEPTH > 0."
-              ELSE
-                 SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
-                 INFO "Parameter [ParamName] not provided by user, but not required as ITERATIVE_OUTPUT_DEPTH is 0. Using default: [ParamDefaultValue]."
-              END_IF
-            ELSE
-              FAIL_PROCESS "Required parameter [ParamName] not provided by user."
-            END_IF
+            # Specific check for conditionally required PREVIOUS_ITERATION_OUTPUT_PATH (now removed)
+            # IF "[ParamName]" == "PREVIOUS_ITERATION_OUTPUT_PATH" THEN
+            #   GET_INTERNAL_VARIABLE "ITERATIVE_OUTPUT_DEPTH" store_as "Internal_ITERATIVE_OUTPUT_DEPTH"
+            #   IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
+            #      FAIL_PROCESS "Required parameter [ParamName] not provided and ITERATIVE_OUTPUT_DEPTH > 0."
+            #   ELSE
+            #      SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
+            #      INFO "Parameter [ParamName] not provided by user, but not required as ITERATIVE_OUTPUT_DEPTH is 0. Using default: [ParamDefaultValue]."
+            #   END_IF
+            # ELSE
+            FAIL_PROCESS "Required parameter [ParamName] not provided by user."
+            # END_IF
           ELSE
             SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
             INFO "Optional parameter [ParamName] not provided by user. Using default: [ParamDefaultValue]."
@@ -97,29 +97,38 @@ BEGIN_PHASE_1
   # Store key configuration values for easy access
   GET_INTERNAL_VARIABLE "ITERATIVE_OUTPUT_DEPTH" store_as "Internal_ITERATIVE_OUTPUT_DEPTH"
   GET_INTERNAL_VARIABLE "REFERENCE_FOLLOWING_DEPTH" store_as "Internal_REFERENCE_FOLLOWING_DEPTH"
-  GET_INTERNAL_VARIABLE "REPORT_BASENAME" store_as "Internal_REPORT_BASENAME"
+  GET_INTERNAL_VARIABLE "REPORT_NAME" store_as "Internal_REPORT_NAME" # Renamed
   GET_INTERNAL_VARIABLE "REPORT_OUTPUT_PATH" store_as "Internal_REPORT_OUTPUT_PATH"
-  GET_INTERNAL_VARIABLE "PRIMARY_INPUT_DOC_PATH" store_as "Internal_PRIMARY_INPUT_DOC_PATH"
+  GET_INTERNAL_VARIABLE "PRIMARY_INPUT_DOC" store_as "Internal_PRIMARY_INPUT_DOC" # Renamed
   GET_INTERNAL_VARIABLE "GENERAL_INPUT_DOCS" store_as "Internal_GENERAL_INPUT_DOCS"
-  GET_INTERNAL_VARIABLE "GUIDELINES_DOC_PATHS" store_as "Internal_GUIDELINES_DOC_PATHS"
+  GET_INTERNAL_VARIABLE "GUIDELINE_DOCS_PATHS" store_as "Internal_GUIDELINE_DOCS_PATHS" # Renamed
   GET_INTERNAL_VARIABLE "EXEMPLAR_DOCS" store_as "Internal_EXEMPLAR_DOCS"
-  GET_INTERNAL_VARIABLE "ADDITIONAL_WEB_LINKS_FILE" store_as "Internal_ADDITIONAL_WEB_LINKS_FILE"
-  GET_INTERNAL_VARIABLE "PROPOSED_TABLE_OF_CONTENTS" store_as "Internal_PROPOSED_TABLE_OF_CONTENTS"
-  GET_INTERNAL_VARIABLE "PREVIOUS_ITERATION_OUTPUT_PATH" store_as "Internal_PREVIOUS_ITERATION_OUTPUT_PATH"
+  GET_INTERNAL_VARIABLE "WEB_LINKS_FILE" store_as "Internal_WEB_LINKS_FILE" # Renamed
+  GET_INTERNAL_VARIABLE "PROPOSED_TOC" store_as "Internal_PROPOSED_TOC" # Renamed
+  # GET_INTERNAL_VARIABLE "PREVIOUS_ITERATION_OUTPUT_PATH" store_as "Internal_PREVIOUS_ITERATION_OUTPUT_PATH" # Removed
 
-  # Validate PREVIOUS_ITERATION_OUTPUT_PATH if iteration depth > 0
-  IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
-    VALIDATE_PARAMETER "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" against "PATH_EXISTS_OR_PLACEHOLDER_OR_NA" store_as "PrevIterPathVal"
-    IF "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" == "[Path to previous iteration output or N/A]" OR "[PrevIterPathVal]" != "VALID" THEN
-      FAIL_PROCESS "PREVIOUS_ITERATION_OUTPUT_PATH must be a valid path if ITERATIVE_OUTPUT_DEPTH > 0. Current value: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
-    END_IF
-    INFO "Previous iteration output path set to: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
+  # Validate PREVIOUS_ITERATION_OUTPUT_PATH if iteration depth > 0 (This logic is now revised)
+  # IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
+    # VALIDATE_PARAMETER "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" against "PATH_EXISTS_OR_PLACEHOLDER_OR_NA" store_as "PrevIterPathVal" # Removed
+    # IF "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" == "[Path to previous iteration output or N/A]" OR "[PrevIterPathVal]" != "VALID" THEN # Removed
+      # FAIL_PROCESS "PREVIOUS_ITERATION_OUTPUT_PATH must be a valid path if ITERATIVE_OUTPUT_DEPTH > 0. Current value: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" # Removed
+    # END_IF # Removed
+    # INFO "Previous iteration output path set to: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" # This line is no longer needed
   END_IF
 
   INFO "Phase 1: Initialization and Configuration COMPLETED."
   SAVE_CURRENT_STATE_TO_MEMORY "Phase1_State"
 END_PHASE_1
 # --- END PHASE 1 ---
+
+# NOTE FOR DEVELOPERS: The handling of iterative outputs has been updated.
+# PREVIOUS_ITERATION_OUTPUT_PATH has been removed from USER_CONFIG.
+# The new logic should rely on REPORT_OUTPUT_PATH and REPORT_NAME
+# to find previous iteration outputs. For example, if REPORT_NAME is "MyReport"
+# and ITERATIVE_OUTPUT_DEPTH is 2, the previous report would be
+# "[REPORT_OUTPUT_PATH]/MyReport_D1.md".
+# This change needs to be implemented in Phase 2 and potentially Phase 3
+# where previous data is loaded and used.
 
 # --- START PHASE 2: Input Document Processing ---
 # Objective: Ingest, analyze, and summarize all provided input documents and links.
@@ -184,15 +193,17 @@ BEGIN_PHASE_2
 
   # If Iterative Depth > 0, load previous iteration's output
   IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
-    INFO "Loading previous iteration output from: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
-    # This would involve listing files in Internal_PREVIOUS_ITERATION_OUTPUT_PATH,
-    # reading relevant files (e.g., the main report file from the previous iteration),
-    # and storing its content/structure in system memory for refinement.
-    # E.g., READ_FILE "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]/[Internal_REPORT_BASENAME]_D[Internal_ITERATIVE_OUTPUT_DEPTH - 1].md" store_as "PreviousReportContent"
+    # DEVELOPER NOTE: Update this section to use Internal_REPORT_OUTPUT_PATH and Internal_REPORT_NAME
+    # to construct the path to the previous iteration's output file.
+    # Example: "[Internal_REPORT_OUTPUT_PATH]/[Internal_REPORT_NAME]_D[PreviousDepth].md"
+    INFO "Loading previous iteration output. Current depth: [Internal_ITERATIVE_OUTPUT_DEPTH]."
+    # The following line is a placeholder for the new logic:
+    # INFO "Attempting to load from path like: [Internal_REPORT_OUTPUT_PATH]/[Internal_REPORT_NAME]_D[Internal_ITERATIVE_OUTPUT_DEPTH - 1].md"
     AI_TASK_SUB_PROCESS "Load Previous Iteration Data"
         DESCRIPTION "Load and parse the output from the previous iteration."
-        INPUT_PARAM "PreviousOutputPath" from "Internal_PREVIOUS_ITERATION_OUTPUT_PATH"
-        INPUT_PARAM "ReportBasename" from "Internal_REPORT_BASENAME"
+        # INPUT_PARAM "PreviousOutputPath" from "Internal_PREVIOUS_ITERATION_OUTPUT_PATH" # This needs to be replaced
+        INPUT_PARAM "ReportOutputPath" from "Internal_REPORT_OUTPUT_PATH"
+        INPUT_PARAM "ReportName" from "Internal_REPORT_NAME" # Renamed from REPORT_BASENAME
         INPUT_PARAM "PreviousDepth" as_integer_math "[Internal_ITERATIVE_OUTPUT_DEPTH] - 1"
         OUTPUT_TO_SYSTEM_MEMORY "PreviousIterationData" # Structure, content sections, etc.
     END_AI_TASK_SUB_PROCESS
