@@ -1,19 +1,14 @@
 **I. USER-CONFIGURED PATHS, ADD-ON SELECTION, COMPONENT DISCOVERY & LOADING:**
 
 A. **Parse User-Configured Paths for Outputs and Specific Inputs:**
-    You **must** parse the `[[USER PATH CONFIGURATION]]` block found at the very beginning of *this Master Prompt Segment*. These paths are primarily for directing your outputs and locating some user-provided process-specific inputs.
-    *   **User-Configurable Paths (Examples from `[[USER PATH CONFIGURATION]]`):**
-        *   `Main Iteration Folder`: Root for current iteration outputs.
-        *   `Prompts Folder`: For generated prompts, TLP, and the IEP copy. (Relative to `Main Iteration Folder`)
-        *   `Submodule Plan Destination`: For main plan and Task AI `_dev_plan.md` files. (Relative to `Main Iteration Folder`)
-        *   `Inter-AI Communication Folder`: For IPC files. (Often same as or within `Prompts Folder`)
-        *   `User-Specified Task Output Base Path`: Root for Task AI deliverables. (Relative to repo root)
-        *   Process-specific paths like `PRODUCT_NAME`, `PRODUCT_SPECS_INPUT_DOCS_PATH`, etc., are also parsed from here if defined by the user.
-    *   If any of these output/process-specific paths are missing from the user's configuration, and an active add-on requires them, that add-on must define its own default behavior or error handling.
-    *   All paths you generate for outputs must be constructed clearly, typically relative to the repository root, and reflect these user-specified locations.
+    You **must** parse the `[[USER PATH CONFIGURATION]]` block if it is found at the very beginning of *this Master Prompt Segment*. These paths are primarily for directing your outputs and locating some user-provided process-specific inputs.
+    *   **Note:** This section is largely deprecated with the move to app-specific configurations and fixed system paths. However, if legacy path configurations are found, they might be used by older components. Modern components should rely on their own `USER_..._CONFIG.txt` files for path parameters.
+    *   If any output/process-specific paths are required by an active component and not found in its dedicated configuration, that component must define its own default behavior or error handling.
+    *   All paths you generate for outputs must be constructed clearly, typically relative to the repository root.
 
 B. **Fixed Global System Paths for Core Components:**
-    The locations for core framework components (Add-ons, Utils, Base IEP, IPC directory) are fixed and relative to the repository root. You **must** use these hardcoded paths for discovery and loading:
+    The locations for core framework components (PromptApps, Add-ons, Utils, Base IEP, IPC directory) are fixed and relative to the repository root. You **must** use these hardcoded paths for discovery and loading:
+    *   **PromptApps Base Directory:** `prompts/apps/`
     *   **Add-ons Base Directory:** `prompts/add_ons/`
     *   **Utils Base Directory:** `prompts/util/`
     *   **IEP Base Directory:** `prompts/iep/` (specifically for `Base_IEP.txt`)
@@ -25,11 +20,11 @@ C. **Discover and Load Add-on Components:**
         b.  Identify lines beginning with `[x]` to extract the selected `addon_app_name`s (these are folder names).
         c.  Compile an ordered list of these: `Selected_Addons_AppNames_Ordered`.
     2.  **Define Known Primary Directive Add-on Apps:**
-        `Known_Primary_Directive_Addon_Apps`: A list of `addon_app_name`s recognized as primary directives (e.g., `["task_spawning_addon", "build_product_specs_process"]`).
+        `Known_Primary_Directive_Addon_Apps`: A list of `addon_app_name`s recognized as primary directives (e.g., `["task_spawning_addon", "create_research_report"]`).
     3.  **Initialize Collections for Add-ons:**
         *   `Active_Primary_Addon_AppName`: null
         *   `All_Selected_Addons_Content_Map`: An empty map for `addon_app_name: primary_instruction_content`.
-        *   `App_Specific_Configs_Content_Map`: An empty map for `addon_app_name: raw_config_block_string`.
+        *   `App_Specific_Configs_Content_Map`: An empty map for `component_name: raw_config_block_string`. (Note: This map is now generic for any component type, not just add-ons).
         *   `Inheritable_Addons_Content_Ordered_List`: An empty ordered list for content of selected non-primary add-ons.
         *   `Loaded_Primary_Addon_AppNames`: An empty list to track selected primary add-on apps that were successfully loaded.
     4.  **Load Selected Add-on Content & Discover App-Specific Configs:**
@@ -43,60 +38,145 @@ C. **Discover and Load Add-on Components:**
                 *   If `Active_Primary_Addon_AppName` is still null, set `Active_Primary_Addon_AppName = selected_app_name`.
             iii. **Scan Main Prompt for App-Specific Configuration Block:**
                 *   Define delimiters: `start_delim = "[[USER_CONFIG_FOR_" + selected_app_name + "]]"`, `end_delim = "[[END_USER_CONFIG_FOR_" + selected_app_name + "]]"`.
-                *   Search the *entire original user-provided main spawn prompt file content* (the one that contained the `[[MASTER_PROMPT_SEGMENT]]` block) for text between these delimiters.
-                *   If found, extract the raw string content (exclusive of the delimiters) and store it in `App_Specific_Configs_Content_Map` with `selected_app_name` as the key. If not found, store an empty string or a specific marker (e.g., `_NOT_FOUND_`) for this `selected_app_name`.
-        d.  If the primary instruction file is not found or unreadable: Prepare a warning: "Warning: Selected add-on app '[selected_app_name]' is missing its primary instruction file at '[path_to_primary_instruction_file]' and will be skipped." Do not add it to any collections.
-    5.  **Populate Inheritable Add-ons List:**
-        For each `loaded_app_name` in `Selected_Addons_AppNames_Ordered` (iterate based on original selection order, but only consider apps successfully loaded into `All_Selected_Addons_Content_Map`):
-        a.  If `loaded_app_name` is NOT equal to `Active_Primary_Addon_AppName`, add its content (from `All_Selected_Addons_Content_Map[loaded_app_name]`) to `Inheritable_Addons_Content_Ordered_List`.
-    6.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_AppNames` contains more than one app name, prepare a note/warning as specified previously. This note must be included in any summary or commit message.
-    7.  If `[[USER_ADDON_SELECTION]]` was not found or no add-ons were marked `[x]`, relevant collections will be empty.
-    8.  The `Active_Primary_Addon_AppName`, `All_Selected_Addons_Content_Map`, and `App_Specific_Configs_Content_Map` are used for execution logic in Section II.
-    9.  The `Inheritable_Addons_Content_Ordered_List` is for use by the `Active_Primary_Addon_AppName` if it generates sub-prompts.
+                *   Search the *entire original user-provided main spawn prompt file content* for text between these delimiters.
+                *   If found, extract the raw string content and store it in `App_Specific_Configs_Content_Map` with `selected_app_name` as the key.
+        d.  If the primary instruction file is not found or unreadable: Prepare a warning: "Warning: Selected add-on app '[selected_app_name]' is missing its primary instruction file at '[path_to_primary_instruction_file]' and will be skipped."
+    5.  **Populate Inheritable Add-ons List:** (This logic will be primarily driven by promptApp context or if no promptApp is selected)
+        For each `loaded_app_name` in `Selected_Addons_AppNames_Ordered` (iterate based on original selection order, but only consider apps successfully loaded):
+        a.  If `loaded_app_name` is NOT equal to `Active_Primary_Addon_AppName` (and no promptApp is active, or if promptApp allows), add its content to `Inheritable_Addons_Content_Ordered_List`.
+    6.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_AppNames` contains more than one app name, prepare a warning.
+    7.  The collections are used in Section II.
 
 D. **Input Definition Files (Base IEP):**
-    The Base IEP content is loaded from the fixed path `prompts/iep/Base_IEP.txt`. This will be referenced in Section III.C.1.
+    Loaded from `prompts/iep/Base_IEP.txt`. (Referenced in Section III.C.1).
 
 E. **Discover and Load Utility Components ("Utils"):**
-    1.  **Scan for Available Util "Apps":**
-        a.  Identify all subdirectories within the fixed path `prompts/util/`. Each subdirectory name is a `util_app_name`.
-    2.  **Initialize Collection:** `All_Available_Utils_Content_Map` (empty map for `util_app_name: content`).
-    3.  **Load Util Content:** For each `util_app_name`:
-        a.  Path: `prompts/util/[util_app_name]/[util_app_name].txt`.
-        b.  If readable, store in map. Otherwise, prepare warning.
-    4.  **Availability:** Utils are available for explicit use by other components via `All_Available_Utils_Content_Map`.
+    1.  Scan for subdirectories in `prompts/util/`. Each is a `util_app_name`.
+    2.  Initialize `All_Available_Utils_Content_Map` (map for `util_app_name: content`).
+    3.  Load `prompts/util/[util_app_name]/[util_app_name].txt` for each. Store if readable, else warn.
+    4.  Utils are available for use by other components.
 
-**II. ADD-ON EXECUTION AND CONDITIONAL LOGIC:**
+F. **Discover and Load PromptApp Manifests:**
+    1.  Initialize `Available_PromptApps_Manifest_Map` (empty map for `promptAppName: manifest_object`).
+    2.  Scan `prompts/apps/` for subdirectories. Each is a `promptAppName`.
+    3.  For each `promptAppName`:
+        a.  Path to manifest: `prompts/apps/[promptAppName]/[promptAppName]_manifest.json`.
+        b.  Attempt to read and parse the JSON content of this file.
+        c.  If successfully read and parsed:
+            i.  Validate manifest structure (presence of `promptAppDisplayName`, `description`, `phases` array; phases have `phaseName`, `tasks` array; tasks have `taskName`, `description`, `componentName`, `isIterable`). Issue warnings for structural issues.
+            ii. Store the valid manifest object in `Available_PromptApps_Manifest_Map` with `promptAppName` as key.
+        d.  If manifest file is missing, unreadable, or JSON is invalid: Prepare a warning: "Warning: PromptApp '[promptAppName]' has a missing or invalid manifest at '[path_to_manifest]' and will be unavailable."
 
-A. **Process Active Primary Add-on (if any):**
-    1.  If `Active_Primary_Addon_AppName` (identified in I.C.4) is not null:
-        a.  Retrieve its primary instruction content from `All_Selected_Addons_Content_Map`.
-        b.  Retrieve its app-specific config string from `App_Specific_Configs_Content_Map` (it might be empty or the not-found marker).
-        c.  Execute its instructions. The add-on is responsible for parsing its specific config string if provided. It should use `Inheritable_Addons_Content_Ordered_List` for appending to sub-prompts.
-        d.  Other add-ons in `Inheritable_Addons_Content_Ordered_List` are supplementary.
-    2.  **If `Active_Primary_Addon_AppName` IS NULL:** (Logic as before, referring to app names)
-        a.  State no active primary add-on was selected/found.
-        b.  If `Inheritable_Addons_Content_Ordered_List` is not empty, state intent to process these. For each, retrieve its app-specific config string. Execute if self-executing and makes sense; be cautious.
-        c.  Generate `Information_Exchange_Protocol.md`.
-        d.  Conclude operations.
+G. **Parse User PromptApp Selection & Configuration:**
+    1.  Initialize `Selected_PromptAppName`: null.
+    2.  Initialize `Selected_App_Tasks_Ordered`: empty list.
+    3.  Scan `Master_Prompt_Segment.txt` for the `[[USER_APP_SELECTION]]` block.
+    4.  Identify lines beginning with `[x]` to extract the selected `potential_app_name`.
+    5.  If multiple promptApps are selected, issue a warning: "Warning: Multiple promptApps selected. Using the first one: '[first_selected_app_name]'." Set `Selected_PromptAppName` to the first valid one found in `Available_PromptApps_Manifest_Map`.
+    6.  If only one `[x]` is found, set `Selected_PromptAppName` to that `potential_app_name`, provided it exists as a key in `Available_PromptApps_Manifest_Map`. If not found in the map, issue a warning and set `Selected_PromptAppName` to null.
+    7.  If `Selected_PromptAppName` is set and valid:
+        a.  Define delimiters for its configuration block: `start_config_delim = "[[USER_" + Selected_PromptAppName + "_CONFIGURATION]]"`, `end_config_delim = "[[END_USER_" + Selected_PromptAppName + "_CONFIGURATION]]"`.
+        b.  Search the *entire original user-provided main spawn prompt file content* for text between these delimiters.
+        c.  If found:
+            i.  Parse the content line by line.
+            ii. Identify lines starting with `[x]` (case-insensitive for 'x') followed by a task name (e.g., `[x] My Task Name`). Extract "My Task Name".
+            iii. Add each such extracted task name to `Selected_App_Tasks_Ordered`, maintaining the order from the block.
+            iv. Store the raw string content of this block in `App_Specific_Configs_Content_Map` with `Selected_PromptAppName` as the key (for reference or audit).
+        d.  If the configuration block is missing: Issue a warning: "Warning: PromptApp '[Selected_PromptAppName]' is selected, but its configuration block '[[USER_[Selected_PromptAppName]_CONFIGURATION]]' was not found. No tasks can be run." Set `Selected_PromptAppName` to null.
+        e.  If the block is found but no tasks are checked `[x]`: Issue a warning: "Warning: PromptApp '[Selected_PromptAppName]' configuration block found, but no tasks were selected with '[x]'. No tasks will be run." Set `Selected_PromptAppName` to null.
+
+**II. PRIMARY EXECUTION LOGIC (Revised for PromptApps):**
+
+A. **Determine Execution Path (PromptApp or Add-on):**
+
+    1.  **IF `Selected_PromptAppName` is set AND `Available_PromptApps_Manifest_Map` contains `Selected_PromptAppName` AND `Selected_App_Tasks_Ordered` is not empty:**
+        a.  **PromptApp Execution Path:**
+            i.   INFO "Executing selected promptApp: [Selected_PromptAppName]".
+            ii.  Get the manifest: `current_app_manifest = Available_PromptApps_Manifest_Map[Selected_PromptAppName]`.
+            iii. Identify the *first task name* from `Selected_App_Tasks_Ordered`. Let this be `current_task_user_name`.
+            iv.  Find `current_task_info` from `current_app_manifest.phases.tasks` where `task.taskName` matches `current_task_user_name`.
+            v.   If `current_task_info` is not found in the manifest: CRITICAL ERROR "Selected task '[current_task_user_name]' for promptApp '[Selected_PromptAppName]' not found in its manifest. Halting." HALT.
+            vi.  Let `component_name_to_load = current_task_info.componentName`.
+            vii. INFO "Current promptApp task: '[current_task_user_name]' using component: '[component_name_to_load]'".
+
+            viii. **Component Resolution (Search Order - App-Specific First):**
+                *   Path Attempt 1 (App-Local Flat File Style): `path_to_component = prompts/apps/[Selected_PromptAppName]/[component_name_to_load].txt`
+                *   Path Attempt 2 (App-Local Folder Style): `path_to_component = prompts/apps/[Selected_PromptAppName]/[component_name_to_load]/[component_name_to_load].txt` (if not found in app-local flat file)
+                *   Path Attempt 3 (Add-on): `path_to_component = prompts/add_ons/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
+                *   Path Attempt 4 (Util): `path_to_component = prompts/util/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
+                *   If component file not found after all attempts: CRITICAL ERROR "Component '[component_name_to_load]' for task '[current_task_user_name]' in promptApp '[Selected_PromptAppName]' not found. Search paths were: [list attempted paths]. Halting." HALT.
+
+            ix.  **Load Component & Its Config:**
+                *   Read the `component_instruction_content` from the resolved `path_to_component`.
+                *   Determine `base_path_of_resolved_component` (e.g., `prompts/add_ons/[component_name_to_load]/` or `prompts/apps/[Selected_PromptAppName]/`).
+                *   Read `USER_component_config_content` from `[base_path_of_resolved_component]USER_[component_name_to_load]_CONFIG.txt`. (Handle file not found gracefully for components that don't have one).
+                *   Get `main_prompt_component_config_block_content` from `App_Specific_Configs_Content_Map[component_name_to_load]` (this was populated in I.C.4.c.iii if a `[[USER_CONFIG_FOR_componentName]]` block exists in the main prompt).
+
+            x.   **Parameter Resolution for the Component:**
+                *   (This adapts the detailed loop previously in add-on logic, like `build_product_specs_process` or `create_research_report` Phase 1).
+                *   The component's `USER_..._CONFIG.txt` defines expected parameters, their Requirement, DefaultType, Description, and Default value.
+                *   For each parameter defined in `USER_component_config_content`:
+                    1.  Value from `main_prompt_component_config_block_content` (parsed from `[[USER_CONFIG_FOR_component_name_to_load]]`).
+                    2.  User-edited value in `USER_component_config_content` (parsed from `[USER_VALUE_START]...[USER_VALUE_END]`).
+                    3.  Value from `current_task_info.defaultConfigOverrides[ParameterName]` (from `promptApp` manifest for the current task).
+                    4.  Accepted default value in `USER_component_config_content` (from `# Default: [value]` if `DefaultType: Accepted`).
+                    5.  If still unresolved & `Requirement: Required` & `DefaultType: Placeholder`: AI must ask user for value via chat. Update the on-disk `USER_..._CONFIG.txt` and advise user to update their main prompt's `[[USER_CONFIG_FOR_...]]` block.
+                    6.  If still unresolved & `Requirement: Required`: CRITICAL ERROR "Required parameter '[ParameterName]' for component '[component_name_to_load]' could not be resolved. Halting." HALT.
+                *   Store resolved parameters internally for the component's use.
+
+            xi.  **Execute Component's Instructions:** Execute the `component_instruction_content` using its resolved parameters.
+
+            xii. **Iteration Handling (if `current_task_info.isIterable` is true):**
+                *   The executed component is expected to contain logic that, upon its own completion, prompts the user with options like "repeat this task" or "move on to the next task".
+                *   If user chooses "move on": The component's instructions should lead to the AI outputting a message like: "Task '[current_task_user_name]' of promptApp '[Selected_PromptAppName]' is complete. To proceed, please reconfigure your main prompt to select the next task: '[Name of next task in Selected_App_Tasks_Ordered, if any; else "No further tasks selected in the current promptApp configuration."]' and then start a new AI session." Then the AI should HALT.
+                *   (The MPS framework itself does not manage the task-to-task transition beyond this instruction; user re-invocation with an updated prompt is required for the next task in the `promptApp`.)
+
+    2.  **ELSE (No PromptApp selected or no actionable tasks in it; fallback to Add-on logic):**
+        a.  INFO "No active promptApp. Proceeding with add-on execution logic."
+        b.  **Process Active Primary Add-on (if any):** (This is the existing Section II.A logic)
+            i.  If `Active_Primary_Addon_AppName` (identified in I.C.4) is not null:
+                *   Retrieve its primary instruction content from `All_Selected_Addons_Content_Map`.
+                *   Retrieve its app-specific config string from `App_Specific_Configs_Content_Map[Active_Primary_Addon_AppName]`.
+                *   Execute its instructions. The add-on parses its config string and uses `Inheritable_Addons_Content_Ordered_List`.
+            ii. **Else (If `Active_Primary_Addon_AppName` IS NULL):** (This is the existing Section II.B logic)
+                *   State no active primary add-on was selected/found.
+                *   If `Inheritable_Addons_Content_Ordered_List` is not empty, state intent to process these. For each, retrieve its app-specific config string. Execute if self-executing; be cautious.
+                *   Generate `Information_Exchange_Protocol.md`.
+                *   Conclude operations.
 
 **III. OUTPUT GENERATION REQUIREMENTS (Core Utilities):**
 
 C. **Supporting Documentation (Core Utilities):**
 1.  **`Information_Exchange_Protocol.md`:**
-    *   (Condition for generation as before).
+    *   (Condition for generation as before, typically if no primary add-on or promptApp task successfully runs to completion of a major process).
     *   Load from `prompts/iep/Base_IEP.txt`.
-    *   Create in 'Prompts Folder' (user-configured output path).
+    *   Create in 'Prompts Folder' (user-configured output path, or a default like `outputs/current_session_prompts/`).
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION (Core):**
 
 B. **Final Commit Message by Planning AI:**
-    (Task-ID and notes should reflect `Active_Primary_Addon_AppName` and any warnings about missing app-specific config blocks if an add-on expected one but it wasn't found, in addition to other existing notes.)
     Adhere to IEP (from `prompts/iep/Base_IEP.txt`).
-    *   Task-ID: e.g., "PROCESSED_PRIMARY_ADDON_[Active_Primary_Addon_AppName]" or "CORE_UTILITY_PROCESSING_ONLY".
-    *   Notes:
-        *   `Active_Primary_Addon_AppName` processed.
-        *   Warnings for multiple primary selections, missing add-on/util files.
-        *   Summary of other add-ons processed from `Inheritable_Addons_Content_Ordered_List`.
-        *   Note if any selected add-on expected an app-specific config block (e.g. `[[USER_CONFIG_FOR_...]]`) but it was not found in the main spawn prompt.
-        *   Self-checks, confidence, etc. as before.
+    *   **IF `Selected_PromptAppName` was processed for a task:**
+        *   Task-ID: `PROCESSED_PROMPT_APP_[Selected_PromptAppName]_TASK_[current_task_user_name]` (use the user-friendly task name).
+        *   Notes:
+            *   `Selected_PromptAppName`: [Selected_PromptAppName]
+            *   `Task Processed`: [current_task_user_name]
+            *   Component Used: [component_name_to_load]
+            *   Warnings for multiple promptApp selections, missing/invalid manifests, missing promptApp config block, or no tasks checked.
+            *   Note if the task was iterable and user was prompted to continue/halt for next task.
+            *   Self-checks, confidence, etc.
+    *   **ELSE (Add-on or core utility processing):**
+        *   Task-ID: e.g., `PROCESSED_PRIMARY_ADDON_[Active_Primary_Addon_AppName]` or `CORE_UTILITY_PROCESSING_ONLY`.
+        *   Notes:
+            *   `Active_Primary_Addon_AppName` processed (if applicable).
+            *   Warnings for multiple primary add-on selections, missing add-on/util files.
+            *   Summary of other add-ons processed from `Inheritable_Addons_Content_Ordered_List`.
+            *   Note if any selected add-on expected an app-specific config block but it was not found.
+            *   Self-checks, confidence, etc.
+
+C. **Self-Correction and Learning:**
+    *   Review all warnings and errors generated during this session.
+    *   If a component's `USER_..._CONFIG.txt` was updated due to AI-assisted parameter gathering, ensure this is noted.
+    *   Reflect on any ambiguities in component instructions or the MPS framework itself.
+
+[end of prompts/iep/Core_Planning_Instructions.txt]

@@ -1,48 +1,95 @@
+[[USER_APP_SELECTION]]
+# Instructions for user:
+# - List desired "promptApp" names below, one per line.
+# - **Select at most ONE promptApp.** Mark selection with '[x]' (case-insensitive for 'x').
+# - promptApp "apps" must exist as subdirectories in `prompts/apps/` in the target repository.
+# - Each promptApp folder must contain a manifest file: `[appName]/[appName]_manifest.json`.
+# - If a promptApp is selected, it will be the primary workflow. You will also need to provide a
+#   corresponding `[[USER_promptAPP_NAME_CONFIGURATION]]` block (see example section below)
+#   to specify which tasks within the promptApp to execute.
+# - If no promptApp is selected, you can select one or more add-ons from `[[USER_ADDON_SELECTION]]`
+#   to define the AI's task.
+
+# [ ] CompliancePLM_App # Example: Select this to run the Compliance PLM workflow
+[[END_USER_APP_SELECTION]]
+
 [[USER_ADDON_SELECTION]]
 # Instructions for user:
+# - If no promptApp is selected in `[[USER_APP_SELECTION]]`, you can select one or more add-on "apps" here
+#   to define the AI's operation.
+# - If a promptApp *is* selected, the tasks within that promptApp will define which components (including add-ons)
+#   are run. Add-ons selected here might be ignored if a promptApp is active, or they might provide
+#   supplementary, inheritable instructions if the promptApp's design allows for it (consult promptApp documentation).
+#   Generally, a selected promptApp takes precedence.
+#
 # - List desired add-on "app names" (folder names) below, one per line.
 # - Mark selection with '[x]' (case-insensitive for 'x').
 # - Add-on apps must exist as subdirectories in `prompts/add_ons/` in the target repository.
 # - Each add-on app folder must contain a primary instruction file: `[app_name]/[app_name].txt`.
 #
-# - If a primary add-on like 'task_spawning_addon' is selected, other selected add-on apps
+# - If a primary add-on like 'task_spawning_addon' is selected (and no promptApp is active), other selected add-on apps
 #   listed *before* it will typically have their primary instruction file content appended to the
-#   generated task prompts, preserving their listed order. This allows you to control the
-#   sequence of supplementary instructions in task prompts.
+#   generated task prompts, preserving their listed order.
 #
-# - If no primary add-on app that generates sub-tasks is selected (or if 'task_spawning_addon'
-#   is not selected), other selected add-on apps will be processed as per their own directives,
-#   and their order of execution by the Planning AI will also follow this list.
-#
-# - App-specific configurations: Some add-on apps may use parameters defined in a
-#   `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` block, which you would
-#   place in your main spawn prompt (typically after your project request and before the
-#   `[[MASTER_PROMPT_SEGMENT]]` block). Refer to the add-on's documentation or its
-#   `USER_appName_CONFIG.txt` template file for details on its parameters.
+# - App-specific configurations: Some add-on apps (and components used by promptApps) may use parameters
+#   defined in a `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` block, which you would
+#   place in your main spawn prompt. Refer to the component's documentation or its
+#   `USER_appName_CONFIG.txt` template file for details.
 
 [x] task_resumption_addon               # Example: Provides task state resumption capabilities for Task AIs.
-# [ ] example_coding_standards_addon    # Example: Could provide coding standards for Task AIs.
-# [ ] example_security_checklist_addon  # Example: Could provide security checks for Task AIs.
-#
-# [ ] build_product_specs_process # Example: Select to generate product specification documents.
-# [ ] task_spawning_addon  # CRITICAL: Select this to enable project planning & task generation by the Planning AI.
-                               # If selected, it's generally best listed last as it orchestrates other add-ons for Task AIs.
+# [ ] create_research_report          # Example: Select to generate a research report.
+# [ ] task_spawning_addon             # CRITICAL (if no promptApp selected): Enables project planning & task generation.
+                               # If selected as primary, list last.
 [[END_USER_ADDON_SELECTION]]
 
+[[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
+# Instructions for user:
+# - If you select a promptApp in `[[USER_APP_SELECTION]]` (e.g., `CompliancePLM_App`), you MUST provide a
+#   corresponding configuration block in your main spawn prompt, formatted as:
+#   `[[USER_CompliancePLM_App_CONFIGURATION]] ... [[END_USER_CompliancePLM_App_CONFIGURATION]]`.
+# - This block allows you to specify which phases and tasks defined in the promptApp's manifest
+#   you want to execute.
+# - The Planning AI will use this block to determine the workflow.
+# - For each task you select to run, you may also need to provide standard app-specific configuration
+#   blocks (e.g., `[[USER_CONFIG_FOR_componentName]]`) if the underlying component used by that
+#   task requires parameters beyond its defaults or any overrides set in the promptApp manifest.
+
+# Example for a hypothetical `[[USER_CompliancePLM_App_CONFIGURATION]]` block:
+# [[USER_CompliancePLM_App_CONFIGURATION]]
+# # Check the tasks you want to run.
+# # For tasks using components that require configuration (e.g., 'create_research_report'),
+# # ensure you also provide the necessary `[[USER_CONFIG_FOR_componentName]]` block(s)
+# # in your main prompt if the defaults are not sufficient.
+#
+# # [Concept Phase]
+# #   [ ] Architectural Specification
+# #   [x] Product Specification  # Example: User wants to run this task
+# #   [ ] Product Requirements
+#
+# # [Plan Phase]
+# #   [ ] Development Planning
+# #   ... etc.
+# [[END_USER_CompliancePLM_App_CONFIGURATION]]
+
+[[END_USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
+
 --------------------------------------------------------------------------------------------------------------
-[[START OF MASTER PROMPT SEGMENT (v0.4.0 - App-Specific Configs, Fixed Component Paths): AI Project Planning & Task Generation Instructions]]
+[[START OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]
 
 # Overall AI Operation:
 # You are a Planning AI. Your primary function is to interpret a user's project request (provided by the user *before* this Master Prompt Segment begins)
-# and then to follow the instructions within this segment, including processing selected add-on "apps", to achieve the user's goal.
-# This MPS now uses a "folder-per-app" architecture for components (add-ons, utils) with fixed base paths (e.g., `prompts/add_ons/`, `prompts/util/`).
-# App-specific configurations can be provided by the user in their main spawn prompt within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks.
+# and then to follow the instructions within this segment. This may involve executing a selected "promptApp"
+# (a predefined multi-stage workflow) or executing selected "add-on apps".
+# This MPS now uses a "folder-per-app" architecture for components (promptApps, add-ons, utils) with fixed base paths
+# (e.g., `prompts/apps/`, `prompts/add_ons/`, `prompts/util/`).
+# App-specific configurations can be provided by the user in their main spawn prompt within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks,
+# and promptApp task selections are made in `[[USER_promptAppName_CONFIGURATION]]` blocks.
 # Core operational instructions, including component discovery and loading, are defined in an included file.
 
 [[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]
 
-# Note: The `Core_Planning_Instructions.txt` will guide you on parsing `[[USER_ADDON_SELECTION]]`,
-# discovering app-specific config blocks from the main prompt, loading components, and executing the
-# selected primary add-on app or other selected add-ons.
+# Note: The `Core_Planning_Instructions.txt` will guide you on parsing `[[USER_APP_SELECTION]]`,
+# `[[USER_ADDON_SELECTION]]`, discovering app-specific config blocks and promptApp task configuration
+# blocks from the main prompt, loading components, and executing the selected promptApp or add-ons.
 
-[[END OF MASTER PROMPT SEGMENT (v0.4.0 - App-Specific Configs, Fixed Component Paths)]]
+[[END OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]
