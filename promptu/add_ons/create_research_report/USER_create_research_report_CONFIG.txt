@@ -2,17 +2,17 @@
 # Requirement: Optional | DefaultType: Placeholder
 # Description: Provide a proposed Table of Contents (either as inline text or a path to a .txt or .md file). This will guide the structure of the report.
 # Default: [No Table of Contents Provided]
-PROPOSED_TABLE_OF_CONTENTS: [USER_VALUE_START] [No Table of Contents Provided] [USER_VALUE_END]
+PROPOSED_TOC: [USER_VALUE_START] [No Table of Contents Provided] [USER_VALUE_END]
 
 # Requirement: Optional | DefaultType: Placeholder
 # Description: Comma-separated list of paths to .txt or .md files containing guidelines for writing the document.
 # Default: [No Guidelines Provided]
-GUIDELINES_DOC_PATHS: [USER_VALUE_START] [No Guidelines Provided] [USER_VALUE_END]
+GUIDELINE_DOCS_PATHS: [USER_VALUE_START] [No Guidelines Provided] [USER_VALUE_END]
 
 # Requirement: Optional | DefaultType: Placeholder
 # Description: Path to a single .txt or .md file containing additional web links (one URL per line) to be included in the research phase for "deep research".
 # Default: [No Additional Web Links File Provided]
-ADDITIONAL_WEB_LINKS_FILE: [USER_VALUE_START] [No Additional Web Links File Provided] [USER_VALUE_END]
+WEB_LINKS_FILE: [USER_VALUE_START] [No Additional Web Links File Provided] [USER_VALUE_END]
 
 # Requirement: Optional | DefaultType: Placeholder
 # Description: Comma-separated list of paths to .txt or .md exemplar documents, or public web links. These serve as style and content examples. (HIGHLY RECOMMENDED)
@@ -27,7 +27,7 @@ GENERAL_INPUT_DOCS: [USER_VALUE_START] [Please provide paths to general input do
 # Requirement: Required | DefaultType: Placeholder
 # Description: Path to a single primary .txt or .md input document or a public web link. This document is the main subject of the research.
 # Default: [Please provide a path to the primary input document]
-PRIMARY_INPUT_DOC_PATH: [USER_VALUE_START] [Please provide a path to the primary input document] [USER_VALUE_END]
+PRIMARY_INPUT_DOC: [USER_VALUE_START] [Please provide a path to the primary input document] [USER_VALUE_END]
 
 # Requirement: Required | DefaultType: Accepted
 # Description: Iterative output depth (0-3). 0=Outline, 1=Basic Content, 2=Expert Elaboration, 3=AI Unique Insights.
@@ -39,15 +39,10 @@ ITERATIVE_OUTPUT_DEPTH: [USER_VALUE_START] 0 [USER_VALUE_END]
 # Default: 1
 REFERENCE_FOLLOWING_DEPTH: [USER_VALUE_START] 1 [USER_VALUE_END]
 
-# Requirement: Required if ITERATIVE_OUTPUT_DEPTH > 0 | DefaultType: Placeholder
-# Description: Path to the output directory of the previous iteration (required if ITERATIVE_OUTPUT_DEPTH > 0).
-# Default: [Path to previous iteration output or N/A]
-PREVIOUS_ITERATION_OUTPUT_PATH: [USER_VALUE_START] [Path to previous iteration output or N/A] [USER_VALUE_END]
-
 # Requirement: Required | DefaultType: Placeholder
 # Description: Base name for the output report files (e.g., 'MyResearchReport').
 # Default: [Enter Report Basename]
-REPORT_BASENAME: [USER_VALUE_START] [Enter Report Basename] [USER_VALUE_END]
+REPORT_NAME: [USER_VALUE_START] [Enter Report Basename] [USER_VALUE_END]
 
 # Requirement: Required | DefaultType: Placeholder
 # Description: Path to the directory where output report files will be saved.
