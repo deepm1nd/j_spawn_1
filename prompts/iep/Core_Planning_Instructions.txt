@@ -1,12 +1,25 @@
 **I. USER-CONFIGURED PATHS, ADD-ON SELECTION, COMPONENT DISCOVERY & LOADING:**
 
-A. **Parse User-Configured Paths for Outputs and Specific Inputs:**
+A. **Extract User's High-Level Project Request:**
+    1.  Initialize `User_High_Level_Project_Goal`: `null` (or an empty string).
+    2.  Define delimiters: `start_req_delim = "[[USER_PROJECT_REQUEST]]"`, `end_req_delim = "[[END_USER_PROJECT_REQUEST]]"`.
+    3.  Search the *entire current processing content* (which the AI system is assumed to have prepared by combining the user's initial raw request with the user's configured MPS file loaded via a directive) for text between these delimiters.
+    4.  If found:
+        a.  Extract the raw string content (exclusive of the delimiters, trim leading/trailing whitespace).
+        b.  Store this extracted content as `User_High_Level_Project_Goal`.
+        c.  INFO "User High-Level Project Goal successfully extracted."
+    5.  If not found OR if the extracted content is empty or only whitespace:
+        a.  WARNING "[[USER_PROJECT_REQUEST]] block not found or empty. The primary project goal may be missing. Subsequent planning processes might rely on user input provided through other configuration means (e.g., within component-specific parameters) or may require clarification."
+        b.  `User_High_Level_Project_Goal` remains `null` or is set to a specific "not_found_or_empty" marker string.
+    6.  The `User_High_Level_Project_Goal` (or its not-found status) should be accessible by primary directive components (e.g., the component for a selected promptApp task, or a selected primary add-on like `task_spawning_addon` or `create_research_report`) for their main planning or processing context. These components will be responsible for checking if the goal is sufficiently defined for their needs.
+
+B. **Parse User-Configured Paths for Outputs and Specific Inputs:**
     You **must** parse the `[[USER PATH CONFIGURATION]]` block if it is found at the very beginning of *this Master Prompt Segment*. These paths are primarily for directing your outputs and locating some user-provided process-specific inputs.
     *   **Note:** This section is largely deprecated with the move to app-specific configurations and fixed system paths. However, if legacy path configurations are found, they might be used by older components. Modern components should rely on their own `USER_..._CONFIG.txt` files for path parameters.
     *   If any output/process-specific paths are required by an active component and not found in its dedicated configuration, that component must define its own default behavior or error handling.
     *   All paths you generate for outputs must be constructed clearly, typically relative to the repository root.
 
-B. **Fixed Global System Paths for Core Components:**
+C. **Fixed Global System Paths for Core Components:**
     The locations for core framework components (PromptApps, Add-ons, Utils, Base IEP, IPC directory) are fixed and relative to the repository root. You **must** use these hardcoded paths for discovery and loading:
     *   **PromptApps Base Directory:** `prompts/apps/`
     *   **Add-ons Base Directory:** `prompts/add_ons/`
@@ -14,7 +27,7 @@ B. **Fixed Global System Paths for Core Components:**
     *   **IEP Base Directory:** `prompts/iep/` (specifically for `Base_IEP.txt`)
     *   **IPC Base Directory:** `prompts/ipc/` (for future IPC components and general IPC file storage)
 
-C. **Discover and Load Add-on Components:**
+D. **Discover and Load Add-on Components:**
     1.  **Parse User Add-on Selections:**
         a.  Scan the `[[USER_ADDON_SELECTION]]` block from `Master_Prompt_Segment.txt`.
         b.  Identify lines beginning with `[x]` to extract the selected `addon_app_name`s (these are folder names).
@@ -47,16 +60,16 @@ C. **Discover and Load Add-on Components:**
     6.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_AppNames` contains more than one app name, prepare a warning.
     7.  The collections are used in Section II.
 
-D. **Input Definition Files (Base IEP):**
+E. **Input Definition Files (Base IEP):**
     Loaded from `prompts/iep/Base_IEP.txt`. (Referenced in Section III.C.1).
 
-E. **Discover and Load Utility Components ("Utils"):**
+F. **Discover and Load Utility Components ("Utils"):**
     1.  Scan for subdirectories in `prompts/util/`. Each is a `util_app_name`.
     2.  Initialize `All_Available_Utils_Content_Map` (map for `util_app_name: content`).
     3.  Load `prompts/util/[util_app_name]/[util_app_name].txt` for each. Store if readable, else warn.
     4.  Utils are available for use by other components.
 
-F. **Discover and Load PromptApp Manifests:**
+G. **Discover and Load PromptApp Manifests:**
     1.  Initialize `Available_PromptApps_Manifest_Map` (empty map for `promptAppName: manifest_object`).
     2.  Scan `prompts/apps/` for subdirectories. Each is a `promptAppName`.
     3.  For each `promptAppName`:
@@ -67,7 +80,7 @@ F. **Discover and Load PromptApp Manifests:**
             ii. Store the valid manifest object in `Available_PromptApps_Manifest_Map` with `promptAppName` as key.
         d.  If manifest file is missing, unreadable, or JSON is invalid: Prepare a warning: "Warning: PromptApp '[promptAppName]' has a missing or invalid manifest at '[path_to_manifest]' and will be unavailable."
 
-G. **Parse User PromptApp Selection & Configuration:**
+H. **Parse User PromptApp Selection & Configuration:**
     1.  Initialize `Selected_PromptAppName`: null.
     2.  Initialize `Selected_App_Tasks_Ordered`: empty list.
     3.  Scan `Master_Prompt_Segment.txt` for the `[[USER_APP_SELECTION]]` block.
