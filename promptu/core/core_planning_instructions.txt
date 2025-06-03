@@ -127,6 +127,27 @@ I. **Parse User Framework Settings:**
 
 A. **Determine Execution Path (PromptApp or Add-on):**
 
+    0.  **Determine Invocation Context and Handle Special Empty States:**
+        *   Assume a variable `Invocation_Context` is available, set by the system to either 'PRE_PROMPTU' (if `pre_promptu.txt` is the entry point) or 'POST_PROMPTU' (if `post_promptu.txt` is the entry point). If unavailable, default to 'POST_PROMPTU' and issue a warning.
+        *   Check `User_High_Level_Project_Goal` (from Section I.A), `Selected_PromptAppName` (from Section I.H), `Active_Primary_Addon_AppName` (from Section I.D), and `Inheritable_Addons_Content_Ordered_List` (from Section I.D).
+        *   **Scenario 1 (pre_promptu with no request):**
+            *   IF `Invocation_Context` is 'PRE_PROMPTU' AND (`User_High_Level_Project_Goal` is null OR `User_High_Level_Project_Goal` is empty_or_whitespace_marker):
+                *   INFO: 'pre_promptu.txt' invoked without a user project request.
+                *   INSTRUCT AI: 'Your primary task is to engage the user in a discussion to elicit their requirements or the objectives they wish to achieve with pre-processing utilities. Ask open-ended questions to understand their needs. Do not proceed with any utility selections from `[[USER_UTIL_SELECTION]]` in `pre_promptu.txt` until these initial requirements are clarified. HALT further framework processing and await user interaction.'
+                *   RETURN (do not proceed to normal execution logic).
+        *   **Scenario 2 (post_promptu with no request, no app, no add-ons):**
+            *   ELSE IF `Invocation_Context` is 'POST_PROMPTU' AND (`User_High_Level_Project_Goal` is null OR `User_High_Level_Project_Goal` is empty_or_whitespace_marker) AND `Selected_PromptAppName` is null AND `Active_Primary_Addon_AppName` is null AND `Inheritable_Addons_Content_Ordered_List` is empty:
+                *   INFO: 'post_promptu.txt' invoked without a user project request and no apps or add-ons selected.
+                *   INSTRUCT AI: 'The framework was invoked without a specific project request or any selected app or add-on. Your task is to engage the user in a discussion to elicit their project requirements or what they intended to do. Ask open-ended questions to understand their project goals or if they need guidance on using the framework. HALT further framework processing and await user interaction.'
+                *   RETURN (do not proceed to normal execution logic).
+        *   **Scenario 3 (post_promptu with no request, but app selected):**
+            *   ELSE IF `Invocation_Context` is 'POST_PROMPTU' AND (`User_High_Level_Project_Goal` is null OR `User_High_Level_Project_Goal` is empty_or_whitespace_marker) AND `Selected_PromptAppName` is not null AND `Available_PromptApps_Manifest_Map` contains `Selected_PromptAppName` AND `Selected_App_Tasks_Ordered` is not empty:
+                *   INFO: 'post_promptu.txt' invoked without a user project request, but a promptApp '[Selected_PromptAppName]' is selected. Proceeding with promptApp execution.
+                *   (Fall through to the existing promptApp execution logic, which will begin at step II.A.1. The selected promptApp component will be responsible for handling the missing `User_High_Level_Project_Goal` if it's critical for its operation.)
+        *   ELSE:
+            *   INFO: Proceeding with standard execution path.
+            *   (Fall through to existing logic at step II.A.1)
+
     1.  **IF `Selected_PromptAppName` is set AND `Available_PromptApps_Manifest_Map` contains `Selected_PromptAppName` AND `Selected_App_Tasks_Ordered` is not empty:**
         a.  **PromptApp Execution Path:**
             i.   INFO "Executing selected promptApp: [Selected_PromptAppName]".
