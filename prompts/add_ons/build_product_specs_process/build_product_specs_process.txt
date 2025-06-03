@@ -1,0 +1,98 @@
+[[START OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.4: Instructions for AI Product Specification Generation with Iterative Deepening and Enhanced Dynamic Configuration]]
+
+**Overall Goal:** To analyze provided input documents and guidance materials, and then generate a comprehensive set of product specification documents by performing deep research focused on the headings of a primary input document. This process supports iterative deepening and dynamic configuration parameter resolution with metadata.
+
+---
+### Phase 1: Initialization, Configuration Resolution, and Setup
+
+1.  **Acknowledge Process:** Your primary objective is to execute the "Build Product Specifications Process." You will receive `main_prompt_config_block_content` (the raw string of this app's config block if found in the main spawn prompt by Core Instructions).
+
+2.  **Define Expected Configuration Parameters & Load Template with Metadata:**
+    a.  **Expected Parameters List:** `PRODUCT_NAME`, `PRODUCT_SPECS_INPUT_DOCS_PATH`, `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`, `PRODUCT_SPECS_OUTPUT_PATH`, `PRODUCT_SPECS_PRIMARY_INPUT_FILE`, `PRODUCT_SPECS_REF_DEPTH`, `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`, `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`, `PRODUCT_SPECS_ITERATION_DEPTH`, `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`.
+    b.  **Load and Parse `USER_build_product_specs_process_CONFIG.txt`:**
+        i.  Read your co-located configuration template: `prompts/add_ons/build_product_specs_process/USER_build_product_specs_process_CONFIG.txt`.
+        ii. For each parameter in the Expected Parameters List:
+            *   Parse its `# Requirement: [ReqStatus] | DefaultType: [DefType]` comment to extract `Requirement_Status` and `Default_Type`.
+            *   Parse its `# Description: ... Default: [template_default_value]` comment for `description` and `template_default_value`.
+            *   Parse its `PARAM_NAME: [USER_VALUE_START] [current_template_value] [USER_VALUE_END]` line for `current_template_value`.
+        iii. Store `param_name`, `description`, `template_default_value`, `current_template_value`, `Requirement_Status`, and `Default_Type` for all parameters.
+
+3.  **Parameter Resolution Loop:**
+    Initialize flag: `config_values_updated_via_chat = false`.
+    Initialize map: `Resolved_Params`.
+
+    For each `param_name` in the Expected Parameters List:
+    a.  Set `final_value = null`. Retrieve its parsed `description`, `template_default_value`, `current_template_value`, `Requirement_Status`, and `Default_Type`.
+    b.  **Try `main_prompt_config_block_content`:** If `main_prompt_config_block_content` is not empty, parse it for `param_name`'s value (content between its `[USER_VALUE_START]` and `[USER_VALUE_END]`). If found, and the value is not an obvious placeholder (e.g., not "...ENTER...", not empty if `Requirement_Status` is "Required" based on a quick check), set `final_value = parsed_value_from_main_prompt_block`. Trim whitespace from `final_value`.
+    c.  **Try Edited `USER_..._CONFIG.txt` Value:** If `final_value` is still `null`:
+        *   If `current_template_value` is different from `template_default_value` AND `current_template_value` is not a generic placeholder (like "...ENTER..." or empty if `Requirement_Status` is "Required"), then set `final_value = current_template_value`. Trim whitespace.
+    d.  **Use Template Default (as initial `final_value` if still null):** If `final_value` is still `null`, set `final_value = template_default_value`. Trim whitespace.
+    e.  **AI-Assisted Update for Required Placeholders:**
+        *   If `Requirement_Status` is "Required" AND `Default_Type` is "PlaceholderDefault" AND (`final_value` is empty OR `final_value` is identical to `template_default_value` (which is a placeholder) OR `final_value` contains "...ENTER..."):
+            i.  **Formulate Request for Jules:** "Jules, the mandatory parameter `param_name` for the `build_product_specs_process` add-on requires user input as its current value is a placeholder. Description: '[description]'. Template Default: '[template_default_value]'. Please obtain the correct value from the user for `param_name`."
+            ii. **Assume value received from chat is `user_provided_value`.** Set `final_value = user_provided_value`. Trim whitespace.
+            iii. **Update `USER_build_product_specs_process_CONFIG.txt` on disk:** Modify the line for `param_name` in `prompts/add_ons/build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` to replace the content between `[USER_VALUE_START]` and `[USER_VALUE_END]` with this new `final_value`. Ensure the file is saved.
+            iv. Set `config_values_updated_via_chat = true`.
+    f.  Store `final_value` in `Resolved_Params` for `param_name`.
+    g.  **Special Handling for `PRODUCT_SPECS_ITERATION_DEPTH` during the loop:** If `param_name` is `PRODUCT_SPECS_ITERATION_DEPTH`, immediately validate its `final_value` (convert to int, default to 0 if invalid, clamp to 0-3) and store this validated version in `Resolved_Params["PRODUCT_SPECS_ITERATION_DEPTH"]` so it can be used by the conditional mandatory check for `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` if it comes later in the loop.
+
+4.  **Post-Resolution Validation & Setup:**
+    a.  **`Internal_PRODUCT_NAME`**: Get from `Resolved_Params`.
+    b.  **`Internal_PRODUCT_SPECS_INPUT_DOCS_PATH`**: Get from `Resolved_Params`.
+    c.  **`Internal_PRODUCT_SPECS_GUIDANCE_DOCS_PATH`**: Get from `Resolved_Params`.
+    d.  **`Internal_PRODUCT_SPECS_OUTPUT_PATH`**: Get from `Resolved_Params`.
+    e.  **`Internal_PRODUCT_SPECS_PRIMARY_INPUT_FILE`**: Get from `Resolved_Params`.
+    f.  **`Internal_Max_Ref_Depth`**: Get from `Resolved_Params["PRODUCT_SPECS_REF_DEPTH"]`. Convert to integer. If parsing fails or value is not 0-2, default to `1`.
+    g.  **`Internal_Code_Review_Preference`**: Get from `Resolved_Params["PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE"]`. If value is not "complex", "cursory", or "focused", default to "cursory".
+    h.  **`Internal_PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`**: Get from `Resolved_Params`.
+    i.  **`Internal_Current_Iteration_Depth`**: Get from `Resolved_Params["PRODUCT_SPECS_ITERATION_DEPTH"]`. (Already validated in 3.g, but ensure it's correctly stored). State the `Internal_Current_Iteration_Depth` you are using.
+    j.  **`Internal_Previous_Iteration_Path`**: Get from `Resolved_Params["PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH"]`.
+    k.  **Final Mandatory Parameter Validation:**
+        Initialize `missing_mandatory_params = []`.
+        For each `param_name` in Expected Parameters List:
+            Retrieve its `Requirement_Status` (from 2.b.ii) and its `final_value` from `Resolved_Params`.
+            A special check for `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`: it's only "Required" if `Internal_Current_Iteration_Depth` > 0.
+            If (`Requirement_Status` is "Required" OR (`param_name` is "PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH" AND `Internal_Current_Iteration_Depth` > 0)) AND (`final_value` is empty OR `final_value` contains "...ENTER..." OR `final_value` matches its `template_default_value` that is a known placeholder phrase):
+                Add `param_name` (with its description) to `missing_mandatory_params`.
+        If `missing_mandatory_params` is not empty:
+            Report CRITICAL ERROR: "The following mandatory parameters have not been set to valid values: [list of missing_mandatory_params with their descriptions]. Halting `build_product_specs_process`." Then HALT.
+    l.  **Determine Output File Suffix:** Based on `Internal_Current_Iteration_Depth`, determine `output_file_suffix` (`_D0.md`, `_D1.md`, `_D2.md`, or `_D3.md`).
+
+5.  **Output Updated Configuration Block for Main Prompt (Conditional):** (Logic as before)
+    If `config_values_updated_via_chat` is true OR if `main_prompt_config_block_content` was initially empty/not found:
+    a.  Construct `updated_config_block_string` starting with `[[USER_CONFIG_FOR_build_product_specs_process]]\n`.
+    b.  For each `param_name`: Append its full original comment lines (including `# Requirement...` and `# Description...Default...`) and then `param_name: [USER_VALUE_START] [final_value_from_Resolved_Params] [USER_VALUE_END]\n`.
+    c.  Append `[[END_USER_CONFIG_FOR_build_product_specs_process]]\n`.
+    d.  Output this directive clearly.
+
+---
+### Phase 2: Input Processing (Conditional on Iteration Depth)
+(Use `Internal_Current_Iteration_Depth`, `Internal_PRODUCT_SPECS_INPUT_DOCS_PATH`, etc.)
+... (rest of Phase 2, ensure all direct param uses are via `Internal_` prefixed vars) ...
+
+---
+### Phase 3: Content Generation (Conditional on Iteration Depth)
+(Use `Internal_Current_Iteration_Depth`, `Internal_Max_Ref_Depth`, `Internal_Code_Review_Preference`, `Internal_PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`, etc.)
+... (rest of Phase 3, ensure all direct param uses are via `Internal_` prefixed vars) ...
+
+---
+### Phase 4: Decision Making and Document Structure Finalization
+(Use `Internal_Current_Iteration_Depth`, `Internal_PRODUCT_NAME`, `output_file_suffix`)
+... (rest of Phase 4, ensure all direct param uses are via `Internal_` prefixed vars) ...
+
+---
+### Phase 5: Output Document Assembly and Finalization
+(Use `Internal_PRODUCT_NAME`, `output_file_suffix`, `Internal_PRODUCT_SPECS_GUIDANCE_DOCS_PATH`)
+... (Assemble documents. Apply `output_file_suffix` to filenames: e.g. `{Internal_PRODUCT_NAME}_product_specification{output_file_suffix}`) ...
+
+---
+### Phase 6: Finalization and Output
+(Use `Internal_PRODUCT_SPECS_OUTPUT_PATH`, `Internal_Current_Iteration_Depth`)
+... (rest of Phase 6, ensure all direct param uses are via `Internal_` prefixed vars) ...
+
+---
+### General Instructions for AI (Applicable to all Iteration Depths)
+(Use `Internal_Max_Ref_Depth`)
+... (rest of General Instructions, ensure all direct param uses are via `Internal_` prefixed vars) ...
+
+[[END OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.4]]
