@@ -1,48 +1,43 @@
 {
   "promptAppDisplayName": "Compliance PLM Workflow",
-  "description": "A comprehensive workflow for managing product lifecycle compliance, from concept through retirement.",
+  "description": "A multi-phase workflow for managing Product Lifecycle Management with a focus on compliance.",
   "phases": [
     {
       "phaseName": "Concept Phase",
       "tasks": [
         {
+          "taskName": "Research",
+          "description": "Conduct initial research for the product concept.",
+          "componentName": "create_research_report",
+          "isIterable": false,
+          "defaultConfigOverrides": {}
+        },
+        {
           "taskName": "Architectural Specification",
-          "description": "Generates the architectural specification document using the research report process.",
+          "description": "Develop the architectural specification document.",
           "componentName": "create_research_report",
           "isIterable": true,
           "defaultConfigOverrides": {
-            "REPORT_BASENAME": "ArchitecturalSpecification",
-            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Architectural Specification]",
-            "ITERATIVE_OUTPUT_DEPTH": "0"
+            "REPORT_BASENAME": "Architectural_Specification"
           }
         },
         {
           "taskName": "Product Specification",
-          "description": "Generates the main product specification document using the research report process.",
+          "description": "Develop the product specification document.",
           "componentName": "create_research_report",
           "isIterable": true,
           "defaultConfigOverrides": {
-            "REPORT_BASENAME": "ProductSpecification",
-            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Product Specification]",
-            "ITERATIVE_OUTPUT_DEPTH": "0"
+            "REPORT_BASENAME": "Product_Specification"
           }
         },
         {
           "taskName": "Product Requirements",
-          "description": "Generates the product requirements document using the research report process.",
+          "description": "Define and document product requirements.",
           "componentName": "create_research_report",
           "isIterable": true,
           "defaultConfigOverrides": {
-            "REPORT_BASENAME": "ProductRequirements",
-            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Product Requirements]",
-            "ITERATIVE_OUTPUT_DEPTH": "0"
+            "REPORT_BASENAME": "Product_Requirements"
           }
-        },
-        {
-          "taskName": "Test Component Resolution",
-          "description": "Tests if the app-specific version of 'test_resolver_component' is correctly picked up.",
-          "componentName": "test_resolver_component",
-          "isIterable": false
         }
       ]
     },
@@ -51,21 +46,62 @@
       "tasks": [
         {
           "taskName": "Development Planning",
-          "description": "Generates the development plan (task breakdown, schedule, resources).",
+          "description": "Create the detailed development plan.",
           "componentName": "task_spawning_addon",
           "isIterable": false,
           "defaultConfigOverrides": {
-            "MAIN_PROJECT_NAME": "CompliancePLM_Development"
+            "PROJECT_NAME": "CompliancePLM_Development",
+            "MAIN_DEV_PLAN_FILENAME": "Development_Overall_Plan.md"
           }
         },
         {
           "taskName": "Change Management Planning",
-          "description": "Generates the change management plan.",
-          "componentName": "create_research_report",
+          "description": "Create the change management plan.",
+          "componentName": "task_spawning_addon",
           "isIterable": false,
           "defaultConfigOverrides": {
-            "REPORT_BASENAME": "ChangeManagementPlan",
-            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Change Management Plan (e.g., project scope, organizational structure)]"
+            "PROJECT_NAME": "CompliancePLM_ChangeManagement",
+            "MAIN_DEV_PLAN_FILENAME": "Change_Management_Plan.md"
+          }
+        },
+        {
+          "taskName": "Document Management Planning",
+          "description": "Create the document management plan.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_DocumentManagement",
+            "MAIN_DEV_PLAN_FILENAME": "Document_Management_Plan.md"
+          }
+        },
+        {
+          "taskName": "Requirements Management Planning",
+          "description": "Create the requirements management plan.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_RequirementsManagement",
+            "MAIN_DEV_PLAN_FILENAME": "Requirements_Management_Plan.md"
+          }
+        },
+        {
+          "taskName": "Safety Planning",
+          "description": "Create the safety plan.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_Safety",
+            "MAIN_DEV_PLAN_FILENAME": "Safety_Plan.md"
+          }
+        },
+        {
+          "taskName": "CyberSecurity Planning",
+          "description": "Create the cybersecurity plan.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_CyberSecurity",
+            "MAIN_DEV_PLAN_FILENAME": "CyberSecurity_Plan.md"
           }
         }
       ]
@@ -74,34 +110,50 @@
       "phaseName": "Development Phase",
       "tasks": [
         {
-          "taskName": "Not Yet Implemented Task",
-          "description": "This is a placeholder for a future task in the Development Phase.",
-          "componentName": "placeholder_component",
-          "isIterable": false
+          "taskName": "Design",
+          "description": "Execute the design sub-phase of development.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_Dev_Design"
+          }
+        },
+        {
+          "taskName": "Develop",
+          "description": "Execute the develop sub-phase of development.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_Dev_Develop"
+          }
+        },
+        {
+          "taskName": "Test",
+          "description": "Execute the test sub-phase of development.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_Dev_Test"
+          }
+        },
+        {
+          "taskName": "Review",
+          "description": "Execute the review sub-phase of development.",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "PROJECT_NAME": "CompliancePLM_Dev_Review"
+          }
         }
       ]
     },
     {
       "phaseName": "Release Phase",
-      "tasks": [
-        {
-          "taskName": "Not Yet Implemented Task",
-          "description": "This is a placeholder for a future task in the Release Phase.",
-          "componentName": "placeholder_component",
-          "isIterable": false
-        }
-      ]
+      "tasks": []
     },
     {
       "phaseName": "Retire Phase",
-      "tasks": [
-        {
-          "taskName": "Not Yet Implemented Task",
-          "description": "This is a placeholder for a future task in the Retire Phase.",
-          "componentName": "placeholder_component",
-          "isIterable": false
-        }
-      ]
+      "tasks": []
     }
   ]
 }
