@@ -21,7 +21,7 @@ This guide details how to set up your project and interact with this refined MPS
 This section outlines the key pieces of the MPS framework and what you, the user, will typically prepare or copy into your target repository.
 
 *   **`/prompts/Master_Prompt_Segment.txt` (Framework Source):**
-    *   The main wrapper for the Planning AI's instructions (currently v0.5.0). You will copy its *content* into your main spawn prompt file (e.g., `p_my_project_spawn.md`) within your target repository.
+    *   This file serves as the **template** for your main project instruction file. You will typically copy its content to a new file in your target repository (e.g., `target_repo/prompts/my_project_instructions.txt`), add your high-level project request at the very beginning of this new file, and then edit the user configuration blocks within it (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, etc.). You will then instruct the AI to load and process this file using a directive.
     *   It now includes `[[USER_APP_SELECTION]]` for choosing a promptApp, `[[USER_ADDON_SELECTION]]` for choosing standalone add-on apps, placeholders for `[[USER_promptAPP_NAME_CONFIGURATION]]` examples, and an `[[INCLUDE]]` directive for `Core_Planning_Instructions.txt`.
 
 *   **`/prompts/iep/Core_Planning_Instructions.txt` (Framework Source):**
@@ -72,93 +72,132 @@ This section outlines the key pieces of the MPS framework and what you, the user
     *   For each add-on app (e.g., `task_spawning_addon`, `create_research_report`), copy its entire folder from the framework's `prompts/add_ons/` to `target_repo/prompts/add_ons/`.
     *   For each util app, copy its entire folder from `prompts/util/` to `target_repo/prompts/util/`.
 
-**B. Create Your Main Spawn Prompt File (e.g., `target_repo/prompts/p_my_project_spawn.md`):**
+**B. Preparing Your Project Instruction File & Invoking the MPS Framework**
 
-   A recommended order for blocks within your main spawn prompt file is:
-    1.  **Your Specific Project Request.** This is the high-level goal for the AI.
-    2.  **(If using a promptApp) The `[[USER_promptAPP_NAME_CONFIGURATION]]` block** for the selected promptApp (e.g., `[[USER_CompliancePLM_App_CONFIGURATION]]`). This is where you select which tasks within the promptApp to run.
-    3.  **Component-Specific Configuration Blocks (`[[USER_CONFIG_FOR_componentName]]`)**: For any components (whether run standalone via add-on selection, or as part of a selected promptApp task) that need parameter overrides from their defaults.
-    4.  **The Full Content of `/prompts/Master_Prompt_Segment.txt` (Framework Source):** This includes `[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, examples for promptApp configurations, and the `[[INCLUDE]]` directive for `Core_Planning_Instructions.txt`. You **must edit** the selection blocks within this pasted content.
+The way you interact with the MPS framework has been streamlined. Instead of pasting large blocks of text into a single "spawn prompt" for the AI, you will now:
+1.  Prepare a dedicated "Project Instruction File" in your repository.
+2.  Instruct the AI to process this file using a simple directive.
+
+    **Step 1: Prepare Your Project Instruction File (e.g., `target_repo/prompts/my_project_instructions.txt`)**
+
+    This file becomes the central place for your project's high-level goal and all MPS configurations.
+    1.  **Copy Template:** Start by copying the entire content of the canonical `prompts/Master_Prompt_Segment.txt` (from the MPS framework source) into your new project instruction file (e.g., `target_repo/prompts/my_project_instructions.txt`).
+    2.  **Add Your Project Request:** At the **very top** of this new file (before any `[[...]]` blocks from the template), write your detailed, high-level project request. It is **highly recommended** to wrap this request in `[[USER_PROJECT_REQUEST]]` and `[[END_USER_PROJECT_REQUEST]]` tags for robust parsing by `Core_Planning_Instructions.txt` (Section I.A). For example:
+        ```markdown
+        [[USER_PROJECT_REQUEST]]
+        My project is to design and plan for a new automated hydroponics system
+        for urban farming, focusing on modularity and water efficiency.
+        [[END_USER_PROJECT_REQUEST]]
+        ```
+    3.  **Edit MPS Configuration Blocks:** Within the content you pasted from `Master_Prompt_Segment.txt` (following your project request), you will find and edit the following blocks:
+        *   `[[USER_APP_SELECTION]]`: If you want to run a predefined workflow, select one promptApp here.
+        *   `[[USER_ADDON_SELECTION]]`: If not using a promptApp, or if your chosen promptApp allows for supplementary inheritable add-ons, make your selections here.
+        *   `[[USER_promptAPP_NAME_CONFIGURATION]]` (if a promptApp was selected): You must create or uncomment and edit this block (e.g., `[[USER_CompliancePLM_App_CONFIGURATION]]`) to check `[x]` which tasks from the promptApp's manifest you want to execute. Refer to the examples in `Master_Prompt_Segment.txt` or the `PromptApp_Manifest_Guide.md`.
+        *   `[[USER_CONFIG_FOR_componentName]]` blocks: For any component (whether a standalone add-on, or an underlying component of a selected promptApp task) that requires specific parameter overrides, you will create or uncomment and edit its configuration block (e.g., `[[USER_CONFIG_FOR_create_research_report]]`). These blocks provide the parameters for the respective components.
+
+    Your `my_project_instructions.txt` file now contains your project goal and all necessary MPS configurations in one place.
+
+    **Step 2: Invoke the MPS Framework via Directive**
+
+    Once your project instruction file is prepared and saved in your repository, you instruct the Planning AI to use it with a simple directive.
+    *   **Recommended Directive:**
+        `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/your/project_instruction_file.txt]]`
+    *   **Example:** If your file is at `prompts/my_project_instructions.txt` within your repository, the directive would be:
+        `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /prompts/my_project_instructions.txt]]`
+    *   You provide this directive as your input to the AI planning system.
+
+    **How the AI Processes the Directive and User Request:**
+
+    When the AI system (e.g., Jules) receives this directive:
+    1.  It fetches the content of the file specified in the `FROM` path (e.g., `my_project_instructions.txt`).
+    2.  **Internally, it will take any actual textual request that might have preceded the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM ...]]` directive in your initial interaction with the AI system (if you provided any separate text before the directive itself) and wrap this text with `[[USER_PROJECT_REQUEST]]` and `[[END_USER_PROJECT_REQUEST]]` tags.**
+    3.  **This newly formed `[[USER_PROJECT_REQUEST]]` block is then PREPENDED to the content fetched from the file specified in the directive.** (If your project instruction file *also* starts with a `[[USER_PROJECT_REQUEST]]` block, the one from the pre-directive text takes precedence).
+    4.  The combined content (i.e., User Request Block from pre-directive text or top of file + Content of your specified MPS file from the `FROM` path) is then processed according to the logic in `prompts/iep/Core_Planning_Instructions.txt` (which is included by `Master_Prompt_Segment.txt`).
+    5.  `Core_Planning_Instructions.txt` (Section I.A) is designed to first look for and extract the content within the `[[USER_PROJECT_REQUEST]]...[[END_USER_PROJECT_REQUEST]]` block (now expected at the beginning of the combined content) to determine the `User_High_Level_Project_Goal`. If this block isn't found or is empty, the `User_High_Level_Project_Goal` may be considered undefined, and components will need to rely on other configuration means or seek clarification.
 
         **3.B.1. Understanding Path Configurations in the New System**
         Path management relies on:
         *   **Fixed System Paths:** The Planning AI, guided by `Core_Planning_Instructions.txt`, uses fixed relative paths (from the repository root) to discover core components (promptApps in `prompts/apps/`, add-ons in `prompts/add_ons/`, etc.). These are internal to the framework.
-        *   **Component-Specific Path Parameters:** Paths that control where a component reads its specific inputs or writes its outputs (e.g., `PRIMARY_INPUT_DOC_PATH`, `REPORT_OUTPUT_PATH` for the `create_research_report` component) are defined as parameters *within that component's own configuration system*. You manage these via component-specific configuration blocks.
+        *   **Component-Specific Path Parameters:** Paths that control where a component reads its specific inputs or writes its outputs (e.g., `PRIMARY_INPUT_DOC_PATH`, `REPORT_OUTPUT_PATH` for the `create_research_report` component) are defined as parameters *within that component's own configuration system*. You manage these via `[[USER_CONFIG_FOR_componentName]]` blocks within your project instruction file.
 
         **3.B.2. Configuring and Running MPS Workflows**
-        You can direct the MPS framework in two primary ways: by selecting a `promptApp` for a predefined workflow, or by selecting one or more standalone add-on apps if no `promptApp` is chosen.
+        Within your prepared project instruction file, you direct the MPS framework:
 
         *   **i. Selecting and Configuring a `promptApp` (Primary Workflow Method):**
             *   **Selection (`[[USER_APP_SELECTION]]` Block):**
-                *   This block is inside the `Master_Prompt_Segment.txt` content you copied into your main spawn prompt.
-                *   Select **at most one** promptApp by its folder name (e.g., `[x] CompliancePLM_App`). The Planning AI will look for the app's manifest at `prompts/apps/[AppName]/[AppName]_manifest.json`.
+                *   Select **at most one** promptApp by its folder name (e.g., `[x] CompliancePLM_App`). The AI looks for `prompts/apps/[AppName]/[AppName]_manifest.json`.
             *   **Task Configuration (`[[USER_promptAPP_NAME_CONFIGURATION]]` Block):**
-                *   You **must** create this block in your main spawn prompt if you selected a promptApp. Name it after the selected app (e.g., `[[USER_CompliancePLM_App_CONFIGURATION]] ... [[END_USER_CompliancePLM_App_CONFIGURATION]]`).
-                *   Inside this block, you will list phases and tasks based on the selected promptApp's manifest. Mark the tasks you want the AI to execute for the current session with `[x]`. Example:
-                    ```
-                    [[USER_CompliancePLM_App_CONFIGURATION]]
-                    # [Concept Phase]
-                    #   [ ] Architectural Specification
-                    #   [x] Product Specification
-                    #   [ ] Product Requirements
-                    # ... other phases and tasks ...
-                    [[END_USER_CompliancePLM_App_CONFIGURATION]]
-                    ```
-                *   Refer to `framework_dev_docs/guides/PromptApp_Manifest_Guide.md` for how promptApp manifests are structured.
-            *   **Underlying Component Configuration:** Each task checked `[x]` in your `[[USER_promptAPP_NAME_CONFIGURATION]]` block maps to an underlying MPS component (e.g., `create_research_report`). This component might require its own parameters to be set.
-                *   These parameters are resolved using the precedence:
-                    1.  `[[USER_CONFIG_FOR_componentName]]` block in your main spawn prompt (highest).
-                    2.  User-edited values in the component's `USER_componentName_CONFIG.txt` file.
-                    3.  `defaultConfigOverrides` specified in the `promptApp` manifest for that specific task.
+                *   If a promptApp is selected, you **must** provide this block, named after the app (e.g., `[[USER_CompliancePLM_App_CONFIGURATION]]`).
+                *   Inside, check `[x]` next to tasks from the app's manifest that you want to run for the current session.
+                *   Refer to `framework_dev_docs/guides/PromptApp_Manifest_Guide.md`.
+            *   **Underlying Component Configuration:** Each checked task maps to an MPS component. Its parameters are resolved with precedence:
+                    1.  `[[USER_CONFIG_FOR_componentName]]` block in your project instruction file (highest).
+                    2.  User-edited values in the component's `USER_componentName_CONFIG.txt` file (in `target_repo`).
+                    3.  `defaultConfigOverrides` from the `promptApp` manifest for that task.
                     4.  Accepted defaults from the component's `USER_componentName_CONFIG.txt`.
-                    5.  AI-assisted user query if a required parameter with a placeholder default is still unresolved.
-                *   So, if a task's `defaultConfigOverrides` in the manifest are not sufficient, or if the component has other required parameters not covered by those overrides, you'll need to provide a standard `[[USER_CONFIG_FOR_componentName]]` block for that underlying component.
-            *   **Component Resolution Search Order:** When a `promptApp` task in its manifest specifies a `componentName`, the MPS framework will attempt to locate and load the component by searching in the following prioritized order:
-                1.  **App-Specific (Flat File Style):** `prompts/apps/[SelectedAppName]/[componentName].txt` (A component file directly within the selected promptApp's root folder).
-                2.  **App-Specific (Folder Style):** `prompts/apps/[SelectedAppName]/[componentName]/[componentName].txt` (A component structured within its own sub-folder inside the selected promptApp's root folder; its `USER_..._CONFIG.txt` would also be in this sub-folder).
-                3.  **Global Add-on:** `prompts/add_ons/[componentName]/[componentName].txt`
-                4.  **Global Util:** `prompts/util/[componentName]/[componentName].txt`
-                The first component found in this sequence is used. This allows `promptApps` to bundle their own specific versions of components or define unique components that take precedence over global ones if named identically.
-            *   **Iteration and Sequential Execution:**
-                *   If a task in the `promptApp` manifest is marked `isIterable: true`, the underlying component is expected to prompt you to "repeat this task or move on" upon its completion.
-                *   If you choose "move on," the AI session will HALT. The AI will instruct you to update your `[[USER_promptAPP_NAME_CONFIGURATION]]` block in your main spawn prompt to select the next desired task from the `promptApp`'s workflow. You will then start a new AI session with the updated prompt. This is how you progress through a `promptApp`'s sequence of tasks.
+                    5.  AI-assisted user query for required/placeholder parameters.
+                *   Provide `[[USER_CONFIG_FOR_componentName]]` blocks if manifest/component defaults are insufficient.
+            *   **Component Resolution Search Order (App-Specific First):**
+                1.  `prompts/apps/[SelectedAppName]/[componentName].txt`
+                2.  `prompts/apps/[SelectedAppName]/[componentName]/[componentName].txt`
+                3.  `prompts/add_ons/[componentName]/[componentName].txt`
+                4.  `prompts/util/[componentName]/[componentName].txt`
+            *   **Iteration and Sequential Execution:** Iterable tasks prompt "repeat or move on." Choosing "move on" halts the AI, requiring you to update the `[[USER_promptAPP_NAME_CONFIGURATION]]` block for the next task and re-invoke the AI with the *same directive pointing to your updated project instruction file*.
 
         *   **ii. Selecting and Configuring Standalone Add-on Apps (if no promptApp is selected):**
-            This is the fallback method if you are not using a `promptApp`.
             *   **Selection (`[[USER_ADDON_SELECTION]]` Block):**
-                *   Located within the `Master_Prompt_Segment.txt` content.
-                *   List the **folder name** of the add-on(s) you want to use (e.g., `[x] create_research_report`). The AI looks for `prompts/add_ons/[addonName]/[addonName].txt`.
-                *   **Order & Primary Add-on:** If using a primary add-on like `task_spawning_addon`, list it last. Other selected "inheritable" add-ons (e.g., `task_resumption_addon`) will have their content appended to generated task prompts in the order listed.
-            *   **Parameter Configuration (`USER_componentName_CONFIG.txt` and `[[USER_CONFIG_FOR_componentName]]` blocks):**
-                *   Configurable add-ons manage parameters via their `USER_componentName_CONFIG.txt` file (template/storage) and optional `[[USER_CONFIG_FOR_componentName]]` override blocks in your main spawn prompt.
-                *   **`USER_componentName_CONFIG.txt` File:** Found in the component's folder (e.g., `prompts/add_ons/create_research_report/USER_create_research_report_CONFIG.txt`). It defines parameters, defaults, requirements, and types.
-                *   **User Workflow:**
-                    1.  **Discover Parameters:** Check `available_addons_manifest.md` or the component's `USER_..._CONFIG.txt`.
-                    2.  **Provide Overrides (Recommended):** Copy the content of the relevant `USER_..._CONFIG.txt` into your main spawn prompt as a `[[USER_CONFIG_FOR_componentName]]` block and edit values.
-                    3.  **Persistent Edits:** Alternatively, edit the `USER_..._CONFIG.txt` directly in your target repo.
-                *   **Parameter Resolution Precedence (for standalone components):**
-                    1.  Value from `[[USER_CONFIG_FOR_componentName]]` block in the main spawn prompt.
-                    2.  User-edited value in `USER_componentName_CONFIG.txt`.
-                    3.  Accepted default value from `# Default:` in `USER_componentName_CONFIG.txt`.
-                    4.  **AI-Assisted Update:** For `Required | PlaceholderDefault` parameters still unresolved, the AI will ask for input, update the on-disk `USER_..._CONFIG.txt`, and prompt you to copy the updated block to your main prompt.
-                *   **Error Handling:** Required parameters not resolved will cause the component to halt.
+                *   List add-on folder names (e.g., `[x] create_research_report`). The AI looks for `prompts/add_ons/[addonName]/[addonName].txt`.
+                *   Order matters for inheritable add-ons if a primary add-on like `task_spawning_addon` is used.
+            *   **Parameter Configuration:** Parameters for standalone add-ons are resolved with precedence:
+                    1.  `[[USER_CONFIG_FOR_componentName]]` block in your project instruction file.
+                    2.  User-edited value in its `USER_componentName_CONFIG.txt` (in `target_repo`).
+                    3.  Accepted default from its `USER_componentName_CONFIG.txt`.
+                    4.  AI-Assisted Update for required/placeholder parameters.
 
-**D. Invoke the Planning AI:** (Content as before)
+**D. Invoke the Planning AI:** (This section is now covered by 3.B Step 2)
 
 **E. Understanding the Planning AI's Process:**
-The Planning AI will then:
-1.  Read your spawn prompt.
-2.  Process Core Instructions (`/prompts/iep/Core_Planning_Instructions.txt`):
-    *   Discover available promptApp manifests, add-on apps, and util apps from their fixed system paths.
-    *   Parse `[[USER_APP_SELECTION]]` to identify if a `promptApp` is selected.
+The Planning AI, upon receiving the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM ...]]` directive, will:
+1.  Fetch and prepare the content of your specified project instruction file, prepending any user request text that preceded the directive (wrapped in `[[USER_PROJECT_REQUEST]]` tags).
+2.  Process Core Instructions (from `/prompts/iep/Core_Planning_Instructions.txt` as included by the loaded file's MPS template):
+    *   Extract `User_High_Level_Project_Goal` from the `[[USER_PROJECT_REQUEST]]` block (expected at the beginning of the combined content).
+    *   Discover available promptApp manifests, add-on apps, and util apps.
+    *   Parse `[[USER_APP_SELECTION]]` (from the loaded file).
     *   If a `promptApp` is selected:
-        *   Parse its `[[USER_AppName_CONFIGURATION]]` block to determine selected tasks.
-        *   Proceed to execute the first selected task, loading the specified component and its configurations (considering manifest overrides, `USER_..._CONFIG.txt`, and main prompt blocks).
+        *   Parse its `[[USER_promptAppName_CONFIGURATION]]` block (from the loaded file) to determine selected tasks.
+        *   Proceed to execute the first selected task, loading its component and configurations as per defined search order and precedence.
     *   If no `promptApp` is selected:
-        *   Parse `[[USER_ADDON_SELECTION]]` to identify selected add-on app names.
-        *   For each selected add-on, load its instructions and discover its `[[USER_CONFIG_FOR_addonName]]` block from the main prompt.
+        *   Parse `[[USER_ADDON_SELECTION]]` (from the loaded file).
+        *   Load selected add-ons and discover their `[[USER_CONFIG_FOR_componentName]]` blocks (from the loaded file).
         *   Execute the primary add-on or other selected add-ons.
-3.  Read Supporting Files as needed.
+3.  Read other supporting files (like Base IEP) as needed.
+
+    **3.C. Directly Invoking Utilities with the MPS Directive**
+
+    The `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM ...]]` directive is versatile and can also be used to directly invoke specific utility components, such as the `promptimizer` utility. This is useful for focused tasks that don't require the full promptApp or add-on selection overhead.
+
+    The general usage pattern is:
+    ```
+    [[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/utility_file.txt]]
+    The text or content that the utility should process goes here, immediately following the directive.
+    ```
+
+    **Example: Using the `promptimizer` utility directly:**
+
+    To get feedback on a high-level project idea using the `promptimizer` utility, your interaction with the AI system would be:
+
+    ```
+    [[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /prompts/util/promptimizer/promptimizer.txt]]
+    My project idea is to create a universal translator for squirrel languages. I think it could be a mobile app and also a web service. I'm not sure about the technical details yet but want to explore the concept.
+    ```
+
+    The AI system will then:
+    1. Load the content of `/prompts/util/promptimizer/promptimizer.txt`.
+    2. Take the text you provided *after* the directive ("My project idea is to create a universal translator...").
+    3. Prepend the `promptimizer.txt` content to your project idea text.
+    4. Process the combined text. The `promptimizer.txt` instructions will guide the AI to analyze your project idea and provide structured feedback.
+
+    This method is suitable for utilities designed to process text appended directly after their own prompt content. The utility itself doesn't use the `[[USER_PROJECT_REQUEST]]` block mechanism; it typically processes the immediate subsequent text.
 
 ---
 ## 4. Developing New MPS Components

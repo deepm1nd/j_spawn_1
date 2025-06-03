@@ -1,3 +1,45 @@
+# === MPS TEMPLATE INSTRUCTIONS FOR USER ===
+#
+# This file (`Master_Prompt_Segment.txt`) is a template. To use the MPS framework:
+#
+# 1. **COPY TO YOUR PROJECT:**
+#    Copy the entire content of this file into a new file within your own project's
+#    `prompts` directory (e.g., `my_project_repo/prompts/my_project_main_mps.txt`).
+#
+# 2. **ADD YOUR PROJECT REQUEST (IN YOUR COPY):**
+#    At the VERY BEGINNING of your new file (e.g., `my_project_main_mps.txt`),
+#    add your high-level project request. It is **highly recommended** to wrap
+#    your request in `[[USER_PROJECT_REQUEST]]` and `[[END_USER_PROJECT_REQUEST]]` tags.
+#    For example:
+#
+#    [[USER_PROJECT_REQUEST]]
+#    My project is to design and plan for a new automated hydroponics system
+#    for urban farming, focusing on modularity and water efficiency.
+#    [[END_USER_PROJECT_REQUEST]]
+#
+#    (The rest of this template's content, starting with `[[USER_APP_SELECTION]]`
+#    or other initial blocks, should follow immediately after your project request.)
+#
+# 3. **CONFIGURE YOUR MPS FILE (IN YOUR COPY):**
+#    Edit the user configuration blocks within your new file as needed:
+#    *   `[[USER_APP_SELECTION]]`: Select a promptApp if you are using one.
+#    *   `[[USER_ADDON_SELECTION]]`: Select standalone add-ons if not using a promptApp.
+#    *   `[[USER_promptAPP_NAME_CONFIGURATION]]`: If you selected a promptApp, define
+#       which of its tasks to run. (See examples in this template).
+#    *   `[[USER_CONFIG_FOR_componentName]]`: Provide specific configurations for
+#       any components that require them.
+#
+# 4. **INVOKE THE MPS FRAMEWORK (YOUR ACTUAL PROMPT TO THE AI SYSTEM):**
+#    Your actual prompt to the AI planning system will then be a single directive
+#    pointing to YOUR prepared file. For example:
+#
+#    `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /prompts/my_project_main_mps.txt]]`
+#
+#    The AI system will load your file, find your project request within the
+#    `[[USER_PROJECT_REQUEST]]` tags, and then process your MPS configurations.
+#
+# === END OF MPS TEMPLATE INSTRUCTIONS ===
+
 [[USER_APP_SELECTION]]
 # Instructions for user:
 # - List desired "promptApp" names below, one per line.
