@@ -20,11 +20,17 @@ User-Specified Task Output Base Path: dev/default_task_outputs
 # PRODUCT_NAME: Your_Product_Name_Here                 # e.g., "NovaSystem", "QuantumLeap CRM". Used for naming output files.
 # PRODUCT_SPECS_INPUT_DOCS_PATH: product_dev/inputs   # Relative to repo root. Folder containing market research, user feedback, competitive analysis, etc.
 # PRODUCT_SPECS_GUIDANCE_DOCS_PATH: product_dev/guidance # Relative to repo root. Folder containing branding guides, compliance docs, technical constraints, style guides.
-# PRODUCT_SPECS_OUTPUT_PATH: product_dev/specifications # Relative to repo root. Folder where generated specification documents (e.g., PRD, MRD, technical specs) will be saved.
+# PRODUCT_SPECS_OUTPUT_PATH: product_dev/specifications_D0 # Relative to repo root. Folder where generated specification documents (e.g., PRD, MRD, technical specs) will be saved FOR THE CURRENT ITERATION.
 # PRODUCT_SPECS_PRIMARY_INPUT_FILE: product_dev/inputs/main_requirements_document.md # Optional: Specific document (path relative to repo root) to guide heading-based research.
 # PRODUCT_SPECS_REF_DEPTH: 1 # Optional: Depth for following internal references within provided documents (0, 1, or 2). Default is 1 if not specified.
 # PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE: cursory # Optional: "complex", "cursory", or "focused". Default: "cursory". Controls AI's depth when reviewing linked codebases/files.
 # PRODUCT_SPECS_CODEBASE_FOCUS_AREAS: "" # Optional: Comma-separated keywords or phrases if preference is "focused", to guide AI's attention within code. (e.g., "authentication, API integration, data validation")
+# PRODUCT_SPECS_ITERATION_DEPTH: 0 # Iteration depth (0, 1, 2, or 3). Default is 0.
+#                                   # 0=Outline (all heading levels 3-4 deep, title, 1 para key ideas per heading).
+#                                   # 1=Basic Content (Bachelor's level, ~3 paras per original D0 heading with concepts, examples). Builds on D0.
+#                                   # 2=Expert Elaboration (~1 page per original D0 heading, deeper analysis, more nuanced). Builds on D1.
+#                                   # 3=AI Unique Insights (Extensive elaboration, ~3 pages per original D0 heading, novel ideas, critical analysis). Builds on D2.
+# PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: "" # Optional: Path to folder (relative to repo root) containing output from the PREVIOUS iteration. Required for depth 1, 2, or 3. (e.g., "product_dev/specifications_D0" when running Depth 1)
 [[END USER PATH CONFIGURATION]]
 
 [[USER_ADDON_SELECTION]]
