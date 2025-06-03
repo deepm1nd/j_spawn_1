@@ -1,64 +1,48 @@
-[[USER PATH CONFIGURATION]]
-# Instructions for User: Edit the paths below before using this MPS.
-
-# --- General Project & Task Spawning Paths (used by task_spawning_addon.txt and other general purpose add-ons) ---
-# - Main Iteration Folder: Where the Planning AI will place all its outputs for the target project.
-#   Use '.' for the repository root, or a relative path like 'project_X_outputs'.
-# - Prompts Folder: Subdirectory for generated task prompts, TLP, IEP. Relative to Main Iteration Folder.
-#   Example: 'prompts/tasks' if Main Iteration Folder is '.'.
-# - Submodule Plan Destination: Directory for main project plan (e.g., gritos_dev_plan.md) and Task AI _dev_plan.md files. Relative to Main Iteration Folder.
-# - Inter-AI Communication Folder: Subdirectory for IPC files. Typically nested within 'Prompts Folder'.
-# - User-Specified Task Output Base Path: The root path where Task AIs will place their primary deliverables (e.g., code). Relative to repo root.
-
-Main Iteration Folder: .
-Prompts Folder: prompts/tasks
-Submodule Plan Destination: plan
-Inter-AI Communication Folder: prompts/tasks/ipc
-User-Specified Task Output Base Path: dev/default_task_outputs
-
-# --- Variables for "Build Product Specs" Process (used by build_product_specs_process.txt add-on) ---
-# PRODUCT_NAME: Your_Product_Name_Here                 # e.g., "NovaSystem", "QuantumLeap CRM". Used for naming output files.
-# PRODUCT_SPECS_INPUT_DOCS_PATH: product_dev/inputs   # Relative to repo root. Folder containing market research, user feedback, competitive analysis, etc.
-# PRODUCT_SPECS_GUIDANCE_DOCS_PATH: product_dev/guidance # Relative to repo root. Folder containing branding guides, compliance docs, technical constraints, style guides.
-# PRODUCT_SPECS_OUTPUT_PATH: product_dev/specifications_D0 # Relative to repo root. Folder where generated specification documents (e.g., PRD, MRD, technical specs) will be saved FOR THE CURRENT ITERATION.
-# PRODUCT_SPECS_PRIMARY_INPUT_FILE: product_dev/inputs/main_requirements_document.md # Optional: Specific document (path relative to repo root) to guide heading-based research.
-# PRODUCT_SPECS_REF_DEPTH: 1 # Optional: Depth for following internal references within provided documents (0, 1, or 2). Default is 1 if not specified.
-# PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE: cursory # Optional: "complex", "cursory", or "focused". Default: "cursory". Controls AI's depth when reviewing linked codebases/files.
-# PRODUCT_SPECS_CODEBASE_FOCUS_AREAS: "" # Optional: Comma-separated keywords or phrases if preference is "focused", to guide AI's attention within code. (e.g., "authentication, API integration, data validation")
-# PRODUCT_SPECS_ITERATION_DEPTH: 0 # Iteration depth (0, 1, 2, or 3). Default is 0.
-#                                   # 0=Outline (all heading levels 3-4 deep, title, 1 para key ideas per heading).
-#                                   # 1=Basic Content (Bachelor's level, ~3 paras per original D0 heading with concepts, examples). Builds on D0.
-#                                   # 2=Expert Elaboration (~1 page per original D0 heading, deeper analysis, more nuanced). Builds on D1.
-#                                   # 3=AI Unique Insights (Extensive elaboration, ~3 pages per original D0 heading, novel ideas, critical analysis). Builds on D2.
-# PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: "" # Optional: Path to folder (relative to repo root) containing output from the PREVIOUS iteration. Required for depth 1, 2, or 3. (e.g., "product_dev/specifications_D0" when running Depth 1)
-[[END USER PATH CONFIGURATION]]
-
 [[USER_ADDON_SELECTION]]
 # Instructions for user:
-# - List desired add-on filenames below, one per line.
+# - List desired add-on "app names" (folder names) below, one per line.
 # - Mark selection with '[x]' (case-insensitive for 'x').
-# - Add-ons must exist in the '/prompts/add_ons/' directory of this repository (i.e., the repo where the Planning AI runs).
-# - Ensure exact filenames, including extensions (e.g., .txt).
+# - Add-on apps must exist as subdirectories in `prompts/add_ons/` in the target repository.
+# - Each add-on app folder must contain a primary instruction file: `[app_name]/[app_name].txt`.
 #
-# - If 'task_spawning_addon.txt' (see below) is selected, other selected add-ons listed *before* it
-#   will typically be appended to the generated task prompts, preserving their listed order.
-#   This allows you to control the sequence of supplementary instructions in task prompts.
+# - If a primary add-on like 'task_spawning_addon' is selected, other selected add-on apps
+#   listed *before* it will typically have their primary instruction file content appended to the
+#   generated task prompts, preserving their listed order. This allows you to control the
+#   sequence of supplementary instructions in task prompts.
 #
-# - If 'task_spawning_addon.txt' is NOT selected, other add-ons will be processed as per
-#   their own directives, and their order of execution by the Planning AI will also follow this list.
+# - If no primary add-on app that generates sub-tasks is selected (or if 'task_spawning_addon'
+#   is not selected), other selected add-on apps will be processed as per their own directives,
+#   and their order of execution by the Planning AI will also follow this list.
+#
+# - App-specific configurations: Some add-on apps may use parameters defined in a
+#   `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` block, which you would
+#   place in your main spawn prompt (typically after your project request and before the
+#   `[[MASTER_PROMPT_SEGMENT]]` block). Refer to the add-on's documentation or its
+#   `USER_appName_CONFIG.txt` template file for details on its parameters.
 
-[x] task_resumption_addon.txt               # Example: Provides task state resumption capabilities for Task AIs.
-# [ ] example_coding_standards_addon.txt    # Example: Could provide coding standards for Task AIs.
-# [ ] example_security_checklist_addon.txt  # Example: Could provide security checks for Task AIs.
+[x] task_resumption_addon               # Example: Provides task state resumption capabilities for Task AIs.
+# [ ] example_coding_standards_addon    # Example: Could provide coding standards for Task AIs.
+# [ ] example_security_checklist_addon  # Example: Could provide security checks for Task AIs.
 #
-# [ ] build_product_specs_process.txt # Example: Select to generate product specification documents.
-# [ ] task_spawning_addon.txt  # CRITICAL: Select this to enable project planning & task generation by the Planning AI.
-                               # If selected, it's generally best listed last as it orchestrates the use of other add-ons for Task AIs.
-[[END USER_ADDON_SELECTION]]
+# [ ] build_product_specs_process # Example: Select to generate product specification documents.
+# [ ] task_spawning_addon  # CRITICAL: Select this to enable project planning & task generation by the Planning AI.
+                               # If selected, it's generally best listed last as it orchestrates other add-ons for Task AIs.
+[[END_USER_ADDON_SELECTION]]
 
 --------------------------------------------------------------------------------------------------------------
-[[START OF MASTER PROMPT SEGMENT (v0.3.2 - Canonical Paths, Internal Configs, 8 Features): AI Project Planning & Task Generation Instructions]]
+[[START OF MASTER PROMPT SEGMENT (v0.4.0 - App-Specific Configs, Fixed Component Paths): AI Project Planning & Task Generation Instructions]]
+
+# Overall AI Operation:
+# You are a Planning AI. Your primary function is to interpret a user's project request (provided by the user *before* this Master Prompt Segment begins)
+# and then to follow the instructions within this segment, including processing selected add-on "apps", to achieve the user's goal.
+# This MPS now uses a "folder-per-app" architecture for components (add-ons, utils) with fixed base paths (e.g., `prompts/add_ons/`, `prompts/util/`).
+# App-specific configurations can be provided by the user in their main spawn prompt within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks.
+# Core operational instructions, including component discovery and loading, are defined in an included file.
 
 [[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]
 
-[[END OF MASTER PROMPT SEGMENT (v0.3.2 - Canonical Paths, Internal Configs, 8 Features)]]
+# Note: The `Core_Planning_Instructions.txt` will guide you on parsing `[[USER_ADDON_SELECTION]]`,
+# discovering app-specific config blocks from the main prompt, loading components, and executing the
+# selected primary add-on app or other selected add-ons.
+
+[[END OF MASTER PROMPT SEGMENT (v0.4.0 - App-Specific Configs, Fixed Component Paths)]]

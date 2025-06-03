@@ -217,6 +217,51 @@ This session focused on restructuring the MPS framework components (add-ons, uti
 **State of Deliverables:**
 The MPS framework has been successfully refactored to a "folder-per-app" architecture for its components. Core instruction loading logic, all existing add-ons and utils, and all key documentation (`Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`) have been updated to support and reflect this new structure. The framework is now significantly more modular, organized, and extensible for future component development. Ready for submission and testing.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions: Configuration System Refactoring (Fixed Paths, App-Specific Configs, USER_config.txt Standard)**
+This session executed a major refactoring of the MPS configuration system, moving away from a global `[[USER PATH CONFIGURATION]]` block in `Master_Prompt_Segment.txt` towards a more modular and app-centric approach.
+
+*   **Architectural Changes & Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):**
+    *   **Fixed Global System Paths:** Implemented for core component discovery. Base directories for Add-ons (`prompts/add_ons/`), Utils (`prompts/util/`), Base IEP (`prompts/iep/`), and IPC (`prompts/ipc/`) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup. These paths are no longer read from `Master_Prompt_Segment.txt`.
+    *   **App-Specific Configuration Block Discovery:** `Core_Planning_Instructions.txt` was updated to scan the main user spawn prompt for app-specific configuration blocks demarcated by `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]`. The raw string content of such blocks is captured and passed to the respective add-on app.
+
+*   **`Master_Prompt_Segment.txt` Streamlining (v0.4.0):**
+    *   The entire `[[USER PATH CONFIGURATION]]` block was removed.
+    *   Comments in `[[USER_ADDON_SELECTION]]` were updated to guide users to use app names (folder names) and to refer to app-specific configuration methods (i.e., the `[[USER_CONFIG_FOR_appName]]` blocks or `USER_appName_CONFIG.txt` files).
+    *   Version updated to `v0.4.0` to reflect these structural changes.
+
+*   **`USER_appName_CONFIG.txt` Standard Formalized:**
+    *   Defined a standard format for `USER_appName_CONFIG.txt` files, which serve as templates and persistent storage for app parameters within each app's folder (e.g., `prompts/add_ons/appName/USER_appName_CONFIG.txt`).
+    *   **Standard Includes:**
+        *   Overall `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` delimiters.
+        *   Per-parameter metadata: `# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`.
+        *   Per-parameter description and default: `# Description: ... Default: [template_default_value]`.
+        *   Parameter value line: `PARAM_NAME: [USER_VALUE_START] [current_value] [USER_VALUE_END]`.
+    *   An illustrative `USER_exampleApp_CONFIG.txt` was defined as part of the standard.
+
+*   **Implementation in `build_product_specs_process` App:**
+    *   Created `prompts/add_ons/build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` adhering to the new standard, defining all its parameters (including `PRODUCT_NAME`, `PRODUCT_SPECS_*` paths, iteration settings, codebase review settings) with appropriate metadata.
+    *   Refined `prompts/add_ons/build_product_specs_process/build_product_specs_process.txt` (v0.4) to:
+        *   Remove old logic for reading parameters from the global `[[USER PATH CONFIGURATION]]`.
+        *   Implement the new parameter resolution logic:
+            1.  Prioritize values from the `[[USER_CONFIG_FOR_build_product_specs_process]]` block in the main spawn prompt.
+            2.  Fall back to user-edited values in its `USER_..._CONFIG.txt` file.
+            3.  Fall back to "AcceptedDefault" values from its `USER_..._CONFIG.txt` file.
+            4.  For "Required" parameters with "PlaceholderDefault" values that are still unresolved, instruct Jules to request input from the user via chat.
+        *   The AI updates the on-disk `USER_build_product_specs_process_CONFIG.txt` with values obtained via chat.
+        *   The AI outputs the complete, updated `[[USER_CONFIG_FOR_build_product_specs_process]]` block for the user to copy to their main spawn prompt if changes occurred via chat or if the block was initially missing/incomplete.
+        *   Added final validation to HALT if any `Required` parameters remain unset after all resolution attempts.
+
+*   **Documentation Update (`framework_dev_docs/guides/MPS_Usage_Guide.md`):**
+    *   Comprehensively updated to reflect the removal of `[[USER PATH CONFIGURATION]]` for global paths.
+    *   Explained the fixed system paths for component discovery.
+    *   Detailed the new app-specific configuration system: the role and format of `USER_appName_CONFIG.txt` files, the `[[USER_CONFIG_FOR_appName]]` blocks in the main prompt, the user workflow for configuration, and the AI's parameter resolution precedence including AI-assisted updates.
+
+**State of Deliverables:**
+The MPS framework's configuration system has been thoroughly refactored. Global component paths are now fixed. App-specific parameters are managed via a robust system of `USER_appName_CONFIG.txt` template/storage files and `[[USER_CONFIG_FOR_appName]]` override blocks in the main user prompt, featuring AI-assisted updates for mandatory parameters. The `build_product_specs_process` add-on fully implements this new configuration paradigm. All core documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`) is updated. The framework is significantly more modular, user-friendly in its configuration, and extensible. Ready for submission and testing.
+---
 
 ## MPS Performance Feedback Log
 
@@ -347,4 +392,25 @@ The framework was refactored to a "folder-per-app" architecture for all componen
         - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
         - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
     This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (desire to simplify MPS, new way to handle app-specific data, AI assistance for missing/default configs, specific format for detecting edits).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment and Core Planning Instructions).
+**Context/Scenario:** This feedback entry summarizes a series of user requests and design discussions aimed at a comprehensive overhaul of the MPS framework's configuration system and a significant enhancement of the `build_product_specs_process` add-on's iterative capabilities.
+**Observation/Issue:**
+    1.  The global `[[USER PATH CONFIGURATION]]` in `Master_Prompt_Segment.txt` was becoming unwieldy; app-specific configs were mixed with global ones; parameter precedence and user edit detection were not formalized.
+    2.  A more structured and discoverable way to manage parameters for individual add-on apps was needed, including clear defaults and user override mechanisms.
+    3.  Users needed assistance in setting mandatory parameters, especially those with placeholder defaults.
+**Suggestion for MPS Refinement (Implemented):**
+A comprehensive refactoring of the configuration system was performed:
+    1.  **Fixed Global System Paths:** Core component discovery paths (for add-ons, utils, IEP, IPC) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup.
+    2.  **`[[USER PATH CONFIGURATION]]` Removed from `Master_Prompt_Segment.txt`:** This block was deleted. General output paths (like `Main Iteration Folder`) and other process-specific parameters are now intended to be managed as parameters within the configuration system of the relevant app.
+    3.  **App-Specific Configuration System:**
+        *   **`USER_appName_CONFIG.txt` Standard:** Defined a standard format for these template/storage files within each app's folder. This includes `[[USER_CONFIG_FOR_appName]]` delimiters, and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), description with default (`# Description: ... Default: ...`), and the value line (`PARAM_NAME: [USER_VALUE_START]value[USER_VALUE_END]`).
+        *   **Main Prompt Overrides:** Users can copy the content of a `USER_appName_CONFIG.txt` into their main spawn prompt to provide run-specific overrides.
+        *   **Parameter Resolution Precedence:** Implemented in app logic (demonstrated in `build_product_specs_process.txt`): Main prompt block > User-edited `USER_appName_CONFIG.txt` > AcceptedDefault in `USER_appName_CONFIG.txt`.
+        *   **AI-Assisted Updates:** If a `Required` parameter with a `PlaceholderDefault` remains unresolved, the app instructs the AI (Jules) to request the value from the user via chat. The AI then updates the on-disk `USER_appName_CONFIG.txt` with the new value and outputs the complete updated config block for the user to transfer to their main spawn prompt.
+    4.  **Documentation:** All changes were reflected in `Master_Prompt_Segment.txt` (now v0.4.0), `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, and relevant add-on files (e.g., `build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` and its primary instruction file).
+    This new system offers improved modularity, clarity in parameter management, and a better user experience through AI-assisted configuration.
 ---
