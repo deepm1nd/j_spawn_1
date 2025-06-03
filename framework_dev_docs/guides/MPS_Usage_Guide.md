@@ -21,11 +21,11 @@ This guide details how to set up your project and interact with this refined MPS
 This section outlines the key pieces of the MPS framework and what you, the user, will typically prepare or copy into your target repository.
 
 *   **`/prompts/Master_Prompt_Segment.txt` (Framework Source):**
-    *   This file serves as the **template** for your main project instruction file. You will typically copy its content to a new file in your target repository (e.g., `target_repo/prompts/my_project_instructions.txt`), add your high-level project request at the very beginning of this new file, and then edit the user configuration blocks within it (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, etc.). You will then instruct the AI to load and process this file using a directive.
-    *   It now includes `[[USER_APP_SELECTION]]` for choosing a promptApp, `[[USER_ADDON_SELECTION]]` for choosing standalone add-on apps, placeholders for `[[USER_promptAPP_NAME_CONFIGURATION]]` examples, and an `[[INCLUDE]]` directive for `Core_Planning_Instructions.txt`.
+    *   This file serves as the **template** for your main project instruction file. You will typically copy its content to a new file in your target repository (e.g., `target_repo/prompts/my_project_instructions.txt`), add your high-level project request at the very beginning of this new file, and then edit the user configuration blocks within it (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, `[[USER_FRAMEWORK_SETTINGS]]` etc.). You will then instruct the AI to load and process this file using a directive.
+    *   It now includes `[[USER_APP_SELECTION]]` for choosing a promptApp, `[[USER_ADDON_SELECTION]]` for choosing standalone add-on apps, `[[USER_FRAMEWORK_SETTINGS]]` for framework-level configurations, placeholders for `[[USER_promptAPP_NAME_CONFIGURATION]]` examples, and an `[[INCLUDE]]` directive for `Core_Planning_Instructions.txt`.
 
 *   **`/prompts/iep/Core_Planning_Instructions.txt` (Framework Source):**
-    *   Contains foundational instructions for the Planning AI. It dictates component discovery (promptApps, add-ons, utils using fixed paths), loading of primary instruction files, parsing of user selections, discovery of app-specific configuration blocks, and conditional execution logic for promptApps or standalone add-ons.
+    *   Contains foundational instructions for the Planning AI. It dictates component discovery (promptApps, add-ons, utils using fixed paths), loading of primary instruction files, parsing of user selections (including framework settings), discovery of app-specific configuration blocks, and conditional execution logic for promptApps or standalone add-ons.
     *   **Action Required:** You **must copy** this file to `target_repo/prompts/iep/Core_Planning_Instructions.txt`.
 
 *   **New Subsection: `promptApp` Definitions (`prompts/apps/`)**
@@ -92,6 +92,8 @@ The way you interact with the MPS framework has been streamlined. Instead of pas
     3.  **Edit MPS Configuration Blocks:** Within the content you pasted from `Master_Prompt_Segment.txt` (following your project request), you will find and edit the following blocks:
         *   `[[USER_APP_SELECTION]]`: If you want to run a predefined workflow, select one promptApp here.
         *   `[[USER_ADDON_SELECTION]]`: If not using a promptApp, or if your chosen promptApp allows for supplementary inheritable add-ons, make your selections here.
+        *   `[[USER_FRAMEWORK_SETTINGS]]`: This block allows you to control certain framework-level behaviors. Currently, it contains:
+            *   `[ ] Full_Handoff_Notes_Logging_Enabled`: Check this box if you want the AI (Jules) to record detailed session summaries in `framework_dev_docs/meta/HANDOFF_NOTES.md`. If unchecked (default), Jules will record concise summaries focusing on major architectural changes, key decisions, and deliverables.
         *   `[[USER_promptAPP_NAME_CONFIGURATION]]` (if a promptApp was selected): You must create or uncomment and edit this block (e.g., `[[USER_CompliancePLM_App_CONFIGURATION]]`) to check `[x]` which tasks from the promptApp's manifest you want to execute. Refer to the examples in `Master_Prompt_Segment.txt` or the `PromptApp_Manifest_Guide.md`.
         *   `[[USER_CONFIG_FOR_componentName]]` blocks: For any component (whether a standalone add-on, or an underlying component of a selected promptApp task) that requires specific parameter overrides, you will create or uncomment and edit its configuration block (e.g., `[[USER_CONFIG_FOR_create_research_report]]`). These blocks provide the parameters for the respective components.
 
@@ -163,6 +165,7 @@ The Planning AI, upon receiving the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM ...]]
     *   Extract `User_High_Level_Project_Goal` from the `[[USER_PROJECT_REQUEST]]` block (expected at the beginning of the combined content).
     *   Discover available promptApp manifests, add-on apps, and util apps.
     *   Parse `[[USER_APP_SELECTION]]` (from the loaded file).
+    *   Parse `[[USER_FRAMEWORK_SETTINGS]]` (from the loaded file) to determine handoff note verbosity.
     *   If a `promptApp` is selected:
         *   Parse its `[[USER_promptAppName_CONFIGURATION]]` block (from the loaded file) to determine selected tasks.
         *   Proceed to execute the first selected task, loading its component and configurations as per defined search order and precedence.
@@ -219,5 +222,32 @@ This section is for developers looking to extend the MPS framework.
     4.  **Include Supporting Files:** Place all other necessary files within this app folder.
     5.  **Manifest (for Add-ons):** Document new add-on apps in `prompts/add_ons/available_addons_manifest.md`.
 ---
+
+## 5. Framework Operational Notes & Meta Information
+
+This section provides context on some operational aspects of the MPS framework, particularly concerning logging and historical records.
+
+**A. Handoff Notes (`framework_dev_docs/meta/HANDOFF_NOTES.md`) Management**
+
+*   **User-Controlled Verbosity:**
+    *   You can now control the level of detail the AI (Jules) records in the `framework_dev_docs/meta/HANDOFF_NOTES.md` file at the end of its operational session.
+    *   This is managed via the `[[USER_FRAMEWORK_SETTINGS]]` block in your project-specific MPS instruction file (your copy of `Master_Prompt_Segment.txt`).
+    *   Within this block, the `[ ] Full_Handoff_Notes_Logging_Enabled` checkbox determines the logging level:
+        *   **Checked (`[x]`):** Jules will append detailed session summaries to `HANDOFF_NOTES.md`, including user feedback addressed, a detailed account of changes, the state of deliverables, and any pending items or suggestions.
+        *   **Unchecked (`[ ]` - default):** Jules will append concise summaries, focusing only on major architectural changes, key decisions made, and the final state of key deliverables.
+    *   This setting allows you to choose between comprehensive logging for detailed tracking or more streamlined notes that highlight critical developments.
+
+*   **Status of "MPS Performance Feedback Log":**
+    *   The distinct "MPS Performance Feedback Log" section, which was previously part of `HANDOFF_NOTES.md`, has been removed from the active `framework_dev_docs/meta/HANDOFF_NOTES.md` file.
+    *   This change aims to simplify the primary handoff document and make it more focused on session summaries and critical evolution points.
+    *   The future of detailed performance feedback logging is currently under review. It may be reintroduced in a different format, potentially as an optional component or a separate, dedicated logging mechanism, if deemed necessary for ongoing framework refinement.
+
+**B. Handoff Notes Archive**
+
+*   A comprehensive historical archive of older, more verbose handoff notes (accumulated before the introduction of the verbosity control and the compaction of the main `HANDOFF_NOTES.md` file) might exist at:
+    `framework_dev_docs/meta/HANDOFF_NOTES_full_archive_20250602.md`.
+*   Jules instances are instructed by `Core_Planning_Instructions.txt` **not to read this archive file** as part of their standard operational procedure.
+*   Accessing this archive should only be considered if understanding specific historical context is absolutely critical for fulfilling a *current* user request. In such rare cases, Jules must explicitly ask for and receive user permission before attempting to read the archive.
+*   The primary reference for ongoing, current handoff information is the (now potentially more concise) `framework_dev_docs/meta/HANDOFF_NOTES.md` file.
 
 This modular approach, combined with flexible configuration and workflow orchestration via promptApps, allows for a powerful and adaptable MPS framework.
