@@ -50,8 +50,8 @@ The Base IEP is designed to be extended without altering its core fields. Extens
 Notes-To-Next-Jules:
 This commit implements the core authentication logic and refactors the session manager.
 
-[PLANNING_MPS_PROGRESS]
-- Current step in \`_dev_plan.md\`: Step 4.3: Integrate session management
+[PLANNING_PROGRESS]
+- Current step in \`dev_plan.md\`: Step 4.3: Integrate session management
 - Percentage complete (approximate for this Sub-Task-ID): 90%
 - Key accomplishments in THIS commit:
   - Session management refactored for Redis store.

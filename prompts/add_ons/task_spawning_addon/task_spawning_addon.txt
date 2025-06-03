@@ -1,18 +1,18 @@
-ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided by the user *before* the Master Prompt Segment begins, and accessible via `User_High_Level_Project_Goal` variable from Core Instructions Section I.A) and then to follow the instructions within this `task_spawning_addon` to generate a comprehensive, phased execution plan. This involves creating detailed task prompts for subsequent AI instances ("Task AIs") and all necessary supporting documentation. Adhere strictly to the following instructions and output requirements.
+ATTENTION PLANNING AI: Your primary function is to interpret the user's project request (provided by the user *before* the `post_promptu.txt` begins, and accessible via `User_High_Level_Project_Goal` variable from Core Instructions Section I.A) and then to follow the instructions within this `task_spawning_addon` to generate a comprehensive, phased execution plan. This involves creating detailed task prompts for subsequent AI instances ("Task AIs") and all necessary supporting documentation. Adhere strictly to the following instructions and output requirements.
 
 **I. PARAMETER RESOLUTION FOR TASK_SPAWNING_ADDON:**
 
 A.  **Acknowledge Component and Configuration Source:**
     1.  You are currently executing the `task_spawning_addon`.
-    2.  Your primary configuration parameters are defined in `prompts/add_ons/task_spawning_addon/USER_task_spawning_addon_CONFIG.txt`. This file specifies parameter names, their requirements (Required/Optional), default types (Accepted/Placeholder), descriptions, and default values.
+    2.  Your primary configuration parameters are defined in `promptu/add_ons/task_spawning_addon/user_task_spawning_addon_config.txt`. This file specifies parameter names, their requirements (Required/Optional), default types (Accepted/Placeholder), descriptions, and default values.
     3.  The Core Planning Instructions (Section I.D.4.c.iii) should have already scanned the main user prompt and loaded any content from a `[[USER_CONFIG_FOR_task_spawning_addon]]...[[END_USER_CONFIG_FOR_task_spawning_addon]]` block into the `App_Specific_Configs_Content_Map['task_spawning_addon']` variable. This content takes highest precedence.
 
 B.  **Resolve Parameters:**
     You MUST resolve the following parameters by adhering to the standard resolution order:
     1.  Value from the `[[USER_CONFIG_FOR_task_spawning_addon]]` block (passed in `App_Specific_Configs_Content_Map['task_spawning_addon']`).
-    2.  User-edited value in `USER_task_spawning_addon_CONFIG.txt` (between `[USER_VALUE_START]` and `[USER_VALUE_END]` markers for each parameter).
-    3.  The "AcceptedDefault" value specified in the comment for that parameter in `USER_task_spawning_addon_CONFIG.txt` (e.g., `# Default: actual_default_value`).
-    4.  If a parameter is marked `# Requirement: Required` and its `# DefaultType: Placeholder`, and it remains unresolved after steps 1-3, you MUST request the value from the user via chat. After receiving the value, you MUST update the on-disk `prompts/add_ons/task_spawning_addon/USER_task_spawning_addon_CONFIG.txt` file (specifically the value between `[USER_VALUE_START]` and `[USER_VALUE_END]`) AND advise the user to also update their main spawn prompt's `[[USER_CONFIG_FOR_task_spawning_addon]]` block with this new value for future consistency.
+    2.  User-edited value in `user_task_spawning_addon_config.txt` (between `[USER_VALUE_START]` and `[USER_VALUE_END]` markers for each parameter).
+    3.  The "AcceptedDefault" value specified in the comment for that parameter in `user_task_spawning_addon_config.txt` (e.g., `# Default: actual_default_value`).
+    4.  If a parameter is marked `# Requirement: Required` and its `# DefaultType: Placeholder`, and it remains unresolved after steps 1-3, you MUST request the value from the user via chat. After receiving the value, you MUST update the on-disk `promptu/add_ons/task_spawning_addon/user_task_spawning_addon_config.txt` file (specifically the value between `[USER_VALUE_START]` and `[USER_VALUE_END]`) AND advise the user to also update their main prompt's `[[USER_CONFIG_FOR_task_spawning_addon]]` block with this new value for future consistency.
     5.  If any "Required" parameter cannot be resolved, issue a CRITICAL ERROR and HALT.
 
 C.  **Internal Storage of Resolved Parameters:**
@@ -74,17 +74,17 @@ B.  **Task Prompt Files (`.txt`):**
         2.  **Sub-Development Plan Directive:** "Create `<PhaseTaskName>_dev_plan.md` in the directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`. List steps; mark progress."
         3.  **Detailed Task Execution Instructions:** Actionable steps, reference inputs.
         4.  **Output Management:** "Place new, task-specific files in the directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/<PhaseTaskName>/`. For modifying shared code (if any, assumed to be within `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/`), be specific and use IEP `Owned-Files-Modules`."
-        5.  **IEP Adherence:** "Follow `Information_Exchange_Protocol.md` (located at `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/Information_Exchange_Protocol.md`, it is in the repo). Focus on `Status`, `Owned-Files-Modules`, `[BLOCKERS / ISSUES]`, `[PROGRESS]`, and **`[RISK_ASSESSMENT]` block.**" (IEP generation is handled by Core Instructions Section III.C.1 and placed in this add-on's task prompts output directory).
-        6.  **"Next Steps, Learnings & Improvements" Doc Directive:** "Create `<PhaseTaskName>_next_steps.md` alongside your `_dev_plan.md` in the directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`. Must include sections: `### Potential Next Steps & Enhancements`, `### Key Learnings & Discoveries` (non-obvious insights, challenges, solutions, assumptions), `### AI-Automated PR Suggestions`, `### Other General Recommendations`."
+        5.  **IEP Adherence:** "Follow `information_exchange_protocol.md` (located at `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/information_exchange_protocol.md`, it is in the repo). Focus on `Status`, `Owned-Files-Modules`, `[BLOCKERS / ISSUES]`, `[PROGRESS]`, and **`[RISK_ASSESSMENT]` block.**" (IEP generation is handled by Core Instructions Section III.C.1 and placed in this add-on's task prompts output directory).
+        6.  **"Next Steps, Learnings & Improvements" Doc Directive:** "Create `<PhaseTaskName>_next_steps.md` alongside your `dev_plan.md` in the directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`. Must include sections: `### Potential Next Steps & Enhancements`, `### Key Learnings & Discoveries` (non-obvious insights, challenges, solutions, assumptions), `### AI-Automated PR Suggestions`, `### Other General Recommendations`."
         7.  **Inter-AI Comm Directive:** "Use the directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/ipc/` for persistent logs/artifacts not fitting commits. Document usage in commits." (Ensure this `ipc/` directory is created if needed).
-        8.  **Retry Logic:** "```If retrying post-crash, investigate git log, the dev plan at `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/<PhaseTaskName>_dev_plan.md`, your task's output directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/<PhaseTaskName>/`, and logs in `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/ipc/`. Document findings in `_dev_plan.md`. Continue without repeating.```"
+        8.  **Retry Logic:** "```If retrying post-crash, investigate git log, the dev plan at `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/<PhaseTaskName>_dev_plan.md`, your task's output directory `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/<PhaseTaskName>/`, and logs in `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/ipc/`. Document findings in `dev_plan.md`. Continue without repeating.```"
         9.  **Path Referencing:** Append ", it is in the repo." to file paths when instructing Task AIs.
         10. **Risk Assessment Directive:** "For each commit, assess risk (Low, Medium, High) based on scope, complexity, impact, test coverage, dependencies. Include in commit message: `[RISK_ASSESSMENT]` block with `- Risk-Level: <level>` and `- Justification: <explanation>` in `Notes-To-Next-Jules`."
         11. **Append Selected Add-ons:**
             a.  Retrieve `Inheritable_Addons_Content_Ordered_List` (populated by Core Instructions Section I.D.5).
             b.  For each `add_on_content_string` in this list:
                 i.  **Resolve Placeholders:** Within `add_on_content_string`, replace the following placeholders with their corresponding resolved values:
-                    *   `[Actual Path to Prompts Folder]` with `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/`
+                    *   `[Actual Path to Prompts Folder]` with `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/` (Note: this placeholder itself might be deprecated in add-ons, prefer more specific ones like those below or ones that resolve to `/promptu/core/` for core items like `base_iep.txt`)
                     *   `[Actual User-Specified Path for Submodule Plans]` with `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`
                     *   `[Actual User-Specified Task Output Base Path]` with `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/`
                     *   `[Project Name Placeholder]` with `Resolved_TSA_Project_Name`
@@ -93,7 +93,7 @@ B.  **Task Prompt Files (`.txt`):**
                 ii. Append the placeholder-resolved `add_on_content_string` to the current task prompt.
 
 C.  **Supporting Documentation (Task Spawning Specific):**
-    1.  **`00_task_launch_plan.md`:** (Note: Generation of `Information_Exchange_Protocol.md` is handled by Core Instructions Section III.C.1, which should place it in `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/`)
+    1.  **`00_task_launch_plan.md`:** (Note: Generation of `information_exchange_protocol.md` is handled by Core Instructions Section III.C.1, which should place it in `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/`)
         *   Create based on template. Dynamically replace placeholders.
         *   **Location:** `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/00_task_launch_plan.md`.
         *   **Launch Commands Path Logic:** Task prompt paths for launch commands will be like `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/p1_t1_example.txt`. Ensure these are correctly constructed relative to the repository root.
@@ -121,7 +121,7 @@ C.  **Supporting Documentation (Task Spawning Specific):**
             **Key Files & Folders (relative to repo root):**
             *   Task Prompts, TLP, IEP: `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/`
             *   Inter-AI Communication (IPC): `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Prompts_Subdir]/ipc/`
-            *   Task Sub-Development Plans (`_dev_plan.md`, `_next_steps.md`): `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`
+            *   Task Sub-Development Plans (`dev_plan.md`, `next_steps.md`): `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Submodule_Plans_Subdir]/`
             *   Task Output Artifacts: `[Resolved_TSA_Base_Output_Path]/[Resolved_TSA_Task_Artifacts_Subdir]/`
             ## 2. Execution Workflow
             1. Review Phases...
@@ -150,7 +150,7 @@ C.  **Supporting Documentation (Task Spawning Specific):**
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION (Specific to Task Spawning):**
 A. **Planning AI Self-Correction and Verification Checks (MANDATORY):**
     Before finalizing, perform these checks on *each generated task prompt*:
-    1. Core Directives: `_dev_plan.md`? `_next_steps.md` (with `### Key Learnings & Discoveries`)? IEP reminder? Risk Assessment directive? Retry Logic?
+    1. Core Directives: `dev_plan.md`? `next_steps.md` (with `### Key Learnings & Discoveries`)? IEP reminder? Risk Assessment directive? Retry Logic?
     2. Path Placeholders: All paths constructed correctly using `Resolved_TSA_...` parameters (from Section I of this add-on)? Specific output subdirectories like `<PhaseTaskName>` correctly appended where necessary? Paths have ", it is in the repo."?
     3. Selected Add-on Inclusion: Logic for `Inheritable_Addons_Content_Ordered_List` (from Core Instructions Section I.D.5) applied? Selected add-ons appended with internal placeholders resolved according to mappings in Section III.B.11.b.i of this add-on?
     4. Clarity: Task Overview & Instructions clear?
