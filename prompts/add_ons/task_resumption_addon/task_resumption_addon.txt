@@ -8,14 +8,14 @@
     *   Review your original prompt for this task (the prompt this add-on is attached to). Identify and summarize:
         *   The overall goal of this task.
         *   The specific deliverables requested by the original task prompt.
-    *   Review your `_dev_plan.md` for this task. Note the last completed step and the next planned step(s).
+    *   Review your `dev_plan.md` for this task. Note the last completed step and the next planned step(s).
 
 2.  **Summarize Work Completed:**
-    *   Consult your commit history for this task (as per the Base IEP, typically found at `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`).
+    *   Consult your commit history for this task (as per the Base IEP rules, found in `/promptu/core/base_iep.txt`).
     *   List the key actions you have taken and the files you have created or modified for this task. Reference specific commit IDs where appropriate.
 
 3.  **Determine Output Location for Resumption Prompt:**
-    *   The Resumption Prompt file you will create must be saved in the folder specified by the Planning AI as the 'Submodule Plan Destination' (this is where your `_dev_plan.md` and `_next_steps.md` for this task should also reside).
+    *   The Resumption Prompt file you will create must be saved in the folder specified by the Planning AI as the 'Submodule Plan Destination' (this is where your `dev_plan.md` and `next_steps.md` for this task should also reside).
     *   The filename for the Resumption Prompt must be: `<ExactOriginalTaskPromptFilenameBase>_resumption_prompt.txt`. (e.g., if your original task prompt filename was `p1_t1_some_task.txt`, this file will be `p1_t1_some_task_resumption_prompt.txt`).
 
 4.  **Generate the Resumption Prompt Content:**
@@ -32,11 +32,11 @@
 
     ## Current Task State (as of [Current Timestamp]):
 
-    ### Last Completed Step (from your `_dev_plan.md`):
-    [Quote the last completed step from your `_dev_plan.md`]
+    ### Last Completed Step (from your `dev_plan.md`):
+    [Quote the last completed step from your `dev_plan.md`]
 
-    ### Next Planned Step(s) (from your `_dev_plan.md`):
-    [Quote the next planned step or steps from your `_dev_plan.md`]
+    ### Next Planned Step(s) (from your `dev_plan.md`):
+    [Quote the next planned step or steps from your `dev_plan.md`]
 
     ### Summary of Work Done So Far (for this task):
     [Your bulleted list of key actions and files created/modified, with commit references if available. e.g.,
@@ -50,9 +50,9 @@
 
     ## Next Steps for Resuming AI:
     1.  Review the above context thoroughly.
-    2.  Focus on completing: "[Next Planned Step(s) from your `_dev_plan.md`]"
+    2.  Focus on completing: "[Next Planned Step(s) from your `dev_plan.md`]"
     3.  Ensure all original task deliverables (from your main task prompt) are met.
-    4.  Continue to update your `_dev_plan.md` and follow the Base IEP (from `[Actual Path to Prompts Folder]/Information_Exchange_Protocol.md, it is in the repo`) for commits.
+    4.  Continue to update your `dev_plan.md` and follow the Base IEP rules (from `/promptu/core/base_iep.txt`) for commits.
     5.  If any blocking issues were noted above, address them first.
 
     ## Original Full Prompt for this Task (for reference):
@@ -71,7 +71,7 @@
         (Ensure you use the correct, full path as resolved from the Planning AI's instructions).
 
 7.  **Initial Creation Timing:**
-    *   You should create the *initial version* of this resumption prompt *before* you begin the primary execution steps of your main task, typically after you have created your initial `_dev_plan.md`. Update it after each significant step or commit.
+    *   You should create the *initial version* of this resumption prompt *before* you begin the primary execution steps of your main task, typically after you have created your initial `dev_plan.md`. Update it after each significant step or commit.
 
 These instructions are critical for enabling efficient, stateful task handoff. Adhere to them precisely.
 

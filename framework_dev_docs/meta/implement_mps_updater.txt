@@ -1,48 +1,48 @@
-# Prompt for Future Jules Instance: Implement the "MPS Updater" Feature
+# Prompt for Future Jules Instance: Implement the "Promptu Updater" Feature
 
 **Goal:**
-Implement the "MPS Updater" (MPU) feature for the Master Prompt Segment (MPS) framework. The MPU feature will enable the transfer of improvements, refinements, and new features from one instance/repository of the MPS framework to another, ensuring consistency and facilitating collaborative development or deployment of updates.
+Implement the "Promptu Updater" (PU) feature for the Promptu framework. The PU feature will enable the transfer of improvements, refinements, and new features from one instance/repository of the Promptu framework to another, ensuring consistency and facilitating collaborative development or deployment of updates.
 
 **Background:**
-The MPS framework is designed to be modular and extensible. As different instances or users develop enhancements (e.g., new add-ons, refined promptApps, updated core instructions), a standardized mechanism is needed to package these changes and apply them to other framework instances. This "MPS Updater" will provide that capability. A critical assumption for reliable operation is that the target repository should be at the same base version/commit as the source repository from which the update package was created, prior to the changes in the package.
+The Promptu framework is designed to be modular and extensible. As different instances or users develop enhancements (e.g., new add-ons, refined promptApps, updated core instructions), a standardized mechanism is needed to package these changes and apply them to other framework instances. This "Promptu Updater" will provide that capability. A critical assumption for reliable operation is that the target repository should be at the same base version/commit as the source repository from which the update package was created, prior to the changes in the package.
 
 **[[IMPORTANT INSTRUCTION FOR IMPLEMENTING JULES INSTANCE]]**
-The following is a detailed starting plan for the MPS Updater feature. Before proceeding with implementation, you **must first thoroughly review, critique, and refine this plan.** Consider its completeness, potential issues, alternative approaches, and overall robustness. After you have formulated your own refined plan, proceed to implement that refined version. Document your refined plan clearly before starting implementation tasks.
+The following is a detailed starting plan for the Promptu Updater feature. Before proceeding with implementation, you **must first thoroughly review, critique, and refine this plan.** Consider its completeness, potential issues, alternative approaches, and overall robustness. After you have formulated your own refined plan, proceed to implement that refined version. Document your refined plan clearly before starting implementation tasks.
 
 ---
-## Detailed Starting Plan for the "MPS Updater" (MPU) Feature
+## Detailed Starting Plan for the "Promptu Updater" (PU) Feature
 
-**1. Objectives for MPS Updater (MPU):**
-    *   Enable the reliable transfer of additions, modifications, and deletions of framework files (prompts, components, guides, metadata) from a source MPS instance to a target MPS instance.
+**1. Objectives for Promptu Updater (PU):**
+    *   Enable the reliable transfer of additions, modifications, and deletions of framework files (prompts, components, guides, metadata) from a source Promptu instance to a target Promptu instance.
     *   Support updates for both new features and refinements to existing ones.
     *   Provide a clear process for users to apply these updates.
     *   Ensure the process has basic safeguards, such as dry-run mode and clear reporting.
 
-**2. "MPS Update Package" (MUP) Format(s):**
+**2. "Promptu Update Package" (PUP) Format(s):**
     *   **Primary Proposal: Standard Patch Files (`.patch`)**
         *   **Generation:** Generated using `git diff <base_commit> <feature_commit> --output=<package_name>.patch` in the source repository.
-        *   **Content:** Contains file diffs representing additions, modifications, and deletions. Can also represent binary file changes if necessary, though most MPS files are text.
+        *   **Content:** Contains file diffs representing additions, modifications, and deletions. Can also represent binary file changes if necessary, though most Promptu files are text.
         *   **Pros:** Standardized, powerful, captures precise changes, tools like `git apply` are well-understood.
         *   **Cons for AI Implementation:** Direct application of patch files by an AI might be complex if it doesn't have direct shell access to `git apply`. Parsing and applying diffs manually is non-trivial.
     *   **Alternative/Supplementary Proposal: Manifest-Based Package (e.g., Zip Archive)**
         *   **Structure:** A ZIP archive containing:
-            *   A `mup_manifest.json` file.
+            *   A `pup_manifest.json` file.
             *   Subdirectories (e.g., `new_files/`, `modified_files/`) containing the actual files.
-        *   **`mup_manifest.json` Content:**
+        *   **`pup_manifest.json` Content:**
             ```json
             {
-              "mupVersion": "1.0",
+              "pupVersion": "1.0",
               "sourceBaseVersionHash": "optional_commit_hash_of_source_before_changes",
               "description": "Brief description of the update.",
               "actions": [
                 {
                   "actionType": "add", // or "replace", "delete"
-                  "filePath": "prompts/add_ons/new_feature/new_feature.txt", // Relative to repo root
-                  "sourceInArchive": "new_files/prompts/add_ons/new_feature/new_feature.txt" // if applicable
+                  "filePath": "promptu/add_ons/new_feature/new_feature.txt", // Relative to repo root
+                  "sourceInArchive": "new_files/promptu/add_ons/new_feature/new_feature.txt" // if applicable
                 },
                 {
                   "actionType": "delete",
-                  "filePath": "prompts/util/old_utility/" // Can be file or whole directory
+                  "filePath": "promptu/util/old_utility/" // Can be file or whole directory
                 }
                 // ... other actions
               ]
@@ -51,23 +51,23 @@ The following is a detailed starting plan for the MPS Updater feature. Before pr
         *   **Pros:** Easier for AI to parse and execute file operations programmatically (add file, replace file, delete file/dir). More explicit.
         *   **Cons:** Less efficient for small textual changes within large files compared to diffs. Might not handle complex merge scenarios as gracefully as patch tools. Does not inherently handle file renames well without explicit manifest instructions.
 
-    *   **Recommendation for Initial Implementation by Future Instance:** Start by designing the "Apply MPS Update Package" add-on to support the **Manifest-Based Package** first due to simpler AI implementation logic for file operations. Plan for supporting `.patch` files as a more advanced subsequent enhancement.
+    *   **Recommendation for Initial Implementation by Future Instance:** Start by designing the "Apply Promptu Update Package" add-on to support the **Manifest-Based Package** first due to simpler AI implementation logic for file operations. Plan for supporting `.patch` files as a more advanced subsequent enhancement.
 
-**3. Conceptual Design: "Export MUP Package" Utility (for Source Repo - Conceptual Only for this Task)**
+**3. Conceptual Design: "Export PUP Package" Utility (for Source Repo - Conceptual Only for this Task)**
     *   This utility would run in the *source* repository where changes are made. Its implementation is *not* part of this task, but understanding its function is important.
     *   **Inputs:** Base commit/version (e.g., last sync point), current (feature) commit/version.
     *   **Process (if patch-based):** `git diff <base> <current> --output=update.patch`.
     *   **Process (if manifest-based):**
         *   `git diff --name-status <base> <current>` to get list of Added (A), Modified (M), Deleted (D), Renamed (R) files.
-        *   Construct `mup_manifest.json` based on this list.
+        *   Construct `pup_manifest.json` based on this list.
         *   Bundle new/modified files along with the manifest into a zip.
-    *   **Output:** The MPS Update Package (MUP).
+    *   **Output:** The Promptu Update Package (PUP).
 
-**4. Design: "Apply MPS Update Package" Add-on (Target Repo - This is the core implementation task)**
-    *   **Name:** `apply_mps_update`
-    *   **Location:** `prompts/add_ons/apply_mps_update/`
-    *   **`USER_apply_mps_update_CONFIG.txt` Parameters:**
-        *   `MUP_PACKAGE_PATH` (Required, String): Path to the `.patch` file or the manifest-based package (e.g., zip file path).
+**4. Design: "Apply Promptu Update Package" Add-on (Target Repo - This is the core implementation task)**
+    *   **Name:** `apply_promptu_update`
+    *   **Location:** `promptu/add_ons/apply_promptu_update/`
+    *   **`user_apply_promptu_update_config.txt` Parameters:**
+        *   `PUP_PACKAGE_PATH` (Required, String): Path to the `.patch` file or the manifest-based package (e.g., zip file path).
         *   `TARGET_BASE_VERSION_HASH` (Optional, String): The expected git commit hash of the target repository *before* applying the update. If provided, the add-on should verify if the current repo's HEAD matches this. If not, warn or halt based on strategy. Default: `[Not Specified]`.
         *   `DRY_RUN_MODE` (Required, Boolean): If `true`, simulate changes and report what would happen without actually modifying files. Default: `true`.
         *   `CONFLICT_RESOLUTION_STRATEGY` (Required, Enum String): Defines behavior if a file to be modified already exists and has changed from the (implicit) base version, or if a patch doesn't apply cleanly.
@@ -76,20 +76,20 @@ The following is a detailed starting plan for the MPS Updater feature. Before pr
             *   `SKIP_CONFLICTING_FILE`: Skip applying changes to conflicting files and continue with others.
             *   `PROMPT_USER_ON_CONFLICT`: (Advanced - may be out of scope for v1) Pause and ask the user how to handle each conflict.
         *   `BACKUP_MODIFIED_FILES` (Required, Boolean): If `true` and not in dry-run, before overwriting/modifying files, create backups (e.g., `filename.ext.bak`). Default: `true`.
-    *   **`apply_mps_update.txt` (Instruction File) Logic:**
+    *   **`apply_promptu_update.txt` (Instruction File) Logic:**
         *   **Phase 1: Initialization & Configuration:**
-            *   Parse and validate all parameters from `USER_apply_mps_update_CONFIG.txt`.
+            *   Parse and validate all parameters from `user_apply_promptu_update_config.txt`.
             *   If `TARGET_BASE_VERSION_HASH` is provided, attempt to get current git commit hash of the repo. If they don't match, issue a strong warning. Depending on a sub-parameter (e.g., `HALT_ON_VERSION_MISMATCH: true`), either halt or proceed with caution.
         *   **Phase 2: Package Ingestion & Parsing:**
-            *   Read the `MUP_PACKAGE_PATH`.
+            *   Read the `PUP_PACKAGE_PATH`.
             *   If it's a patch file: Validate its format (basic check).
-            *   If it's a manifest-based package (e.g., zip): Extract archive to a temporary location, read and parse `mup_manifest.json`. Validate manifest structure.
+            *   If it's a manifest-based package (e.g., zip): Extract archive to a temporary location, read and parse `pup_manifest.json`. Validate manifest structure.
         *   **Phase 3: Pre-Change Analysis & Dry Run (if applicable):**
             *   **If Patch-Based:**
                 *   Use `git apply --check [patch_file_path]` (if shell access is possible and reliable). Report if it applies cleanly. This is the most robust pre-check.
                 *   If no direct git access, this phase is harder. AI would need to simulate patch application, which is very complex. Focus on manifest-based for AI-native implementation first.
             *   **If Manifest-Based:**
-                *   Iterate through `actions` in `mup_manifest.json`.
+                *   Iterate through `actions` in `pup_manifest.json`.
                 *   For each action:
                     *   `add/replace`: Check if target path would overwrite an existing file. If so, and `CONFLICT_RESOLUTION_STRATEGY` is `FAIL_ON_CONFLICT`, flag it.
                     *   `delete`: Check if file/directory exists.
@@ -114,8 +114,8 @@ The following is a detailed starting plan for the MPS Updater feature. Before pr
             *   Clean up temporary extraction location if a manifest-based package was used.
 
 **5. Critical Assumption: Version Synchronization:**
-    *   The MPU process relies heavily on the target repository being at the correct base version from which the MUP was created. Deviations can lead to patch failures or incorrect application of changes.
-    *   The `TARGET_BASE_VERSION_HASH` parameter in the `apply_mps_update` add-on is a step towards mitigating this, but a more robust version control strategy for the framework itself might be a future consideration.
+    *   The PU process relies heavily on the target repository being at the correct base version from which the PUP was created. Deviations can lead to patch failures or incorrect application of changes.
+    *   The `TARGET_BASE_VERSION_HASH` parameter in the `apply_promptu_update` add-on is a step towards mitigating this, but a more robust version control strategy for the framework itself might be a future consideration.
 
 **6. Initial Scope & Conflict Handling:**
     *   **Initial Version:** Focus on successfully applying changes when the target repo is "clean" and at the expected base version.
@@ -123,31 +123,31 @@ The following is a detailed starting plan for the MPS Updater feature. Before pr
     *   **Conflict Resolution:** For v1, `FAIL_ON_CONFLICT` is the safest default. More advanced resolution (like 3-way merge for patches, or interactive prompts) is out of scope for the initial implementation by the future instance.
 
 **7. Security Note:**
-    *   The prompt should remind the future implementing AI that the "Apply MPS Update Package" add-on inherently trusts the content of the MUP. In a broader context, mechanisms to verify package signatures or sources might be needed, but this is out of scope for the MPS framework's direct implementation.
+    *   The prompt should remind the future implementing AI that the "Apply Promptu Update Package" add-on inherently trusts the content of the PUP. In a broader context, mechanisms to verify package signatures or sources might be needed, but this is out of scope for the Promptu framework's direct implementation.
 
 ---
-**Instructions for Future Jules Instance Implementing "MPS Updater":**
+**Instructions for Future Jules Instance Implementing "Promptu Updater":**
 
-1.  **Refine This Plan:** Thoroughly review the plan above. Identify gaps, ambiguities, or areas for improvement. Propose your refinements and document your final execution plan before starting implementation. Consider starting with the Manifest-Based Package approach for the "Apply MPS Update Package" add-on due to easier AI-driven file operations, potentially deferring direct `.patch` file application if git shell tools are not reliably accessible to you.
-2.  **Implement the `apply_mps_update` Add-on:**
-    *   Create the directory structure `prompts/add_ons/apply_mps_update/`.
-    *   Develop `USER_apply_mps_update_CONFIG.txt` with the parameters specified.
-    *   Develop the `apply_mps_update.txt` instruction file, implementing the logic (Phases 1-5) detailed in the plan. Prioritize robust error handling, clear logging, and the `DRY_RUN_MODE`.
+1.  **Refine This Plan:** Thoroughly review the plan above. Identify gaps, ambiguities, or areas for improvement. Propose your refinements and document your final execution plan before starting implementation. Consider starting with the Manifest-Based Package approach for the "Apply Promptu Update Package" add-on due to easier AI-driven file operations, potentially deferring direct `.patch` file application if git shell tools are not reliably accessible to you.
+2.  **Implement the `apply_promptu_update` Add-on:**
+    *   Create the directory structure `promptu/add_ons/apply_promptu_update/`.
+    *   Develop `user_apply_promptu_update_config.txt` with the parameters specified.
+    *   Develop the `apply_promptu_update.txt` instruction file, implementing the logic (Phases 1-5) detailed in the plan. Prioritize robust error handling, clear logging, and the `DRY_RUN_MODE`.
 3.  **Update Documentation:**
-    *   Add `apply_mps_update` to `prompts/add_ons/available_addons_manifest.md`.
-    *   Update `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain the MPS Updater feature, how to use the `apply_mps_update` add-on, the format of Update Packages (whichever you implement first), and the importance of version consistency.
+    *   Add `apply_promptu_update` to `promptu/add_ons/available_add_ons_manifest.md`.
+    *   Update `framework_dev_docs/guides/mps_usage_guide.md` to explain the Promptu Updater feature, how to use the `apply_promptu_update` add-on, the format of Update Packages (whichever you implement first), and the importance of version consistency.
 4.  **Testing:**
-    *   Create sample MPS Update Packages (both patch and/or manifest-based, depending on your implementation).
+    *   Create sample Promptu Update Packages (both patch and/or manifest-based, depending on your implementation).
         *   One package for adding a new component.
         *   One package for modifying an existing component (e.g., `create_research_report.txt`).
         *   One package for deleting a component.
         *   One package that might cause a conflict (e.g., tries to change a file that's locally modified in the target).
-    *   Thoroughly test the `apply_mps_update` add-on with these packages in various scenarios:
+    *   Thoroughly test the `apply_promptu_update` add-on with these packages in various scenarios:
         *   Dry run mode.
         *   Actual application.
         *   Conflict scenarios (testing `FAIL_ON_CONFLICT`).
         *   Backup functionality.
-5.  **Update `HANDOFF_NOTES.md`:** Document your work, your refined plan, and the state of the deliverables.
+5.  **Update `handoff_notes.md`:** Document your work, your refined plan, and the state of the deliverables.
 
-Good luck with this implementation! This feature will be a valuable addition to the MPS framework.
+Good luck with this implementation! This feature will be a valuable addition to the Promptu framework.
 ```

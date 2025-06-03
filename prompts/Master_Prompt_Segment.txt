@@ -1,13 +1,13 @@
-# === MPS TEMPLATE INSTRUCTIONS FOR USER ===
+# === POST-PROMPTU TEMPLATE INSTRUCTIONS FOR USER ===
 #
-# This file (`Master_Prompt_Segment.txt`) is a template. To use the MPS framework:
+# This file (`post_promptu.txt`) is a template. To use this framework:
 #
 # 1. **COPY TO YOUR PROJECT:**
 #    Copy the entire content of this file into a new file within your own project's
-#    `prompts` directory (e.g., `my_project_repo/prompts/my_project_main_mps.txt`).
+#    `promptu` directory (e.g., `my_project_repo/promptu/my_project_main_post_promptu.txt`).
 #
 # 2. **ADD YOUR PROJECT REQUEST (IN YOUR COPY):**
-#    At the VERY BEGINNING of your new file (e.g., `my_project_main_mps.txt`),
+#    At the VERY BEGINNING of your new file (e.g., `my_project_main_post_promptu.txt`),
 #    add your high-level project request. It is **highly recommended** to wrap
 #    your request in `[[USER_PROJECT_REQUEST]]` and `[[END_USER_PROJECT_REQUEST]]` tags.
 #    For example:
@@ -20,7 +20,7 @@
 #    (The rest of this template's content, starting with `[[USER_APP_SELECTION]]`
 #    or other initial blocks, should follow immediately after your project request.)
 #
-# 3. **CONFIGURE YOUR MPS FILE (IN YOUR COPY):**
+# 3. **CONFIGURE YOUR `post_promptu.txt` FILE (IN YOUR COPY):**
 #    Edit the user configuration blocks within your new file as needed:
 #    *   `[[USER_APP_SELECTION]]`: Select a promptApp if you are using one.
 #    *   `[[USER_ADDON_SELECTION]]`: Select standalone add-ons if not using a promptApp.
@@ -34,19 +34,19 @@
 #    Your actual prompt to the AI planning system will then be a single directive
 #    pointing to YOUR prepared file. For example:
 #
-#    `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /prompts/my_project_main_mps.txt]]`
+#    `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /promptu/my_project_main_post_promptu.txt]]`
 #
 #    The AI system will load your file, find your project request within the
-#    `[[USER_PROJECT_REQUEST]]` tags, and then process your MPS configurations.
+#    `[[USER_PROJECT_REQUEST]]` tags, and then process your configurations.
 #
-# === END OF MPS TEMPLATE INSTRUCTIONS ===
+# === END OF POST-PROMPTU TEMPLATE INSTRUCTIONS ===
 
 [[USER_APP_SELECTION]]
 # Instructions for user:
 # - List desired "promptApp" names below, one per line.
 # - **Select at most ONE promptApp.** Mark selection with '[x]' (case-insensitive for 'x').
-# - promptApp "apps" must exist as subdirectories in `prompts/apps/` in the target repository.
-# - Each promptApp folder must contain a manifest file: `[appName]/[appName]_manifest.json`.
+# - promptApp "apps" must exist as subdirectories in `promptu/apps/` in the target repository.
+# - Each promptApp folder must contain a manifest file: `[appName]/[app_name]_manifest.json`.
 # - If a promptApp is selected, it will be the primary workflow. You will also need to provide a
 #   corresponding `[[USER_promptAPP_NAME_CONFIGURATION]]` block (see example section below)
 #   to specify which tasks within the promptApp to execute.
@@ -67,7 +67,7 @@
 #
 # - List desired add-on "app names" (folder names) below, one per line.
 # - Mark selection with '[x]' (case-insensitive for 'x').
-# - Add-on apps must exist as subdirectories in `prompts/add_ons/` in the target repository.
+# - Add-on apps must exist as subdirectories in `promptu/add_ons/` in the target repository.
 # - Each add-on app folder must contain a primary instruction file: `[app_name]/[app_name].txt`.
 #
 # - If a primary add-on like 'task_spawning_addon' is selected (and no promptApp is active), other selected add-on apps
@@ -76,8 +76,8 @@
 #
 # - App-specific configurations: Some add-on apps (and components used by promptApps) may use parameters
 #   defined in a `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` block, which you would
-#   place in your main spawn prompt. Refer to the component's documentation or its
-#   `USER_appName_CONFIG.txt` template file for details.
+#   place in your main prompt file. Refer to the component's documentation or its
+#   `user_app_name_config.txt` template file for details.
 
 [x] task_resumption_addon               # Example: Provides task state resumption capabilities for Task AIs.
 # [ ] create_research_report          # Example: Select to generate a research report.
@@ -96,7 +96,7 @@
 [[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
 # Instructions for user:
 # - If you select a promptApp in `[[USER_APP_SELECTION]]` (e.g., `CompliancePLM_App`), you MUST provide a
-#   corresponding configuration block in your main spawn prompt, formatted as:
+#   corresponding configuration block in your main prompt file, formatted as:
 #   `[[USER_CompliancePLM_App_CONFIGURATION]] ... [[END_USER_CompliancePLM_App_CONFIGURATION]]`.
 # - This block allows you to specify which phases and tasks defined in the promptApp's manifest
 #   you want to execute.
@@ -112,9 +112,9 @@
 # # 2. Mark the tasks you want to execute for the current session with '[x]'.
 # # 3. For tasks that use configurable components (like 'create_research_report' or 'task_spawning_addon'),
 # #    ensure you also provide the necessary `[[USER_CONFIG_FOR_componentName]]` blocks
-# #    in your main prompt if the defaults (from the component's USER_config.txt or
+# #    in your main prompt if the defaults (from the component's user_config.txt or
 # #    the promptApp manifest's defaultConfigOverrides) are not sufficient for your needs.
-# #    Consult the component's `USER_..._CONFIG.txt` file or the MPS_Usage_Guide.md for parameter details.
+# #    Consult the component's `user_..._config.txt` file or the mps_usage_guide.md for parameter details.
 #
 # # --- Concept Phase ---
 # [ ] Research
@@ -152,19 +152,19 @@
 [[START OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]
 
 # Overall AI Operation:
-# You are a Planning AI. Your primary function is to interpret a user's project request (provided by the user *before* this Master Prompt Segment begins)
+# You are a Planning AI. Your primary function is to interpret a user's project request (provided by the user *before* this segment begins)
 # and then to follow the instructions within this segment. This may involve executing a selected "promptApp"
 # (a predefined multi-stage workflow) or executing selected "add-on apps".
-# This MPS now uses a "folder-per-app" architecture for components (promptApps, add-ons, utils) with fixed base paths
-# (e.g., `prompts/apps/`, `prompts/add_ons/`, `prompts/util/`).
-# App-specific configurations can be provided by the user in their main spawn prompt within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks,
+# This framework now uses a "folder-per-app" architecture for components (promptApps, add-ons, utils) with fixed base paths
+# (e.g., `promptu/apps/`, `promptu/add_ons/`, `promptu/util/`).
+# App-specific configurations can be provided by the user in their main prompt file within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks,
 # and promptApp task selections are made in `[[USER_promptAppName_CONFIGURATION]]` blocks.
 # Core operational instructions, including component discovery and loading, are defined in an included file.
 
-[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]
+[[INCLUDE core_planning_instructions.txt FROM /promptu/core/core_planning_instructions.txt]]
 
-# Note: The `Core_Planning_Instructions.txt` will guide you on parsing `[[USER_APP_SELECTION]]`,
+# Note: The `core_planning_instructions.txt` will guide you on parsing `[[USER_APP_SELECTION]]`,
 # `[[USER_ADDON_SELECTION]]`, `[[USER_FRAMEWORK_SETTINGS]]`, discovering app-specific config blocks and promptApp task configuration
-# blocks from the main prompt, loading components, and executing the selected promptApp or add-ons.
+# blocks from the main prompt file, loading components, and executing the selected promptApp or add-ons.
 
-[[END OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]
+[[END OF POST-PROMPTU SEGMENT (v0.5.0 - PromptApp Support)]]

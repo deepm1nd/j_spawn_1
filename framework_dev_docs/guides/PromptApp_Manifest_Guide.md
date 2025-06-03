@@ -1,11 +1,11 @@
 # PromptApp Manifest Guide
 
-This guide defines the structure and content of the `[promptAppName]_manifest.json` file, which is used to define a "promptApp" within the Master Prompt Segment (MPS) framework.
+This guide defines the structure and content of the `[prompt_app_name]_manifest.json` file, which is used to define a "promptApp" within the Promptu framework.
 
 ## Location
 
-Each `promptApp` must reside in its own subdirectory within the `prompts/apps/` directory. The manifest file for a `promptApp` named `MyExampleApp` would be located at:
-`prompts/apps/MyExampleApp/MyExampleApp_manifest.json`
+Each `promptApp` must reside in its own subdirectory within the `promptu/apps/` directory. The manifest file for a `promptApp` named `MyExampleApp` would be located at:
+`promptu/apps/MyExampleApp/my_example_app_manifest.json`
 
 ## Format: JSON
 
@@ -36,11 +36,11 @@ Each object within a `tasks` array (inside a phase object) has the following pro
 
 | Key                        | Type   | Required | Description                                                                                                                                                                                             |
 | -------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `taskName`                 | String | Yes      | The user-friendly display name for this task. This name will be used in the `[[USER_promptAPP_NAME_CONFIGURATION]]` block in the main user prompt.                                                      |
+| `taskName`                 | String | Yes      | The user-friendly display name for this task. This name will be used in the `[[USER_promptAPP_NAME_CONFIGURATION]]` block in the main user prompt file (e.g. `post_promptu.txt`).                        |
 | `description`              | String | Yes      | A brief description of the task's purpose.                                                                                                                                                              |
-| `componentName`            | String | Yes      | The logical name of the MPS component (e.g., add-on, util) that this task executes. The framework will resolve the actual path to this component based on a defined search order (see Core Planning Instructions). |
+| `componentName`            | String | Yes      | The logical name of the Promptu component (e.g., add-on, util) that this task executes. The framework will resolve the actual path to this component based on a defined search order (see `core_planning_instructions.txt`). |
 | `isIterable`               | Boolean| Yes      | Set to `true` if this task supports iterative execution (i.e., can be run multiple times, potentially with increasing detail, and will prompt the user to "repeat or move on"). Set to `false` otherwise.      |
-| `defaultConfigOverrides`   | Object | No       | (Optional) An object where keys are parameter names of the underlying `componentName` and values are the default values to be used for those parameters *specifically when this task is run as part of this `promptApp`*. These overrides take precedence over the component's own `USER_..._CONFIG.txt` defaults but can be further overridden by the user in their main prompt. |
+| `defaultConfigOverrides`   | Object | No       | (Optional) An object where keys are parameter names of the underlying `componentName` and values are the default values to be used for those parameters *specifically when this task is run as part of this `promptApp`*. These overrides take precedence over the component's own `user_..._config.txt` defaults but can be further overridden by the user in their main prompt file. |
 
 ## Example: `defaultConfigOverrides`
 
@@ -64,5 +64,5 @@ Support for other formats (PDF, DOCX, etc.) may be considered for future enhance
 
 ## Component Resolution
 
-When a `componentName` is specified for a task, the MPS framework will attempt to locate the component by searching in a specific order of directories. Please refer to the `Core_Planning_Instructions.txt` and the main `MPS_Usage_Guide.md` for details on this search order (typically global components like add-ons and utils first, then app-specific components).
+When a `componentName` is specified for a task, the Promptu framework will attempt to locate the component by searching in a specific order of directories. Please refer to the `core_planning_instructions.txt` and the main `mps_usage_guide.md` for details on this search order (typically global components like add-ons and utils first, then app-specific components).
 ```

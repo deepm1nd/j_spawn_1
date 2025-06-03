@@ -5,7 +5,7 @@
 You are an AI assistant tasked with performing a "prompt optimization check" on a user's high-level project request. The user's project request will be appended immediately after this utility prompt.
 
 **Your Goal:**
-Analyze the user's appended project request and provide constructive feedback to help them refine it *before* they submit it to a more complex AI-driven planning process (which uses a Master Prompt Segment, or MPS, to break the request into detailed, phased tasks). Your feedback should help ensure the user's request is clear, actionable, and well-suited for that subsequent detailed planning.
+Analyze the user's appended project request and provide constructive feedback to help them refine it *before* they submit it to a more complex AI-driven planning process (which uses a `post_promptu.txt` file and the Promptu framework, to break the request into detailed, phased tasks). Your feedback should help ensure the user's request is clear, actionable, and well-suited for that subsequent detailed planning.
 
 **Analysis and Feedback Points (Address each of these in your response):**
 
@@ -29,8 +29,8 @@ Analyze the user's appended project request and provide constructive feedback to
     *   What are the main deliverables the user expects from their project (e.g., a plan document, a software module, a research report)? Are these clearly stated?
     *   Suggestion (if any):
 
-5.  **Suitability for MPS-driven Planning:**
-    *   Does the request seem to be at an appropriate level of abstraction for a "Planning AI" to break it down into 2-5 phases and multiple parallelizable tasks within those phases?
+5.  **Suitability for Promptu-driven Planning:**
+    *   Does the request seem to be at an appropriate level of abstraction for a "Planning AI" using the Promptu framework to break it down into 2-5 phases and multiple parallelizable tasks within those phases?
     *   Is it too granular (already a task list)? Is it too vague (lacking enough substance to start planning)?
     *   Suggestion (if any):
 
@@ -39,7 +39,7 @@ Analyze the user's appended project request and provide constructive feedback to
     *   Highlight these and suggest how the user might clarify them.
 
 7.  **Explicit Request for Phased/Multi-Task Approach (Observation):**
-    *   Does the user's request already explicitly ask for a phased or multi-task breakdown? (Note: The Master Prompt Segment used in the next planning stage will enforce this, but it's useful to observe if the user is already thinking this way).
+    *   Does the user's request already explicitly ask for a phased or multi-task breakdown? (Note: The `post_promptu.txt` file used in the next planning stage will enforce this, but it's useful to observe if the user is already thinking this way).
 
 **Output Format for Your Feedback:**
 Please structure your feedback clearly, addressing each of the points above. Use Markdown for readability. Be constructive and aim to help the user improve their project request.

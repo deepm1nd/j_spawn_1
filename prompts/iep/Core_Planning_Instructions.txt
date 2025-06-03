@@ -3,7 +3,7 @@
 A. **Extract User's High-Level Project Request:**
     1.  Initialize `User_High_Level_Project_Goal`: `null` (or an empty string).
     2.  Define delimiters: `start_req_delim = "[[USER_PROJECT_REQUEST]]"`, `end_req_delim = "[[END_USER_PROJECT_REQUEST]]"`.
-    3.  Search the *entire current processing content* (which the AI system is assumed to have prepared by combining the user's initial raw request with the user's configured MPS file loaded via a directive) for text between these delimiters.
+    1.  Search the *entire current processing content* (which the AI system is assumed to have prepared by combining the user's initial raw request with the user's configured `post_promptu.txt` file loaded via a directive) for text between these delimiters.
     4.  If found:
         a.  Extract the raw string content (exclusive of the delimiters, trim leading/trailing whitespace).
         b.  Store this extracted content as `User_High_Level_Project_Goal`.
@@ -14,22 +14,22 @@ A. **Extract User's High-Level Project Request:**
     6.  The `User_High_Level_Project_Goal` (or its not-found status) should be accessible by primary directive components (e.g., the component for a selected promptApp task, or a selected primary add-on like `task_spawning_addon` or `create_research_report`) for their main planning or processing context. These components will be responsible for checking if the goal is sufficiently defined for their needs.
 
 B. **Parse User-Configured Paths for Outputs and Specific Inputs:**
-    You **must** parse the `[[USER PATH CONFIGURATION]]` block if it is found at the very beginning of *this Master Prompt Segment*. These paths are primarily for directing your outputs and locating some user-provided process-specific inputs.
-    *   **Note:** This section is largely deprecated with the move to app-specific configurations and fixed system paths. However, if legacy path configurations are found, they might be used by older components. Modern components should rely on their own `USER_..._CONFIG.txt` files for path parameters.
+    You **must** parse the `[[USER PATH CONFIGURATION]]` block if it is found at the very beginning of *this `post_promptu.txt`*. These paths are primarily for directing your outputs and locating some user-provided process-specific inputs.
+    *   **Note:** This section is largely deprecated with the move to app-specific configurations and fixed system paths. However, if legacy path configurations are found, they might be used by older components. Modern components should rely on their own `user_..._config.txt` files for path parameters.
     *   If any output/process-specific paths are required by an active component and not found in its dedicated configuration, that component must define its own default behavior or error handling.
     *   All paths you generate for outputs must be constructed clearly, typically relative to the repository root.
 
 C. **Fixed Global System Paths for Core Components:**
     The locations for core framework components (PromptApps, Add-ons, Utils, Base IEP, IPC directory) are fixed and relative to the repository root. You **must** use these hardcoded paths for discovery and loading:
-    *   **PromptApps Base Directory:** `prompts/apps/`
-    *   **Add-ons Base Directory:** `prompts/add_ons/`
-    *   **Utils Base Directory:** `prompts/util/`
-    *   **IEP Base Directory:** `prompts/iep/` (specifically for `Base_IEP.txt`)
-    *   **IPC Base Directory:** `prompts/ipc/` (for future IPC components and general IPC file storage)
+    *   **PromptApps Base Directory:** `promptu/apps/`
+    *   **Add-ons Base Directory:** `promptu/add_ons/`
+    *   **Utils Base Directory:** `promptu/util/`
+    *   **IEP Base Directory:** `promptu/core/` (specifically for `base_iep.txt`)
+    *   **IPC Base Directory:** `promptu/ipc/` (for future IPC components and general IPC file storage)
 
 D. **Discover and Load Add-on Components:**
     1.  **Parse User Add-on Selections:**
-        a.  Scan the `[[USER_ADDON_SELECTION]]` block from `Master_Prompt_Segment.txt`.
+        a.  Scan the `[[USER_ADDON_SELECTION]]` block from `post_promptu.txt`.
         b.  Identify lines beginning with `[x]` to extract the selected `addon_app_name`s (these are folder names).
         c.  Compile an ordered list of these: `Selected_Addons_AppNames_Ordered`.
     2.  **Define Known Primary Directive Add-on Apps:**
@@ -42,7 +42,7 @@ D. **Discover and Load Add-on Components:**
         *   `Loaded_Primary_Addon_AppNames`: An empty list to track selected primary add-on apps that were successfully loaded.
     4.  **Load Selected Add-on Content & Discover App-Specific Configs:**
         For each `selected_app_name` in `Selected_Addons_AppNames_Ordered`:
-        a.  Construct the path to its primary instruction file: `path_to_primary_instruction_file = prompts/add_ons/[selected_app_name]/[selected_app_name].txt`.
+        a.  Construct the path to its primary instruction file: `path_to_primary_instruction_file = promptu/add_ons/[selected_app_name]/[selected_app_name].txt`.
         b.  Attempt to read the content of this file.
         c.  If successfully read:
             i.  Store its content in `All_Selected_Addons_Content_Map` with `selected_app_name` as key.
@@ -51,7 +51,7 @@ D. **Discover and Load Add-on Components:**
                 *   If `Active_Primary_Addon_AppName` is still null, set `Active_Primary_Addon_AppName = selected_app_name`.
             iii. **Scan Main Prompt for App-Specific Configuration Block:**
                 *   Define delimiters: `start_delim = "[[USER_CONFIG_FOR_" + selected_app_name + "]]"`, `end_delim = "[[END_USER_CONFIG_FOR_" + selected_app_name + "]]"`.
-                *   Search the *entire original user-provided main spawn prompt file content* for text between these delimiters.
+                *   Search the *entire original user-provided main prompt file content* (typically `post_promptu.txt`) for text between these delimiters.
                 *   If found, extract the raw string content and store it in `App_Specific_Configs_Content_Map` with `selected_app_name` as the key.
         d.  If the primary instruction file is not found or unreadable: Prepare a warning: "Warning: Selected add-on app '[selected_app_name]' is missing its primary instruction file at '[path_to_primary_instruction_file]' and will be skipped."
     5.  **Populate Inheritable Add-ons List:** (This logic will be primarily driven by promptApp context or if no promptApp is selected)
@@ -60,20 +60,29 @@ D. **Discover and Load Add-on Components:**
     6.  **Handle Multiple Selected Primary Add-ons:** If `Loaded_Primary_Addon_AppNames` contains more than one app name, prepare a warning.
     7.  The collections are used in Section II.
 
-E. **Input Definition Files (Base IEP):**
-    Loaded from `prompts/iep/Base_IEP.txt`. (Referenced in Section III.C.1).
+E. **Input Definition Files (base_iep.txt):**
+    Loaded from `promptu/core/base_iep.txt`. (Referenced in Section III.C.1).
 
 F. **Discover and Load Utility Components ("Utils"):**
-    1.  Scan for subdirectories in `prompts/util/`. Each is a `util_app_name`.
-    2.  Initialize `All_Available_Utils_Content_Map` (map for `util_app_name: content`).
-    3.  Load `prompts/util/[util_app_name]/[util_app_name].txt` for each. Store if readable, else warn.
-    4.  Utils are available for use by other components.
+    a.  Initialize `All_Available_Utils_Content_Map` (map for `util_app_name: content`).
+    b.  Scan for all subdirectories within `promptu/util/`. For each `util_dir_name`:
+        i.  Define `util_app_name = util_dir_name`.
+        ii. Path to component: `path_to_util = promptu/util/[util_dir_name]/[util_dir_name].txt`.
+        iii. Attempt to load content from `path_to_util`. If successful, store it in `All_Available_Utils_Content_Map` with `util_app_name` as key and mark this `util_app_name` as "loaded_from_subdir".
+    c.  Scan for all `.txt` files directly within `promptu/util/` (e.g., `utility_name.txt`). For each `util_file_name.txt`:
+        i.  Define `util_app_name = util_file_name` (without the .txt extension).
+        ii. If `util_app_name` is already in `All_Available_Utils_Content_Map` (i.e., "loaded_from_subdir"), issue a warning: "Warning: Utility '[util_app_name]' found both as direct file `promptu/util/[util_file_name].txt` and in subdirectory `promptu/util/[util_app_name]/`. Prioritizing version from subdirectory. Please ensure uniqueness." and SKIP this file.
+        iii. Else:
+            *   Path to component: `path_to_util = promptu/util/[util_file_name].txt`.
+            *   Attempt to load content from `path_to_util`. If successful, store it in `All_Available_Utils_Content_Map` with `util_app_name` as key.
+    d.  For any util not loaded successfully (either type), issue appropriate warnings.
+    e.  Utils are available for use by other components.
 
 G. **Discover and Load PromptApp Manifests:**
     1.  Initialize `Available_PromptApps_Manifest_Map` (empty map for `promptAppName: manifest_object`).
-    2.  Scan `prompts/apps/` for subdirectories. Each is a `promptAppName`.
+    2.  Scan `promptu/apps/` for subdirectories. Each is a `promptAppName`.
     3.  For each `promptAppName`:
-        a.  Path to manifest: `prompts/apps/[promptAppName]/[promptAppName]_manifest.json`.
+        a.  Path to manifest: `promptu/apps/[promptAppName]/[promptAppName]_manifest.json`.
         b.  Attempt to read and parse the JSON content of this file.
         c.  If successfully read and parsed:
             i.  Validate manifest structure (presence of `promptAppDisplayName`, `description`, `phases` array; phases have `phaseName`, `tasks` array; tasks have `taskName`, `description`, `componentName`, `isIterable`). Issue warnings for structural issues.
@@ -83,13 +92,13 @@ G. **Discover and Load PromptApp Manifests:**
 H. **Parse User PromptApp Selection & Configuration:**
     1.  Initialize `Selected_PromptAppName`: null.
     2.  Initialize `Selected_App_Tasks_Ordered`: empty list.
-    3.  Scan `Master_Prompt_Segment.txt` for the `[[USER_APP_SELECTION]]` block.
+    3.  Scan `post_promptu.txt` for the `[[USER_APP_SELECTION]]` block.
     4.  Identify lines beginning with `[x]` to extract the selected `potential_app_name`.
     5.  If multiple promptApps are selected, issue a warning: "Warning: Multiple promptApps selected. Using the first one: '[first_selected_app_name]'." Set `Selected_PromptAppName` to the first valid one found in `Available_PromptApps_Manifest_Map`.
     6.  If only one `[x]` is found, set `Selected_PromptAppName` to that `potential_app_name`, provided it exists as a key in `Available_PromptApps_Manifest_Map`. If not found in the map, issue a warning and set `Selected_PromptAppName` to null.
     7.  If `Selected_PromptAppName` is set and valid:
         a.  Define delimiters for its configuration block: `start_config_delim = "[[USER_" + Selected_PromptAppName + "_CONFIGURATION]]"`, `end_config_delim = "[[END_USER_" + Selected_PromptAppName + "_CONFIGURATION]]"`.
-        b.  Search the *entire original user-provided main spawn prompt file content* for text between these delimiters.
+        b.  Search the *entire original user-provided main prompt file content* (typically `post_promptu.txt`) for text between these delimiters.
         c.  If found:
             i.  Parse the content line by line.
             ii. Identify lines starting with `[x]` (case-insensitive for 'x') followed by a task name (e.g., `[x] My Task Name`). Extract "My Task Name".
@@ -101,7 +110,7 @@ H. **Parse User PromptApp Selection & Configuration:**
 I. **Parse User Framework Settings:**
     1.  Initialize `Framework_Full_Handoff_Notes_Enabled`: `false`.
     2.  Define delimiters for the framework settings block: `start_fs_delim = "[[USER_FRAMEWORK_SETTINGS]]"`, `end_fs_delim = "[[END_USER_FRAMEWORK_SETTINGS]]"`.
-    3.  Search the *entire original user-provided main spawn prompt file content* (typically the user's configured copy of `Master_Prompt_Segment.txt`) for text between these delimiters.
+    3.  Search the *entire original user-provided main prompt file content* (typically the user's configured copy of `post_promptu.txt`) for text between these delimiters.
     4.  If the `[[USER_FRAMEWORK_SETTINGS]]` block is found:
         a.  Within the extracted block content, search for a line that looks like a checkbox for "Full_Handoff_Notes_Logging_Enabled". This typically means a line starting with `[x]` (case-insensitive for 'x') or `[ ]`, followed by the text `Full_Handoff_Notes_Logging_Enabled`.
         b.  If such a line is found and it starts with `[x]` (indicating checked):
@@ -129,27 +138,27 @@ A. **Determine Execution Path (PromptApp or Add-on):**
             vii. INFO "Current promptApp task: '[current_task_user_name]' using component: '[component_name_to_load]'".
 
             viii. **Component Resolution (Search Order - App-Specific First):**
-                *   Path Attempt 1 (App-Local Flat File Style): `path_to_component = prompts/apps/[Selected_PromptAppName]/[component_name_to_load].txt`
-                *   Path Attempt 2 (App-Local Folder Style): `path_to_component = prompts/apps/[Selected_PromptAppName]/[component_name_to_load]/[component_name_to_load].txt` (if not found in app-local flat file)
-                *   Path Attempt 3 (Add-on): `path_to_component = prompts/add_ons/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
-                *   Path Attempt 4 (Util): `path_to_component = prompts/util/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
+                *   Path Attempt 1 (App-Local Flat File Style): `path_to_component = promptu/apps/[Selected_PromptAppName]/[component_name_to_load].txt`
+                *   Path Attempt 2 (App-Local Folder Style): `path_to_component = promptu/apps/[Selected_PromptAppName]/[component_name_to_load]/[component_name_to_load].txt` (if not found in app-local flat file)
+                *   Path Attempt 3 (Add-on): `path_to_component = promptu/add_ons/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
+                *   Path Attempt 4 (Util): `path_to_component = promptu/util/[component_name_to_load]/[component_name_to_load].txt` (if not found previously)
                 *   If component file not found after all attempts: CRITICAL ERROR "Component '[component_name_to_load]' for task '[current_task_user_name]' in promptApp '[Selected_PromptAppName]' not found. Search paths were: [list attempted paths]. Halting." HALT.
 
             ix.  **Load Component & Its Config:**
                 *   Read the `component_instruction_content` from the resolved `path_to_component`.
-                *   Determine `base_path_of_resolved_component` (e.g., `prompts/add_ons/[component_name_to_load]/` or `prompts/apps/[Selected_PromptAppName]/`).
-                *   Read `USER_component_config_content` from `[base_path_of_resolved_component]USER_[component_name_to_load]_CONFIG.txt`. (Handle file not found gracefully for components that don't have one).
+                *   Determine `base_path_of_resolved_component` (e.g., `promptu/add_ons/[component_name_to_load]/` or `promptu/apps/[Selected_PromptAppName]/`).
+                *   Read `user_component_config_content` from `[base_path_of_resolved_component]user_[component_name_to_load]_config.txt`. (Handle file not found gracefully for components that don't have one).
                 *   Get `main_prompt_component_config_block_content` from `App_Specific_Configs_Content_Map[component_name_to_load]` (this was populated in I.D.4.c.iii if a `[[USER_CONFIG_FOR_componentName]]` block exists in the main prompt).
 
             x.   **Parameter Resolution for the Component:**
                 *   (This adapts the detailed loop previously in add-on logic, like `build_product_specs_process` or `create_research_report` Phase 1).
-                *   The component's `USER_..._CONFIG.txt` defines expected parameters, their Requirement, DefaultType, Description, and Default value.
-                *   For each parameter defined in `USER_component_config_content`:
+                *   The component's `user_..._config.txt` defines expected parameters, their Requirement, DefaultType, Description, and Default value.
+                *   For each parameter defined in `user_component_config_content`:
                     1.  Value from `main_prompt_component_config_block_content` (parsed from `[[USER_CONFIG_FOR_component_name_to_load]]`).
-                    2.  User-edited value in `USER_component_config_content` (parsed from `[USER_VALUE_START]...[USER_VALUE_END]`).
+                    2.  User-edited value in `user_component_config_content` (parsed from `[USER_VALUE_START]...[USER_VALUE_END]`).
                     3.  Value from `current_task_info.defaultConfigOverrides[ParameterName]` (from `promptApp` manifest for the current task).
-                    4.  Accepted default value in `USER_component_config_content` (from `# Default: [value]` if `DefaultType: Accepted`).
-                    5.  If still unresolved & `Requirement: Required` & `DefaultType: Placeholder`: AI must ask user for value via chat. Update the on-disk `USER_..._CONFIG.txt` and advise user to update their main prompt's `[[USER_CONFIG_FOR_...]]` block.
+                    4.  Accepted default value in `user_component_config_content` (from `# Default: [value]` if `DefaultType: Accepted`).
+                    5.  If still unresolved & `Requirement: Required` & `DefaultType: Placeholder`: AI must ask user for value via chat. Update the on-disk `user_..._config.txt` and advise user to update their main prompt's `[[USER_CONFIG_FOR_...]]` block.
                     6.  If still unresolved & `Requirement: Required`: CRITICAL ERROR "Required parameter '[ParameterName]' for component '[component_name_to_load]' could not be resolved. Halting." HALT.
                 *   Store resolved parameters internally for the component's use.
 
@@ -170,23 +179,28 @@ A. **Determine Execution Path (PromptApp or Add-on):**
             ii. **Else (If `Active_Primary_Addon_AppName` IS NULL):** (This is the existing Section II.B logic)
                 *   State no active primary add-on was selected/found.
                 *   If `Inheritable_Addons_Content_Ordered_List` is not empty, state intent to process these. For each, retrieve its app-specific config string. Execute if self-executing; be cautious.
-                *   Generate `Information_Exchange_Protocol.md`.
+                *   Generate `information_exchange_protocol.md`.
                 *   Conclude operations.
 
 **III. OUTPUT GENERATION REQUIREMENTS (Core Utilities):**
 
 C. **Supporting Documentation (Core Utilities):**
-1.  **`Information_Exchange_Protocol.md`:**
+1.  **`information_exchange_protocol.md`:**
     *   (Condition for generation as before, typically if no primary add-on or promptApp task successfully runs to completion of a major process).
-    *   Load from `prompts/iep/Base_IEP.txt`.
-    *   Create in 'Prompts Folder' (user-configured output path, or a default like `outputs/current_session_prompts/`).
+    *   Load from `promptu/core/base_iep.txt`.
+    *   Create in 'promptu folder' (user-configured output path, or a default like `outputs/current_session_prompts/`).
+    *   (Example filenames for other docs: `dev_plan.md`, `mps_usage_guide.md`)
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION (Core):**
+
+**IMPORTANT FRAMEWORK GUIDELINES:**
+As a Planning AI using this framework, you MUST adhere to the following operational guidelines:
+- **File Operations:** File operations (creation, deletion, modification, renaming) should NOT be performed directly by you (the Jules instance) during the execution of these instructions. The framework is designed for you to prepare content and instructions. If physical file system changes are needed based on your processing (e.g., renaming files/folders, creating new components from your output), you MUST explicitly instruct the user to perform these changes externally. After the user confirms completion, they can re-invoke you or start a new relevant task. This ensures data integrity and user oversight of repository modifications.
 
 A.  **(Placeholder for any pre-finalization general instructions)**
 
 B. **Final Commit Message by Planning AI:**
-    Adhere to IEP (from `prompts/iep/Base_IEP.txt`).
+    Adhere to IEP (from `promptu/core/base_iep.txt`).
     *   **IF `Selected_PromptAppName` was processed for a task:**
         *   Task-ID: `PROCESSED_PROMPT_APP_[Selected_PromptAppName]_TASK_[current_task_user_name]` (use the user-friendly task name).
         *   Notes:
@@ -205,28 +219,28 @@ B. **Final Commit Message by Planning AI:**
             *   Note if any selected add-on expected an app-specific config block but it was not found.
             *   Self-checks, confidence, etc.
 
-C. **Update Handoff Notes (`framework_dev_docs/meta/HANDOFF_NOTES.md`):**
+C. **Update Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`):**
     1.  **Review `Framework_Full_Handoff_Notes_Enabled` (determined in Section I.I).**
     2.  **IF `Framework_Full_Handoff_Notes_Enabled` is `true`:**
-        a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/HANDOFF_NOTES.md`. This summary should include:
+        a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should include:
             *   User feedback/requests you addressed.
-            *   A detailed account of changes made to MPS framework documents or other deliverables.
+            *   A detailed account of changes made to this framework's documents or other deliverables (e.g., `core_planning_instructions.txt`, `available_add_ons_manifest.md`, `compliance_plm_manifest.json`).
             *   The state in which deliverables were left (e.g., specific commits, branches).
             *   Any pending items or suggestions for the next Jules instance.
-        b.  IMPORTANT: Ensure the 'MPS Performance Feedback Log' section within `HANDOFF_NOTES.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'MPS Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
+        b.  IMPORTANT: Ensure the 'Framework Performance Feedback Log' section within `handoff_notes.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'Framework Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
     3.  **ELSE (if `Framework_Full_Handoff_Notes_Enabled` is `false`):**
-        a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/HANDOFF_NOTES.md`. This summary should focus *only* on:
+        a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should focus *only* on:
             *   Major architectural changes implemented.
             *   Key decisions made that affect the framework's evolution.
-            *   The final state of key deliverables (e.g., new components created, significant refactoring of core files).
+            *   The final state of key deliverables (e.g., new components created, significant refactoring of core files like `core_planning_instructions.txt`).
         b.  Avoid detailed chronological accounts of your actions; aim for a high-level recap of critical developments.
-        c.  IMPORTANT: Ensure the 'MPS Performance Feedback Log' section within `HANDOFF_NOTES.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'MPS Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
+        c.  IMPORTANT: Ensure the 'Framework Performance Feedback Log' section within `handoff_notes.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'Framework Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
     4.  **General Note on Handoff Notes Archive:**
-        a.  Be aware that a more detailed historical archive of handoff notes might exist at `framework_dev_docs/meta/HANDOFF_NOTES_full_archive_20250602.md`.
-        b.  You should NOT read this archive file unless you determine it is critical for understanding specific historical context to fulfill the current user request AND you explicitly ask for and receive user permission to do so. Your primary source for ongoing handoff information is the main `HANDOFF_NOTES.md` file.
+        a.  Be aware that a more detailed historical archive of handoff notes might exist at `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
+        b.  You should NOT read this archive file unless you determine it is critical for understanding specific historical context to fulfill the current user request AND you explicitly ask for and receive user permission to do so. Your primary source for ongoing handoff information is the main `handoff_notes.md` file.
 
 D. **Self-Correction and Learning:**
     *   Review all warnings and errors generated during this session.
-    *   If a component's `USER_..._CONFIG.txt` was updated due to AI-assisted parameter gathering, ensure this is noted.
-    *   Reflect on any ambiguities in component instructions or the MPS framework itself.
+    *   If a component's `user_..._config.txt` was updated due to AI-assisted parameter gathering, ensure this is noted.
+    *   Reflect on any ambiguities in component instructions or the framework (`core_planning_instructions.txt`) itself.
     *   Consider if the handoff notes you just prepared (detailed or concise) accurately reflect the session's outcome and provide useful context for the next AI instance.
