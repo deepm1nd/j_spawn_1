@@ -9,268 +9,1743 @@ Each Jules instance concluding a work session on this task should append notes b
 - Any pending items or suggestions for the next Jules instance.
 
 ---
-**Summary of MPS Framework Evolution**
-
-The MPS framework has evolved significantly through several key phases and architectural changes:
-
-**Initial Structure & Core Concepts (Late 2023):**
-
-*   **Early Framework Structuring (around 2023-11-02):**
-    *   An initial major restructuring consolidated MPS development files into `/prompts/` (for AI-usable assets like `Master_Prompt_Segment.txt`, `iep/Base_IEP.txt`, add-ons, utils) and `/framework_dev_docs/` (for guides, examples, and meta-development files).
-    *   The `Master_Prompt_Segment.txt` (at that time, referred to as v0.3.2) included core features like internal user path configuration, add-on selection mechanisms, and directives for automated TLP generation, dependency linkage, risk assessment, and knowledge capture.
-
-*   **Significant Evolution & Refinement (largely around 2023-10-27, leading to MPS v0.4.0):**
-    *   **Modularization:** To improve maintainability, the `Master_Prompt_Segment.txt` was modularized. Core planning instructions were extracted into `prompts/iep/Core_Planning_Instructions.txt`, referenced via an `[[INCLUDE]]` directive.
-    *   **Optional & Add-on Driven Functionality:**
-        *   Task spawning (project planning, TLP generation) was moved from core instructions into a user-selectable `task_spawning_addon.txt`, making this a flexible, optional feature.
-        *   Add-on inheritance rules were refined to prevent primary directive add-ons (like `task_spawning_addon.txt`) from being passed into sub-task prompts.
-    *   **Extensible Primary Directives & Advanced Add-ons:**
-        *   The framework was enhanced to support multiple "primary directive" add-ons, allowing it to perform different complex processes. This involved `Core_Planning_Instructions.txt` dynamically identifying an `Active_Primary_Addon_Filename` from user selections.
-        *   A key example was the `build_product_specs_process.txt` add-on, designed for generating detailed product specifications. This add-on saw significant iteration:
-            *   Introduction of specific user configurations for controlling input document focus (`PRODUCT_SPECS_PRIMARY_INPUT_FILE`) and reference following depth (`PRODUCT_SPECS_REF_DEPTH`).
-            *   Implementation of a "Level 0 Deep Research" methodology, featuring per-heading analysis of a primary document and configurable codebase review preferences (`PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`, `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`) under a strict "Level 0 Code Analysis ONLY" rule.
-            *   Expansion to a multi-level iterative deepening capability (`PRODUCT_SPECS_ITERATION_DEPTH` 0-3), allowing for progressive content generation from outline to AI-unique insights, with each level building on the previous.
-    *   **"Folder-per-App" Architecture:** A major architectural refactoring organized components (add-ons, utils) into their own dedicated subdirectories (e.g., `prompts/add_ons/appName/appName.txt`). This improved modularity, organization, and the potential for more complex, self-contained components. Core logic was updated for this new discovery and loading mechanism.
-    *   **Configuration System Overhaul (MPS v0.4.0):**
-        *   The global `[[USER PATH CONFIGURATION]]` block was removed from `Master_Prompt_Segment.txt`.
-        *   Paths for core component discovery (add-ons, utils, IEP, IPC) became fixed (hardcoded in `Core_Planning_Instructions.txt`), simplifying user setup.
-        *   A new app-specific configuration system was introduced:
-            *   Users define configurations for selected apps within `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` blocks in their main spawn prompt.
-            *   Each app can have a `USER_appName_CONFIG.txt` file in its folder, serving as a template and persistent storage. These files include per-parameter metadata (Requirement, DefaultType, Description, Default value) and use `[USER_VALUE_START]...[USER_VALUE_END]` markers for editable values.
-            *   A defined parameter resolution precedence was established: main prompt block > user-edited `USER_appName_CONFIG.txt` > "AcceptedDefault" in `USER_appName_CONFIG.txt`.
-            *   AI-assisted updates were implemented: if a "Required" parameter with a "PlaceholderDefault" is unresolved, the AI is instructed to request the value from the user and update the on-disk `USER_appName_CONFIG.txt`.
-
-**Further Evolution & New Concepts (Mid 2025):**
-
-*   **New Development Direction (2025-06-02):**
-    *   User directive to begin focusing on decomposing an existing "Concept task" into sub-tasks. This work is intended to be a practical test case for evolving the framework's component definitions (add-on, util, process) or potentially introducing new component types or interaction paradigms.
-
-*   **Rapid Enhancements & New Features (2025-06-03):**
-    *   **Generalization of Research Add-on:** The specialized `build_product_specs_process` add-on was abstracted into a more generic `create_research_report` add-on, removing product-specific logic and focusing on generalized research report generation with iterative depth and reference following controls.
-    *   **"promptApp" Concept Introduced:**
-        *   A new "promptApp" concept was designed to allow users to define and execute multi-stage workflows composed of underlying MPS components.
-        *   These are defined by a manifest file (e.g., `CompliancePLM_manifest.json` for an example `CompliancePLM` app).
-        *   The component resolution search order for `promptApps` was critically defined as "app-specific first" (checking within the app's folder before global add-ons/utils).
-    *   **Utility Renaming & Example:** The `pre_flight_check_user_plan` utility was renamed to `promptimizer` for better clarity, and a sample usage document (`promptimizer_example.md`) was created.
-    *   **"MPS Updater" (MPU) Plan:** A detailed plan and a directive prompt (`framework_dev_docs/meta/implement_mps_updater.txt`) were created for a *future* Jules instance to implement an "MPS Updater" feature. This feature aims to provide a mechanism for transferring MPS framework improvements and features between different repositories.
-    *   **Directive-Based Invocation Workflow:**
-        *   A new, simplified workflow for invoking the MPS framework was implemented. Users now prepare a single comprehensive project-specific MPS file (copied from the `Master_Prompt_Segment.txt` template).
-        *   This file must start with the user's high-level project goal encapsulated in `[[USER_PROJECT_REQUEST]] ... [[END_USER_PROJECT_REQUEST]]` tags, followed by all their MPS configurations (app/add-on selections, app-specific config blocks).
-        *   The AI system is then invoked using a simple directive, e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_configured_file.txt]]`.
-        *   `Core_Planning_Instructions.txt` was updated to parse the `[[USER_PROJECT_REQUEST]]` from the loaded content. This directive method is also applicable for directly invoking utilities.
-
-This compacted summary provides a chronological overview of the MPS framework's key architectural changes, decisions, and feature introductions, omitting the performance feedback log as requested.
----
-**Session Summary - 2025-06-04**
+**Session Summary - 2023-11-02**
 **Instance:** Jules (this instance)
-**User Feedback/Requests Addressed:**
-- User requested a significant compaction of `framework_dev_docs/meta/HANDOFF_NOTES.md` to provide a clearer overview of the framework's evolution for future AI instances.
-- User requested the introduction of a mechanism for controlling the verbosity of future handoff notes generated by Jules.
-- User requested clarification and guidance on the status of the "MPS Performance Feedback Log" section previously part of `HANDOFF_NOTES.md`.
-- User requested information about any archival of older, more detailed handoff notes.
+**Key Actions:**
+-   MAJOR RESTRUCTURING: Consolidated all MPS framework development from previous `/mps_01/`, `/mps_02/` and root `/prompts/util/` directories into a new canonical structure:
+    -   `/prompts/` now holds source texts for AI-usable assets (`Master_Prompt_Segment.txt`, `iep/Base_IEP.txt`, `add_ons/*`, `util/*`, `tasks/00_task_launch_plan.md` placeholder).
+    -   `/framework_dev_docs/` now holds all guides, examples, and meta-development files for the framework.
+-   The canonical `prompts/Master_Prompt_Segment.txt` has been updated to the latest design (effectively v0.3.2). This version includes 8 core features:
+    1.  Internal `[[USER PATH CONFIGURATION]]` block.
+    2.  Internal `[[USER_ADDON_SELECTION]]` block (user uses `[x] addon_file.txt`).
+    3.  Planning AI reads Base IEP & Addons from user-provided paths in target repo (e.g., `/prompts/iep/Base_IEP.txt`, `/prompts/add_ons/`).
+    4.  Correct guidance for Planning AI's output to its *own* `prompts/tasks/` dir.
+    5.  Automated Dependency Linkage in TLP.
+    6.  Estimated Time/Complexity in TLP.
+    7.  Dynamic Risk Assessment directive (IEP v0.2 supports this).
+    8.  Knowledge Capture in `_next_steps.md`.
+    9.  Automated Sanity Checks by Planning AI.
+    10. Planning AI Confidence Score reporting.
+    11. Visual Plan Overview in TLP.
+-   `prompts/iep/Base_IEP.txt` content is v0.2 (with Risk Assessment example).
+-   All guides and examples in `/framework_dev_docs/` updated to reflect new paths and MPS functionality.
+-   Old `/mps_01/` and `/mps_02/` directories were deleted.
+-   All changes committed to new branch `feat/canonical-mps-framework-v1.0`.
+**State of Deliverables:** Canonical framework v1.0 is established. Ready for user to prepare target repo for gritos test using these files, or for further feature design on these canonical files.
+**Next Steps (User):** Prepare target repo for gritos test by:
+    1. Creating a main spawn prompt (e.g., `target_repo/prompts/p_gritos_spawn.md`) using `framework_dev_docs/guides/p_gritos_dev_plan_spawn_EXAMPLE.md` as a guide and embedding content from `prompts/Master_Prompt_Segment.txt`.
+    2. Editing `[[USER PATH CONFIGURATION]]` and `[[USER_ADDON_SELECTION]]` blocks within their spawn prompt's MPS section.
+    3. Copying content from `prompts/iep/Base_IEP.txt` to `target_repo/prompts/iep/Base_IEP.txt`.
+    4. Copying content from `prompts/add_ons/*` to `target_repo/prompts/add_ons/*`.
+    5. Ensuring gritos input files are in target repo.
+    6. Launching new Jules (Planning AI) with `"/prompts/p_gritos_spawn.md is the prompt..."`.
+**Next Steps (This Jules instance/session):** Await user action or conclude session.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Modularized `prompts/Master_Prompt_Segment.txt` by extracting its core planning instructions.
+- Created `prompts/iep/Core_Planning_Instructions.txt` to house these extracted instructions.
+- Updated `prompts/Master_Prompt_Segment.txt` to use an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive to load the core instructions.
+- Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to reflect these structural changes and provide updated instructions for users on preparing their target repositories.
+**State of Deliverables:** Modularization of `Master_Prompt_Segment.txt` is complete. The `MPS_Usage_Guide.md` is updated. Framework is ready for testing of this new structure or for further refinement.
+**Suggestions for Next Steps/Instance:**
+- Test the new modular MPS structure by having a Planning AI use it for a sample project.
+- Review the clarity of the `[[INCLUDE ...]]` directive and its processing requirements for the Planning AI.
+- Consider if other sections of `Master_Prompt_Segment.txt` (if any more are added later) or other core prompt files could benefit from similar modularization.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Completed a significant refactor to make the core task spawning/project planning functionality optional and add-on driven.
+- **Created `prompts/add_ons/task_spawning_addon.txt`**: This new add-on now houses the detailed instructions for generating a main development plan, Task Launch Plan (TLP), and individual task prompts. This logic was moved from `prompts/iep/Core_Planning_Instructions.txt`.
+- **Updated `prompts/iep/Core_Planning_Instructions.txt`**: This file now focuses on foundational framework logic: parsing user configurations (`[[USER PATH CONFIGURATION]]`, `[[USER_ADDON_SELECTION]]`), managing the add-on list, and implementing conditional logic to execute `task_spawning_addon.txt` (or other primary add-ons) if selected. It also handles utility outputs like `Information_Exchange_Protocol.md`.
+- **Modified `prompts/Master_Prompt_Segment.txt`**: Added `task_spawning_addon.txt` to the `[[USER_ADDON_SELECTION]]` block as a user-selectable option, clarifying its role.
+- **Updated `prompts/add_ons/available_addons_manifest.md`**: Added `task_spawning_addon.txt` with a description of its function and importance.
+- **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`**: Extensively revised the guide to explain the new optional task spawning mechanism, how to enable it, and the AI's behavior with and without `task_spawning_addon.txt` selected.
+**State of Deliverables:** The MPS framework now features optional, add-on-driven task spawning, significantly increasing its modularity and flexibility. Core logic for this is in place, and documentation has been updated. Ready for testing of various add-on combinations.
+**Suggestions for Next Steps/Instance:**
+- Thoroughly test the new conditional logic with `task_spawning_addon.txt` selected and not selected.
+- Test with combinations of `task_spawning_addon.txt` and other utility add-ons.
+- Evaluate if the instructions in `Core_Planning_Instructions.txt` regarding behavior *without* `task_spawning_addon.txt` (and no other primary add-on) are sufficiently clear and lead to sensible AI actions.
+- Consider if any further logic from `Core_Planning_Instructions.txt` can be either minimized or moved to more specialized utility add-ons.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+- Addressed user queries regarding add-on interactions, focusing on ensuring `task_spawning_addon.txt` is not inherited by Task AIs and clarifying add-on ordering for users.
+- **Refined `prompts/iep/Core_Planning_Instructions.txt` (Section I.B)**: Modified the add-on parsing logic to create two distinct collections:
+    - `All_Selected_Addons_Content_Map`: For Planning AI execution of all selected add-ons.
+    - `Inheritable_Addons_Content_Ordered_List`: A filtered, ordered list of add-on *contents* (excluding `task_spawning_addon.txt`) specifically for Task AI prompt inheritance. This ensures `task_spawning_addon.txt`'s logic is not passed to Task AIs.
+- **Updated `prompts/Master_Prompt_Segment.txt`**: Revised the `[[USER_ADDON_SELECTION]]` block to:
+    - Recommend listing `task_spawning_addon.txt` last for user clarity if it's selected.
+    - Add comments explaining that the order of other (inheritable) add-ons is preserved when appended to task prompts by this add-on.
+- **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`**:
+    - Documented that `task_spawning_addon.txt` itself is not inherited by Task AI prompts.
+    - Clarified the significance of the listing order for inheritable add-ons in `[[USER_ADDON_SELECTION]]` and the recommendation for placing `task_spawning_addon.txt` last.
+- Confirmed these changes align with user expectations for clarity and safe add-on processing.
+**State of Deliverables:** Add-on processing logic and user guidance have been refined. The system is safer regarding add-on inheritance by Task AIs, and documentation provides clearer instructions on add-on ordering. Framework is robust and ready for submission or further advanced testing.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+This session focused on introducing a new "process" type add-on, `build_product_specs_process.txt`, and significantly enhancing the core framework's ability to manage different types of primary directive add-ons.
 
-**Summary of Changes Made This Session:**
-1.  **`framework_dev_docs/meta/HANDOFF_NOTES.md` Compaction & Refinement:**
-    *   The content of `HANDOFF_NOTES.md` was reviewed, analyzed, and rewritten into a more concise format.
-    *   The new format retains the original introductory block and then presents a chronological summary of the most critical architectural changes, key decisions, and significant feature introductions or refactorings of the MPS framework.
-    *   The "MPS Performance Feedback Log" section was explicitly removed from this file to streamline it. The future of detailed performance feedback logging is noted as under review in the `MPS_Usage_Guide.md`.
-    *   An archive file (`framework_dev_docs/meta/HANDOFF_NOTES_full_archive_20250602.md`) containing older, verbose notes was noted, with specific conditions for its access.
+*   **`build_product_specs_process.txt` Add-on Development:**
+    *   Conceptualized and created the new add-on `prompts/add_ons/build_product_specs_process.txt` to guide an AI in generating comprehensive product specification documents.
+    *   Defined necessary user configuration variables in `prompts/Master_Prompt_Segment.txt` for this process:
+        *   `PRODUCT_NAME`
+        *   `PRODUCT_SPECS_INPUT_DOCS_PATH`
+        *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`
+        *   `PRODUCT_SPECS_OUTPUT_PATH`
+        *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE` (optional, for heading-based research focus)
+        *   `PRODUCT_SPECS_REF_DEPTH` (optional, 0-2, for controlling internal document reference following)
+    *   Detailed the multi-phase logic within `build_product_specs_process.txt` covering initialization, input ingestion, guided deep research (including primary document heading focus and configurable reference depth), decision making, and structured output generation (product spec, requirements list, optional architectural spec).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` to include `build_product_specs_process.txt` with its type, purpose, inputs, and outputs.
+    *   Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to document the new configuration variables and explain their use with the `build_product_specs_process.txt` add-on.
 
-2.  **Introduction of Handoff Note Granularity Control:**
-    *   **`prompts/Master_Prompt_Segment.txt` (v0.5.0) updated:**
-        *   Added a new `[[USER_FRAMEWORK_SETTINGS]]` block.
-        *   Within this block, introduced a checkbox: `[ ] Full_Handoff_Notes_Logging_Enabled`.
-        *   This setting allows users to choose between detailed (checked) or concise (unchecked, default) handoff notes from Jules at the end of a session.
-    *   **`prompts/iep/Core_Planning_Instructions.txt` updated:**
-        *   Added logic to parse the `[[USER_FRAMEWORK_SETTINGS]]` block and the `Full_Handoff_Notes_Logging_Enabled` checkbox, storing its state in a `Framework_Full_Handoff_Notes_Enabled` variable (defaulting to false).
-        *   Implemented conditional instructions in the end-of-session tasks section. Based on `Framework_Full_Handoff_Notes_Enabled`, Jules will now append either a detailed or a concise summary to `HANDOFF_NOTES.md`.
-        *   Included a note about the existence and restricted use of `framework_dev_docs/meta/HANDOFF_NOTES_full_archive_20250602.md`.
-
-3.  **Documentation Updates (`framework_dev_docs/guides/MPS_Usage_Guide.md`):**
-    *   The guide was updated to explain the new `[[USER_FRAMEWORK_SETTINGS]]` block and the `Full_Handoff_Notes_Logging_Enabled` feature.
-    *   Information was added regarding the removal of the "MPS Performance Feedback Log" from the active `HANDOFF_NOTES.md` and the potential future of such logging.
-    *   The existence and purpose of the `HANDOFF_NOTES_full_archive_20250602.md` were documented, along with the conditions for its access by AI instances.
+*   **`Core_Planning_Instructions.txt` Framework Refinement:**
+    *   To robustly support diverse primary add-ons (like the new `build_product_specs_process.txt` alongside `task_spawning_addon.txt`), the add-on handling logic in `prompts/iep/Core_Planning_Instructions.txt` was enhanced:
+        *   Introduced `Known_Primary_Directive_Addons`: A defined list of add-on filenames recognized as capable of being the main directive for a session.
+        *   Implemented logic to identify an `Active_Primary_Addon_Filename`: The first add-on selected by the user that matches an entry in `Known_Primary_Directive_Addons` takes precedence.
+        *   Added handling for scenarios where multiple known primary add-ons are selected, ensuring only the first one (by user order) is active and a warning/note is made.
+        *   Generalized the non-inheritance mechanism: The `Inheritable_Addons_Content_Ordered_List` (for appending to sub-prompts) now correctly excludes the content of whatever add-on is currently the `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt` by its hardcoded name. This makes the filtering dynamic.
+        *   Updated commit message instructions to reflect which primary add-on was active.
 
 **State of Deliverables:**
--   `framework_dev_docs/meta/HANDOFF_NOTES.md` is now in a compacted, summarized format, with this current detailed session appended.
--   The MPS framework (via `Master_Prompt_Segment.txt` and `Core_Planning_Instructions.txt`) now supports user-configurable granularity for session handoff notes.
--   `framework_dev_docs/guides/MPS_Usage_Guide.md` is updated to reflect all these changes.
--   The system is ready for users to utilize the new handoff note settings in subsequent MPS sessions.
-
-**Next Steps (User):**
--   Review the compacted `framework_dev_docs/meta/HANDOFF_NOTES.md`.
--   Review the updated `prompts/Master_Prompt_Segment.txt` and `framework_dev_docs/guides/MPS_Usage_Guide.md` for clarity regarding the new framework settings.
--   Test the new handoff logging behavior by running MPS sessions with the `Full_Handoff_Notes_Logging_Enabled` checkbox both checked and unchecked to ensure expected output in `HANDOFF_NOTES.md`.
+The new `build_product_specs_process.txt` add-on is created, documented, and integrated with new configuration options. The core MPS framework's add-on handling is now significantly more robust, extensible to multiple primary directive add-ons, and clearly defines precedence and inheritance rules. All relevant documentation (`MPS_Usage_Guide.md`, `available_addons_manifest.md`, `Master_Prompt_Segment.txt`) has been updated. The system is ready for submission and testing of these new capabilities.
 ---
-**Session Summary - 2025-06-05**
-**Instance:** Jules (this instance)
-**User Feedback/Requests Addressed:**
--   User requested an update to the `CompliancePLM` promptApp's structure to include a new "Research" task in the Concept Phase, more detailed planning tasks in the Plan Phase (leveraging `task_spawning_addon`), a structured Development Phase (also using `task_spawning_addon`), and placeholder Release/Retire phases.
--   A core requirement was to make the `task_spawning_addon` configurable, particularly its output paths, to move away from the deprecated global `[[USER PATH CONFIGURATION]]` block and allow its use in multiple contexts (like different PLM planning tasks) with distinct outputs.
--   User clarified that for the initial update of PLM Plan Phase tasks, using `task_spawning_addon` to generate focused planning documents (e.g., "Safety Plan," "CyberSecurity Plan") was acceptable, deferring the development of more specialized components for these individual plans to future user-led efforts.
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+This session focused on fully implementing the "Level 0 Deep Research" methodology within the `build_product_specs_process.txt` add-on, including integration of previously defined codebase review preferences.
 
-**Summary of Changes Made This Session:**
-1.  **`task_spawning_addon` Configuration and Refactoring:**
-    *   Created `prompts/add_ons/task_spawning_addon/USER_task_spawning_addon_CONFIG.txt`. This new file defines key parameters for the add-on, including:
-        *   `PROJECT_NAME` (Optional): For overall project context.
-        *   `ITERATION_ID` (Optional): For iteration tracking.
-        *   `BASE_OUTPUT_PATH` (Required): The primary directory for all outputs generated by an invocation of this add-on.
-        *   `MAIN_DEV_PLAN_FILENAME` (Required): The name of the main planning document to be generated (e.g., "Development_Overall_Plan.md" or "Safety_Plan.md").
-        *   `TASK_PROMPTS_SUBDIR` (Required): Subdirectory for TLP and task prompts.
-        *   `SUBMODULE_PLANS_SUBDIR` (Required): Subdirectory for `_dev_plan.md` files from spawned Task AIs.
-        *   `TASK_ARTIFACTS_SUBDIR` (Required): Subdirectory for deliverables from spawned Task AIs.
-    *   Refactored `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`:
-        *   Added a new initial section to instruct the AI on parsing parameters from its `USER_...CONFIG.txt` file, overridden by a `[[USER_CONFIG_FOR_task_spawning_addon]]` block if provided in the main prompt.
-        *   Replaced all hardcoded or globally-derived path logic with paths constructed from these new resolved parameters. This ensures that all outputs (main plan, TLP, individual task prompts, IPC directory, paths referenced in task prompts for Task AI outputs) are correctly scoped under the `Resolved_TSA_Base_Output_Path`.
-        *   Updated placeholder resolution logic for appended add-ons to use these new parameters.
-
-2.  **`CompliancePLM` PromptApp Update:**
-    *   Modified `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` with the new phase and task structure:
-        *   **Concept Phase:** Added "Research" task. All Concept Phase tasks ("Research," "Architectural Specification," "Product Specification," "Product Requirements") now use the `create_research_report` component, with `defaultConfigOverrides` for `REPORT_BASENAME` where appropriate.
-        *   **Plan Phase:** Now includes detailed planning tasks: "Development Planning," "Change Management Planning," "Document Management Planning," "Requirements Management Planning," "Safety Planning," and "CyberSecurity Planning." Each of these tasks is mapped to the `task_spawning_addon` component. `defaultConfigOverrides` are used to set `PROJECT_NAME` (e.g., "CompliancePLM_Safety") and `MAIN_DEV_PLAN_FILENAME` (e.g., "Safety_Plan.md") for each, ensuring `task_spawning_addon` generates a focused planning document for that specific area.
-        *   **Development Phase:** Structured with "Design," "Develop," "Test," and "Review" tasks, all using `task_spawning_addon` with `defaultConfigOverrides` for `PROJECT_NAME`.
-        *   **Release Phase & Retire Phase:** Added as placeholders with empty task lists.
-    *   The previous "Test Component Resolution" task was removed from the manifest.
-
-3.  **Documentation Updates:**
-    *   Updated the example `[[USER_CompliancePLM_App_CONFIGURATION]]` block within `prompts/Master_Prompt_Segment.txt` to accurately reflect the new `CompliancePLM` manifest structure, providing users with an up-to-date template for selecting PLM tasks.
-    *   Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:
-        *   Clarified how `task_spawning_addon` is now configured using its `USER_...CONFIG.txt` file and the `[[USER_CONFIG_FOR_task_spawning_addon]]` block.
-        *   Briefly mentioned its key parameters related to output path management.
-    *   Updated `prompts/add_ons/available_addons_manifest.md`:
-        *   Revised the entry for `task_spawning_addon` to detail its new configurability and list its key parameters and their purposes.
+*   **`build_product_specs_process.txt` "Level 0 Deep Research" Implementation:**
+    *   **New User Configurations:** Added `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` (options: "complex", "cursory", "focused"; default "cursory") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` (optional keywords for "focused" review) to `prompts/Master_Prompt_Segment.txt`.
+    *   **Documentation:** Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to document these new configuration variables for the "Build Product Specs" process.
+    *   **Add-on Logic Refinement (`prompts/add_ons/build_product_specs_process.txt`):**
+        *   **Phase 1 (Initialization):** Ensured retrieval and validation of the new codebase review variables.
+        *   **Phase 2 (Input Ingestion):** Clarified identification of the 'Primary Input Document'.
+        *   **New Sub-Phase 3.A (Overall Primary Input Document Review):** Added an initial high-level review of the Primary Input Document to identify broad themes.
+        *   **Restructured Sub-Phase 3.B (Per-Heading Deep Dive Cycle):** This is now the core of the research process. For each major heading in the Primary Input Document, the AI performs a 5-step analysis:
+            1.  Heading Context Analysis.
+            2.  Supporting Input Documents Analysis (contextual to the current heading).
+            3.  References & Codebase Analysis:
+                *   Document-to-document references honor `PRODUCT_SPECS_REF_DEPTH`.
+                *   Codebase references are analyzed based on `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`.
+                *   **"Level 0 Code Analysis ONLY"** rule strictly enforced (AI does not follow internal code references like imports from fetched code text).
+            4.  Consolidated Research Execution (for the current heading, using all gathered information).
+            5.  Iterative Content Contribution (drafting content for output documents relevant to the current heading).
+        *   **Revised Phase 4 (Decision Making):** Now explicitly follows the per-heading cycle, focusing on finalizing document structures based on iteratively drafted content.
+        *   **Revised Phase 5 (Output Generation):** Changed to "Output Document Assembly and Finalization," emphasizing assembly and review of the iteratively drafted content.
 
 **State of Deliverables:**
--   The `task_spawning_addon` is now fully configurable via its `USER_task_spawning_addon_CONFIG.txt` file and a corresponding `[[USER_CONFIG_FOR_task_spawning_addon]]` block, making it independent of the old global path configuration system.
--   The `CompliancePLM` promptApp manifest in `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` reflects the new, more detailed PLM workflow structure.
--   Core documentation (`Master_Prompt_Segment.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`) has been updated to reflect these changes.
--   The framework is ready for testing these modifications, especially the `CompliancePLM` app, to verify that the `task_spawning_addon` correctly generates focused plans for each relevant task based on the `defaultConfigOverrides` in the manifest.
-
-**Next Steps (User):**
--   Review all modified files (`USER_task_spawning_addon_CONFIG.txt`, `task_spawning_addon.txt`, `CompliancePLM_manifest.json`, `Master_Prompt_Segment.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`).
--   Thoroughly test the `CompliancePLM` promptApp, focusing on:
-    *   Executing tasks in the "Concept Phase" that use `create_research_report`.
-    *   Executing individual tasks in the "Plan Phase" (e.g., "Safety Planning") to ensure `task_spawning_addon` generates a distinct, appropriately named plan (e.g., "Safety_Plan.md") within a correctly structured output directory specific to that task's invocation.
-    *   Verifying that TLP and task prompts generated by these Plan Phase tasks correctly reference the scoped output paths.
--   When ready, begin development of more specialized prompts or components to replace the current use of `task_spawning_addon` for specific Plan Phase tasks if more tailored behavior (beyond document generation) is required for those individual planning areas.
+The `build_product_specs_process.txt` add-on now implements a detailed "Level 0 Deep Research" methodology with per-heading analysis. This includes configurable codebase review preferences and a strict "Level 0" approach to code analysis. All associated configurations in `Master_Prompt_Segment.txt` and documentation in `MPS_Usage_Guide.md` have been updated. This "Phase A" of the `build_product_specs_process.txt` development is complete and ready for submission and testing before considering any potential "Phase B" (multi-pass iterative deepening) refinements.
 ---
-**Session Summary - 2025-06-06**
-**Instance:** Jules (this instance)
-**User Feedback/Requests Addressed:**
--   User initiated a major rebranding of the framework to "Promptu."
--   Requested the introduction of a new `pre_promptu.txt` file for utilities running before the main user prompt.
--   Requested a mechanism for persistent guidelines, with an initial guideline about AI file operations.
--   Requested a change in utility discovery logic to support utilities as single files directly in `promptu/util/` or as part of a folder-per-app structure.
--   Mandated a move to snake_case for all framework filenames (content references updated by Jules, actual renaming by User).
--   Outlined a multi-step process for Jules to update file contents and documentation, followed by User performing external file/folder renames.
-
-**Summary of Changes Made This Session (Content Updates):**
-
-1.  **Framework Rebranding to "Promptu":**
-    *   All internal references, documentation, and user instructions updated from "MPS Framework" / "Master Prompt Segment" to "Promptu Framework" / "promptu".
-    *   Core file `Master_Prompt_Segment.txt` is now referred to as `post_promptu.txt` in all content.
-    *   Core file `Core_Planning_Instructions.txt` is now referred to as `core_planning_instructions.txt` in all content.
-    *   Core file `Base_IEP.txt` is now referred to as `base_iep.txt` in all content.
-    *   Directory paths updated in content: `/prompts/` to `/promptu/`, `/prompts/iep/` to `/promptu/core/`.
-
-2.  **Created `pre_promptu.txt`:**
-    *   A new file, `prompts/pre_promptu.txt` (to be externally moved to `promptu/pre_promptu.txt`), was created.
-    *   This file is structured similarly to `post_promptu.txt` (the former `Master_Prompt_Segment.txt`) and is intended for selecting and configuring utilities that run *before* the main user project request.
-    *   It includes a `[[USER_UTIL_SELECTION]]` block and references `promptu/core/core_planning_instructions.txt`.
-
-3.  **Updated `core_planning_instructions.txt` (formerly `Core_Planning_Instructions.txt`):**
-    *   **Persistent Guideline Added:** Integrated the guideline: "File operations should NOT be performed by the Jules instance. Strongly recommend that the user performs the changes externally..." into Section IV.
-    *   **Utility Discovery Logic Modified:** Section I.F updated. The logic now scans for utilities both as direct `.txt` files in `promptu/util/` (e.g., `promptu/util/utility_name.txt`) and within subdirectories (`promptu/util/utility_name/utility_name.txt`). Subdirectory versions are prioritized in case of name conflict.
-    *   All internal paths, core framework file references, and invocation directive examples updated to reflect the "Promptu" rebranding and snake_case filenames.
-
-4.  **Updated `post_promptu.txt` content (formerly `Master_Prompt_Segment.txt`):**
-    *   Include directive updated to `[[INCLUDE core_planning_instructions.txt FROM /promptu/core/core_planning_instructions.txt]]`.
-    *   All user instructions, comments, and internal references updated to `post_promptu.txt`, new paths, and snake_case for other framework files.
-    *   Start/end tags changed to `[[START OF POST-PROMPTU SEGMENT...]]` / `[[END OF POST-PROMPTU SEGMENT...]]`.
-
-5.  **Updated Other Framework Files (Add-ons, Utils, Apps, Documentation):**
-    *   **`framework_dev_docs/guides/mps_usage_guide.md` (formerly `MPS_Usage_Guide.md`):** Comprehensively updated to reflect all "Promptu" changes, new `pre_promptu.txt` / `post_promptu.txt` flow, snake_case, path changes, and new utility discovery. Instructions were reviewed for conciseness.
-    *   **`promptu/add_ons/available_add_ons_manifest.md` (formerly in `prompts/`):** Updated paths, filenames to snake_case, and references to align with Promptu.
-    *   **Add-on, Util, App Components (content of files in `prompts/add_ons/`, `prompts/util/`, `prompts/apps/`):** Scanned and updated for path changes, core framework file name changes (e.g., `post_promptu.txt`), and snake_case for referenced files.
-    *   **Other Documentation (`framework_dev_docs/examples/`, other `framework_dev_docs/guides/`, `framework_dev_docs/meta/implement_mps_updater.txt`):** Updated to reflect Promptu branding, new file names, paths, and snake_case conventions.
-    *   **`promptu/core/base_iep.txt` content (formerly `prompts/iep/Base_IEP.txt`):** Minor updates to examples for snake_case consistency.
-
-6.  **Snake Case Conversion (General):**
-    *   Across all modified files, references to framework filenames (e.g., `USER_..._CONFIG.txt`, `_dev_plan.md`) were converted to their snake_case equivalents in content (e.g., `user_..._config.txt`, `dev_plan.md`).
-
-**State of Deliverables (Content Updated, Awaiting User File/Folder Renaming):**
--   All specified framework files have had their *content* updated to reflect the "Promptu" rebranding, new file structures (`pre_promptu.txt`, `post_promptu.txt`), new paths (`/promptu/`, `/promptu/core/`), and snake_case naming conventions for referenced files.
--   The system is now internally consistent in its textual references.
--   **Crucially, actual renaming of files and directories has NOT been performed by this Jules instance.** This is pending action by the user.
-
-**Next Steps (User):**
--   User to perform the following external file system operations:
-    1.  Rename the main folder: `prompts` -> `promptu`
-    2.  Rename the IEP subfolder: `promptu/iep` (formerly `prompts/iep`) -> `promptu/core`
-    3.  Rename all files within the new `promptu` directory and its subdirectories to `snake_case.txt` or `snake_case.md` or `snake_case.json` as appropriate. This includes, but is not limited to:
-        *   `promptu/Master_Prompt_Segment.txt` -> `promptu/post_promptu.txt`
-        *   `promptu/pre_promptu.txt` (already named this way by Jules, just confirm location)
-        *   `promptu/core/Core_Planning_Instructions.txt` -> `promptu/core/core_planning_instructions.txt`
-        *   `promptu/core/Base_IEP.txt` -> `promptu/core/base_iep.txt`
-        *   All files in `promptu/add_ons/`, `promptu/util/`, `promptu/apps/` and their subdirectories. (e.g., `USER_task_spawning_addon_CONFIG.txt` to `user_task_spawning_addon_config.txt`; `CompliancePLM_manifest.json` to `compliance_plm_manifest.json`).
-        *   All files in `framework_dev_docs` and its subdirectories (e.g., `MPS_Usage_Guide.md` to `mps_usage_guide.md`; `HANDOFF_NOTES.md` to `handoff_notes.md`).
-    4.  Move `promptu/util/promptimizer/promptimizer.txt` to `promptu/util/promptimizer.txt` (as per user request for single-file utilities).
--   After all renaming and moves are complete, the user should run the continuation prompt for this Jules instance to proceed with any final checks or the next phase of work.
 ---
-**Session Summary - 2025-06-03** (Note: Date appears to be out of order, this was inserted by a previous agent version. Correcting sequence for future entries.)
-**Instance:** Jules (this instance)
-**User Feedback/Requests Addressed:**
-- User confirmed that some file/folder renaming to `snake_case` (mandated in 2025-06-06 session) is still pending their action.
-- User requested that handoff notes and the continuation prompt be updated to reflect this pending work before they complete the renames and provide the next set of requirements for the Promptu framework.
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions for Enhanced Iterative Deepening (0-3 Levels) - "Phase B (Revised)":**
+This session focused on expanding and refining the iterative deepening capabilities of the `build_product_specs_process.txt` add-on to support four distinct levels (0-3) with specific content generation goals for each.
 
-**Summary of Changes Made This Session:**
-1.  **Reviewed Existing Handoff Notes:** Reviewed `framework_dev_docs/meta/handoff_notes.md` and the archived feedback log in `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md` to understand the current state of the Promptu framework.
-2.  **Updated `framework_dev_docs/meta/continuation_prompt_framework_dev.txt`:**
-    *   Updated terminology from "MPS" to "Promptu".
-    *   Corrected file paths and names to `snake_case` and new Promptu locations (e.g., `/promptu/post_promptu.txt`).
-    *   Clarified that the `## MPS Performance Feedback Log` is now in the archive file (`handoff_notes_full_archive_20250602.md`).
-    *   Added a prominent note advising the next Jules instance that user is still pending completion of `snake_case` renames for files under `/framework_dev_docs/guides/` and for the `CompliancePLM` app folder (`promptu/apps/CompliancePLM` to `promptu/apps/compliance_plm`) and its contents. The next instance must verify these renames with the user.
-3.  **Updated `framework_dev_docs/meta/handoff_notes.md` (this file):** Appended this session summary.
+*   **Updated `prompts/Master_Prompt_Segment.txt`:**
+    *   Modified the `PRODUCT_SPECS_ITERATION_DEPTH` variable within `[[USER PATH CONFIGURATION]]` to accept a range of 0-3.
+    *   Updated its comment to describe the new purpose for each level:
+        *   `0`: Outline Generation (all heading levels 3-4 deep, title, 1 para key ideas per heading).
+        *   `1`: Basic Content (Bachelor's level, ~3 paras per original D0 heading, with concepts, examples). Builds on D0.
+        *   `2`: Expert Elaboration (~1 page per original D0 heading, deeper analysis, more nuanced). Builds on D1.
+        *   `3`: AI Unique Insights (Extensive elaboration, ~3 pages per original D0 heading, novel ideas, critical analysis). Builds on D2.
+    *   Confirmed `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` remains correctly defined as required for depths 1, 2, and 3.
+
+*   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   **Variable Documentation:** The description for `PRODUCT_SPECS_ITERATION_DEPTH` was updated to reflect the new 0-3 range and the detailed definitions for each level.
+    *   **Workflow Section ("Using Iterative Deepening..."):**
+        *   The step-by-step guide was revised to incorporate all four iteration levels (0-3).
+        *   Descriptions for Iterations 0, 1, and 2 were updated to match the new content goals.
+        *   Iteration 3 (AI Unique Insights) was added with instructions on setting variables and expected outcomes (`*_D3.md` files).
+        *   Clarified user responsibility for managing output folders across all iterations (D0, D1, D2, D3).
+
+*   **Extensively Refined `prompts/add_ons/build_product_specs_process.txt`:**
+    *   **Phase 1 (Initialization):** Updated `PRODUCT_SPECS_ITERATION_DEPTH` validation to [0, 3] (default 0). Added strict validation for `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (must be provided and accessible if depth > 0, otherwise critical error and halt). Logic to determine output file suffix (`_D0` to `_D3`) added.
+    *   **Phase 2 (Input Processing):** Made conditional. Depth 0 processes original inputs. Depths 1-3 primarily process previous iteration's outputs, using original inputs as reference.
+    *   **Phase 3 (Content Generation):** Implemented distinct conditional logic for each `PRODUCT_SPECS_ITERATION_DEPTH` (0-3):
+        *   **Depth 0 ("Outline Generation"):** Uses the "Level 0 Deep Research" per-heading methodology. Output per heading is strictly title and a single paragraph of key ideas.
+        *   **Depth 1 ("Basic Content"):** Reads D0 outputs. Expands each D0 key idea paragraph to ~3 paragraphs (Bachelor's level detail).
+        *   **Depth 2 ("Expert Elaboration"):** Reads D1 outputs. Expands each original major heading's section to ~1 page of expert-level content.
+        *   **Depth 3 ("AI Unique Insights"):** Reads D2 outputs. Expands each original major heading's section to ~3 pages with novel AI-driven insights.
+    *   Included general instructions for iterations 1-3 on building upon previous work and maintaining consistency.
+    *   **Phase 4 (Decision Making) & Phase 5 (Output Assembly):** Adapted to support the iterative workflow, ensuring correct document structures are defined (primarily at D0) and content is assembled with appropriate depth suffixes for filenames.
 
 **State of Deliverables:**
-- `framework_dev_docs/meta/continuation_prompt_framework_dev.txt` is updated.
-- `framework_dev_docs/meta/handoff_notes.md` is updated with this session summary.
-- The system is awaiting the user to:
-    1.  Complete the `snake_case` renaming for all files under `/framework_dev_docs/guides/`.
-    2.  Rename the `CompliancePLM` app folder from `promptu/apps/CompliancePLM` to `promptu/apps/compliance_plm`.
-    3.  Rename the `CompliancePLM` manifest from `CompliancePLM_manifest.json` to `compliance_plm_manifest.json` within the new app folder.
-    4.  Ensure all contents of the `compliance_plm` app folder are also `snake_case`.
-    5.  Provide the next set of requirements or tasks for the Promptu framework.
+The `build_product_specs_process.txt` add-on now fully supports a 0-3 level iterative deepening workflow with clearly defined goals and logic for each depth. All associated configurations in `Master_Prompt_Segment.txt` and documentation in `MPS_Usage_Guide.md` have been updated to reflect these significant enhancements. This "Phase B (Revised)" of the `build_product_specs_process.txt` development, focusing on iterative deepening, is complete. The system is ready for submission and extensive testing of this multi-stage process.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions for "Folder-per-App" Architecture Refactoring:**
+This session focused on restructuring the MPS framework components (add-ons, utils) into a "folder-per-app" architecture to enhance modularity, organization, and extensibility.
 
-**Next Steps (User):**
--   Perform the final file and folder renaming operations as detailed above.
--   Once renaming is complete, re-invoke Jules with the next set of tasks or feedback for the Promptu framework.
+*   **Core Logic Update (`prompts/iep/Core_Planning_Instructions.txt`):**
+    *   Revised Section I.B to implement new discovery and loading logic for add-on "apps". The AI now scans for subdirectories within `User_Path_Addons_Dir`. The selected `addon_app_name` (folder name) is used to find the primary instruction file at `[User_Path_Addons_Dir]/[addon_app_name]/[addon_app_name].txt`.
+    *   Updated `Known_Primary_Directive_Addon_Apps` to list app/folder names (e.g., "task_spawning_addon").
+    *   Added new Section I.D for discovering and loading "util apps" from `User_Path_Utils_Dir` using the same `[util_app_name]/[util_app_name].txt` pattern, storing them in `All_Available_Utils_Content_Map`.
+    *   Ensured error handling for missing primary instruction files within app folders.
+    *   Adjusted internal variable names (e.g., `Active_Primary_Addon_AppName`) and commit message details to use app names.
+
+*   **Component Migration:**
+    *   All existing add-ons (`task_spawning_addon.txt`, `task_resumption_addon.txt`, `build_product_specs_process.txt`) were migrated from flat files in `prompts/add_ons/` to their respective subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    *   The existing utility (`pre_flight_check_user_plan.txt`) was migrated from `prompts/util/` to `prompts/util/pre_flight_check_user_plan/pre_flight_check_user_plan.txt`.
+    *   The migration process involved reading original content, creating the new file in the subdirectory (which also created the directory), and then deleting the original flat file.
+
+*   **New IPC Directory:**
+    *   Created the `prompts/ipc/` directory and added a `.gitkeep` file to ensure it's tracked, in anticipation of future IPC components using this folder-per-app structure.
+
+*   **Documentation Updates:**
+    *   `prompts/add_ons/available_addons_manifest.md`: Updated to refer to add-ons by their app/folder names and to explain the new structure (e.g., "primary instruction file: `app_name/app_name.txt`").
+    *   `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to:
+        *   Explain the "folder-per-app" architecture for all components.
+        *   Clarify that `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, and `User_Path_IPC_Dir` in `[[USER PATH CONFIGURATION]]` point to parent directories for component subfolders.
+        *   Guide users to select add-ons by their app/folder name in `[[USER_ADDON_SELECTION]]`.
+        *   Provide instructions for developers on creating new components under this architecture.
+        *   Ensured consistent terminology (e.g., "add-on app") throughout the guide.
+
+**State of Deliverables:**
+The MPS framework has been successfully refactored to a "folder-per-app" architecture for its components. Core instruction loading logic, all existing add-ons and utils, and all key documentation (`Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`) have been updated to support and reflect this new structure. The framework is now significantly more modular, organized, and extensible for future component development. Ready for submission and testing.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions: Configuration System Refactoring (Fixed Paths, App-Specific Configs, USER_config.txt Standard)**
+This session executed a major refactoring of the MPS configuration system, moving away from a global `[[USER PATH CONFIGURATION]]` block in `Master_Prompt_Segment.txt` towards a more modular and app-centric approach.
+
+*   **Architectural Changes & Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):**
+    *   **Fixed Global System Paths:** Implemented for core component discovery. Base directories for Add-ons (`prompts/add_ons/`), Utils (`prompts/util/`), Base IEP (`prompts/iep/`), and IPC (`prompts/ipc/`) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup. These paths are no longer read from `Master_Prompt_Segment.txt`.
+    *   **App-Specific Configuration Block Discovery:** `Core_Planning_Instructions.txt` was updated to scan the main user spawn prompt for app-specific configuration blocks demarcated by `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]`. The raw string content of such blocks is captured and passed to the respective add-on app.
+
+*   **`Master_Prompt_Segment.txt` Streamlining (v0.4.0):**
+    *   The entire `[[USER PATH CONFIGURATION]]` block was removed.
+    *   Comments in `[[USER_ADDON_SELECTION]]` were updated to guide users to use app names (folder names) and to refer to app-specific configuration methods (i.e., the `[[USER_CONFIG_FOR_appName]]` blocks or `USER_appName_CONFIG.txt` files).
+    *   Version updated to `v0.4.0` to reflect these structural changes.
+
+*   **`USER_appName_CONFIG.txt` Standard Formalized:**
+    *   Defined a standard format for `USER_appName_CONFIG.txt` files, which serve as templates and persistent storage for app parameters within each app's folder (e.g., `prompts/add_ons/appName/USER_appName_CONFIG.txt`).
+    *   **Standard Includes:**
+        *   Overall `[[USER_CONFIG_FOR_appName]]...[[END_USER_CONFIG_FOR_appName]]` delimiters.
+        *   Per-parameter metadata: `# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`.
+        *   Per-parameter description and default: `# Description: ... Default: [template_default_value]`.
+        *   Parameter value line: `PARAM_NAME: [USER_VALUE_START] [current_value] [USER_VALUE_END]`.
+    *   An illustrative `USER_exampleApp_CONFIG.txt` was defined as part of the standard.
+
+*   **Implementation in `build_product_specs_process` App:**
+    *   Created `prompts/add_ons/build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` adhering to the new standard, defining all its parameters (including `PRODUCT_NAME`, `PRODUCT_SPECS_*` paths, iteration settings, codebase review settings) with appropriate metadata.
+    *   Refined `prompts/add_ons/build_product_specs_process/build_product_specs_process.txt` (v0.4) to:
+        *   Remove old logic for reading parameters from the global `[[USER PATH CONFIGURATION]]`.
+        *   Implement the new parameter resolution logic:
+            1.  Prioritize values from the `[[USER_CONFIG_FOR_build_product_specs_process]]` block in the main spawn prompt.
+            2.  Fall back to user-edited values in its `USER_..._CONFIG.txt` file.
+            3.  Fall back to "AcceptedDefault" values from its `USER_..._CONFIG.txt` file.
+            4.  For "Required" parameters with "PlaceholderDefault" values that are still unresolved, instruct Jules to request input from the user via chat.
+        *   The AI updates the on-disk `USER_build_product_specs_process_CONFIG.txt` with values obtained via chat.
+        *   The AI outputs the complete, updated `[[USER_CONFIG_FOR_build_product_specs_process]]` block for the user to copy to their main spawn prompt if changes occurred via chat or if the block was initially missing/incomplete.
+        *   Added final validation to HALT if any `Required` parameters remain unset after all resolution attempts.
+
+*   **Documentation Update (`framework_dev_docs/guides/MPS_Usage_Guide.md`):**
+    *   Comprehensively updated to reflect the removal of `[[USER PATH CONFIGURATION]]` for global paths.
+    *   Explained the fixed system paths for component discovery.
+    *   Detailed the new app-specific configuration system: the role and format of `USER_appName_CONFIG.txt` files, the `[[USER_CONFIG_FOR_appName]]` blocks in the main prompt, the user workflow for configuration, and the AI's parameter resolution precedence including AI-assisted updates.
+
+**State of Deliverables:**
+The MPS framework's configuration system has been thoroughly refactored. Global component paths are now fixed. App-specific parameters are managed via a robust system of `USER_appName_CONFIG.txt` template/storage files and `[[USER_CONFIG_FOR_appName]]` override blocks in the main user prompt, featuring AI-assisted updates. The `build_product_specs_process` add-on fully implements this new configuration paradigm. All core documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`) is updated. The framework is significantly more modular, user-friendly in its configuration, and extensible. Ready for submission and testing.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Accomplishments This Session (Finalizing Configuration System & Preparing for "Concept Task" Handoff):**
+This session concluded the major refactoring of the MPS framework's configuration system and component architecture. It also prepared for the next phase of work focusing on the "Concept task."
+
+*   **Configuration System Refactoring (Completion & Documentation):**
+    *   **Standard for `USER_appName_CONFIG.txt`:** Formalized the standard for these files, including app-specific delimiters (`[[USER_CONFIG_FOR_appName]]`), and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), descriptions, defaults, and `[USER_VALUE_START]...[USER_VALUE_END]` markers. An illustrative example (`USER_exampleApp_CONFIG.txt`) was created as part of this standard definition.
+    *   **Applied Standard:** The `build_product_specs_process` add-on's `USER_build_product_specs_process_CONFIG.txt` was updated to fully adhere to this new standard, with all its parameters classified.
+    *   **Refined App Logic (`build_product_specs_process.txt` v0.4):** Its parameter resolution logic in Phase 1 was enhanced to parse the new metadata from `USER_..._CONFIG.txt`. The AI-assisted update mechanism (asking user via chat) now correctly triggers only for "Required" parameters with "PlaceholderDefault" values that haven't been overridden. A final validation step ensures all "Required" parameters have valid values before proceeding, halting with an error if not.
+    *   **Streamlined `Master_Prompt_Segment.txt` (v0.4.0):** The global `[[USER PATH CONFIGURATION]]` block was definitively removed. Instructions in `[[USER_ADDON_SELECTION]]` were updated to guide users on app-specific configurations via `[[USER_CONFIG_FOR_appName]]` blocks in their main spawn prompt.
+    *   **Consolidated `MPS_Usage_Guide.md`:** The guide was thoroughly reviewed and updated to provide a comprehensive and consistent explanation of the new configuration system. This includes: fixed global system paths, the role and format of `USER_appName_CONFIG.txt` files, the user workflow for app configuration (using main prompt blocks or editing `USER_...CONFIG.txt`), the AI's parameter resolution precedence, and how AI-assisted updates work. The "folder-per-app" architecture is also clearly documented.
+
+*   **Next Area of Work (User Directed - For Next Jules Instance):**
+    *   The user has directed focus towards refining an existing "Concept task."
+    *   This will involve analyzing the "Concept task" and splitting it into approximately three sub-tasks.
+    *   A key aspect of this work will be to use the "Concept task" sub-tasks as a practical use case for **exploring and implementing extensions to the 'add-on, util, and process' component concepts** within the MPS framework.
+    *   The next Jules instance is tasked with initiating this by requesting detailed requirements from the user regarding the "Concept task" (current state, materials possibly in `Inputs/concept/inputs`, ideas for sub-tasks) and their initial thoughts on evolving the component model.
+
+**State of Deliverables:**
+The comprehensive refactoring of the MPS configuration system is complete. This includes the "folder-per-app" architecture, fixed system paths for component discovery, and the new app-specific configuration mechanism using `USER_appName_CONFIG.txt` files and `[[USER_CONFIG_FOR_appName]]` blocks, featuring AI-assisted updates. All core prompts and documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`, and relevant add-ons like `build_product_specs_process`) have been updated to reflect these changes. The framework is significantly more modular, user-friendly, and robust in its configuration management. No new code or prompt changes were made in this specific summarization step. The system is ready for handoff to the next Jules instance to begin work on the "Concept task" and component model evolution.
+---
+---
+**Feedback Entry Date:** 2025-06-02
+**Source of Feedback:** User (new directive for next area of work following completion of major configuration system and architectural refactoring).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment) and related component architecture (folder-per-app, `USER_appName_CONFIG.txt` standard, etc.).
+**Context/Scenario:** Planning the next development cycle for the MPS framework after successfully implementing a new configuration system and "folder-per-app" architecture.
+**Observation/Issue:**
+    1.  An existing internal "Concept task" (details to be provided by the user to the next Jules instance, potentially located in `Inputs/concept/inputs`) is currently monolithic and needs to be broken down into more manageable sub-tasks (approximately three).
+    2.  The process of decomposing and implementing these "Concept task" sub-tasks is expected to reveal opportunities or requirements for evolving the framework's current component definitions (add-on, util, process) or potentially introducing new component types or interaction paradigms.
+**Suggestion (For Next Jules Instance):**
+The next Jules instance should:
+    1.  **Gather Detailed Requirements for "Concept Task":** Actively engage with the user to obtain a detailed understanding of the current "Concept task," its goals, any existing materials (potentially in `Inputs/concept/inputs`).
+    2.  Collaborate with the user to define the three (approx.) sub-tasks for the "Concept task."
+    3.  In parallel, analyze how the requirements of these sub-tasks might necessitate extensions to the existing component concepts (add-on, util, process) or the introduction of new component types/paradigms within the MPS framework.
+    4.  Plan and implement both the "Concept task" restructuring and the identified framework component extensions, using the former as a practical test case for the latter.
+---
+**Session Summary - 2025-06-03**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User directed a new phase of MPS development focusing on two major initiatives:
+    1.  Abstracting the existing `build_product_specs_process` add-on into a more generic `create_research_report` add-on.
+    2.  Introducing a new "promptApp" concept to allow users to define and execute multi-stage workflows composed of underlying MPS components.
+- Clarified requirements for `create_research_report` parameters, including separate controls for `ITERATIVE_OUTPUT_DEPTH` (D0-D3 style) and `REFERENCE_FOLLOWING_DEPTH` (document link traversal).
+- Confirmed that plain text input formats (.txt, .md, web text) are the initial target for document processing.
+- Decided that sequential tasks within a `promptApp` will be handled by user re-invocation of new AI instances for each task, simplifying initial framework orchestration.
+
+**Summary of Approved Plan:**
+The overall plan involves:
+1.  Developing the `create_research_report` add-on (now complete).
+2.  Defining the "promptApp" structure and manifest file format.
+3.  Updating `Core_Planning_Instructions.txt` and `Master_Prompt_Segment.txt` to support `promptApp` discovery, selection, and execution.
+4.  Creating an initial structural example of a `promptApp` (`CompliancePLM`).
+5.  Retiring the `build_product_specs_process` add-on files.
+6.  Updating all documentation.
+7.  Testing the new functionalities.
+
+**Summary of Changes Made This Session (to implement Step 1 of the plan):**
+-   **Created `prompts/add_ons/create_research_report/` directory.**
+-   **Created `prompts/add_ons/create_research_report/USER_create_research_report_CONFIG.txt`:**
+    *   Defined parameters: `PROPOSED_TABLE_OF_CONTENTS`, `GUIDELINES_DOC_PATHS`, `ADDITIONAL_WEB_LINKS_FILE`, `EXEMPLAR_DOCS`, `GENERAL_INPUT_DOCS`, `PRIMARY_INPUT_DOC_PATH`, `ITERATIVE_OUTPUT_DEPTH`, `REFERENCE_FOLLOWING_DEPTH`, `PREVIOUS_ITERATION_OUTPUT_PATH`, `REPORT_BASENAME`, `REPORT_OUTPUT_PATH`.
+    *   Included full metadata (Requirement, DefaultType, Description, Default) for each.
+-   **Created `prompts/add_ons/create_research_report/create_research_report.txt`:**
+    *   Adapted core logic from the former `build_product_specs_process.txt`.
+    *   Updated to use the new parameter set for generic report generation.
+    *   Removed product-specification-specific and detailed codebase review logic.
+    *   Maintained the 6-phase structure and parameter resolution mechanisms.
+-   **Updated `prompts/add_ons/available_addons_manifest.md`:**
+    *   Added entry for `create_research_report`.
+    *   Removed entry for `build_product_specs_process`.
+
+**State of Deliverables:**
+- The `create_research_report` add-on (v0.1) is developed and its configuration file is in place.
+- The add-on manifest is updated.
+- The `build_product_specs_process` add-on is effectively replaced by this new add-on (physical file deletion is pending a later plan step).
+- Plan step 1 is complete.
 
 **Next Steps (This Jules instance/session):**
--   Commit these changes to `continuation_prompt_framework_dev.txt` and `handoff_notes.md`.
+- Proceed to Plan Step 2: "Define 'promptApp' Structure and Manifest." This involves designing the manifest file format that will define how `promptApps` (like the `CompliancePLM` example) are structured and how their tasks map to MPS components.
 ---
-**Session Summary - 2025-06-07**
-**Instance:** Jules (this instance)
-**User Feedback/Requests Addressed:**
-- User requested implementation of new invocation scenario handling in `promptu/core/core_planning_instructions.txt` for situations where initial user input (project goal, app/add-on selections) might be missing or incomplete.
+**Session Summary - 2025-06-03 (Continued)**
+**Instance:** Jules
+**User Feedback/Requests Addressed (Post Initial 2025-06-03 Summary):**
+- User confirmed a critical change in component resolution strategy for `promptApps`: the search order should be "app-specific first" (flat file, then folder style within app), followed by global components (add-ons, then utils). This was a change from the initially implemented "globals first" approach.
 
-**Summary of Changes Made This Session:**
-1.  **`promptu/core/core_planning_instructions.txt` Update (Section II.A):**
-    *   A new step "0. Determine Invocation Context and Handle Special Empty States:" was inserted at the beginning of Section II.A.
-    *   This new logic handles three specific scenarios:
-        1.  **`pre_promptu.txt` invoked with no project request:** Instructs AI to engage user to elicit requirements before proceeding with utility selections.
-        2.  **`post_promptu.txt` invoked with no project request, no app, no add-ons:** Instructs AI to engage user to elicit project requirements or intended use (placeholder for user-defined "continuation prompt").
-        3.  **`post_promptu.txt` invoked with no project request, but a promptApp is selected:** Allows fall-through to promptApp execution, making the app responsible for handling the missing project goal.
-    *   Standard execution proceeds if none of these special empty states are met.
+**Summary of Approved Plan (Revised Portion):**
+The plan was revised to implement and document this new search order:
+1.  Revise `Core_Planning_Instructions.txt` for the new "app-specific first" search order. (Completed)
+2.  Update `MPS_Usage_Guide.md` to reflect this new search order. (Completed)
+3.  Create test assets and conceptually outline tests for the new search order. (Completed)
+4.  Update `HANDOFF_NOTES.md` and submit. (This step)
 
-2.  **`promptu_usage_guide.md` Review:**
-    *   The `promptu_usage_guide.md` was reviewed in the context of these changes. No immediate updates were deemed necessary as the core functionality described in the guide remains consistent, and these new handling rules are internal to the framework's planning logic.
+**Summary of Changes Made This Session (Implementing Revised Plan):**
+-   **Modified `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Updated the component resolution logic in Section II.A.1.a.viii to implement the "app-specific first" search order:
+        1.  App-Specific (flat file): `prompts/apps/[Selected_PromptAppName]/[componentName].txt`
+        2.  App-Specific (folder style): `prompts/apps/[Selected_PromptAppName]/[componentName]/[componentName].txt`
+        3.  Global Add-on: `prompts/add_ons/[componentName]/[componentName].txt`
+        4.  Global Util: `prompts/util/[componentName]/[componentName].txt`
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Modified Section 3.B.2.i ("Component Resolution Search Order") and Section 4 ("Developing New promptApps") to accurately document the new "app-specific first" search order.
+-   **Created Test Assets for Search Order Verification:**
+    *   Global add-on: `prompts/add_ons/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   App-specific component (folder style): `prompts/apps/CompliancePLM/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` for the global test component.
+    *   Updated `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` to include a task "Test Component Resolution" that calls `test_resolver_component`.
 
 **State of Deliverables:**
--   `promptu/core/core_planning_instructions.txt` is updated with the new invocation scenario handling logic in Section II.A.
--   Handoff notes (`framework_dev_docs/meta/handoff_notes.md` and `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`) are being updated in this session.
+- Core framework logic (`Core_Planning_Instructions.txt`) now correctly implements "app-specific first" component resolution for `promptApps`.
+- Documentation (`MPS_Usage_Guide.md`) accurately reflects this new search order.
+- Test assets are in place to verify this specific functionality.
+- The broader `promptApp` and `create_research_report` add-on implementation (from previous steps in this session) is complete.
+- The system is ready for user testing of the `promptApp` functionality, especially the component search order.
 
 **Next Steps (User):**
--   Review the updated `promptu/core/core_planning_instructions.txt` (Section II.A).
--   **Clarify the specific desired behavior or content for the "continuation prompt"** mentioned in Scenario 2 (post_promptu with no request, no app, no add-ons). The current implementation instructs the AI to engage in a general requirements discussion.
--   Test the new fallback behaviors by invoking `pre_promptu.txt` and `post_promptu.txt` in the described empty/incomplete states to ensure the framework behaves as expected.
+- Thoroughly test the `promptApp` system, focusing on:
+    - Invoking the "Test Component Resolution" task within `CompliancePLM` to ensure the app-specific `test_resolver_component` is used.
+    - Invoking tasks that use global components (like "Product Specification" using `create_research_report` in `CompliancePLM`) to ensure they are correctly found.
+    - Testing the iteration flow and re-invocation prompts for iterable tasks.
+---
+**Session Summary - 2025-06-03 (Promptimizer Update)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a sample for the `pre_flight_check_user_plan` utility.
+- Upon discussion, the utility was renamed to `promptimizer` for better clarity and branding.
+- A sample usage document for the newly named `promptimizer` utility was created.
+
+**Summary of Changes Made This Session:**
+-   **Renamed Utility:**
+    *   The directory `prompts/util/pre_flight_check_user_plan/` was renamed to `prompts/util/promptimizer/`.
+    *   The file `pre_flight_check_user_plan.txt` within that directory was renamed to `promptimizer.txt`.
+    *   Internal text within `promptimizer.txt` (e.g., titles, role descriptions) was updated to reflect the new "Promptimizer" name and purpose (prompt optimization reviewer).
+-   **Created Example Document:**
+    *   A new example file `framework_dev_docs/examples/promptimizer_example.md` was created.
+    *   This document explains how the `promptimizer.txt` utility is used (AI primed with the utility reviews a user's high-level request).
+    *   It includes a sample user project request with deliberate minor weaknesses.
+    *   It provides detailed example feedback that an AI, guided by `promptimizer.txt`, would generate, structured according to the utility's 7 feedback points.
+
+**State of Deliverables:**
+- The `promptimizer` utility is updated and an example of its usage is now available.
+- This concludes the requested work on samples for this session.
+
+**Next Steps (User):**
+- Review the `promptimizer_example.md`.
+- Consider if further refinements to the `promptimizer.txt` utility itself are desired (e.g., to have the AI proactively rewrite parts of the prompt).
+---
+**Session Summary - 2025-06-03 (MPS Updater Plan)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a mechanism to transfer MPS framework improvements/features between different instances/repositories.
+- This feature was named "MPS Updater" (MPU).
+- Instead of implementing MPU directly, the task was to formulate a detailed plan and create a prompt file for a *future* Jules instance to implement MPU.
+- The prompt for the future instance is to include an instruction for that instance to first review and refine the provided plan before implementation.
+
+**Summary of Changes Made This Session:**
+-   **Formulated Detailed Plan for "MPS Updater" (MPU) Feature:**
+    *   Defined objectives for MPU.
+    *   Proposed "MPS Update Package" (MUP) formats, recommending a manifest-based approach for initial AI implementation, with standard `.patch` files as a more advanced alternative.
+    *   Outlined the conceptual design of an "Export MUP Package" utility (for the source repository, not for current implementation).
+    *   Designed the "Apply MPS Update Package" add-on (`apply_mps_update`):
+        *   Specified its location: `prompts/add_ons/apply_mps_update/`.
+        *   Detailed its `USER_apply_mps_update_CONFIG.txt` parameters (e.g., `MUP_PACKAGE_PATH`, `DRY_RUN_MODE`, `CONFLICT_RESOLUTION_STRATEGY`).
+        *   Outlined the phased logic for its `apply_mps_update.txt` instruction file (initialization, package parsing, pre-change analysis/dry run, change application, reporting/cleanup).
+    *   Emphasized the critical assumption of version synchronization between source and target repositories.
+    *   Defined initial scope for conflict handling (fail on conflict) and security considerations.
+-   **Created Prompt File for Future Implementation:**
+    *   A new file `framework_dev_docs/meta/implement_mps_updater.txt` was created.
+    *   This file contains the comprehensive starting plan for the MPU feature as formulated above.
+    *   It includes an explicit instruction for the future implementing Jules instance to first review, critique, and refine the provided plan before starting its work.
+    *   It also outlines expected deliverables for the future instance (the add-on, documentation, tests, handoff notes).
+
+**State of Deliverables:**
+- A detailed plan and a directive prompt for implementing the "MPS Updater" feature by a future Jules instance have been created and saved to `framework_dev_docs/meta/implement_mps_updater.txt`.
+- No changes were made to the operational MPS framework components in this specific sub-task; the work was purely planning and documentation for a future task.
+
+**Next Steps (User):**
+- Review the `framework_dev_docs/meta/implement_mps_updater.txt` file.
+- When ready, assign the task described in that file to a new Jules instance.
+---
+**Session Summary - 2025-06-03 (Directive-Based Invocation)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User proposed a new, simplified workflow for invoking the MPS framework.
+- Instead of users pasting the entire configured Master Prompt Segment into their initial interaction, they will prepare a single file in their repository (based on `Master_Prompt_Segment.txt` template) containing their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags at the top) and all their MPS configurations (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, specific `[[USER_...CONFIGURATION]]` blocks, etc.).
+- The user will then invoke the AI system with a simple directive, e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_configured_file.txt]]`.
+- The AI system is responsible for loading the specified file and making its content, including the prepended `[[USER_PROJECT_REQUEST]]` block, available for processing by `Core_Planning_Instructions.txt`.
+- This new directive method was also confirmed to be applicable for directly invoking utilities like `promptimizer`.
+
+**Summary of Changes Made This Session:**
+-   **Updated `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Verified/ensured a new Section I.A exists to parse the `[[USER_PROJECT_REQUEST]]` block from the beginning of the processed content and store it as `User_High_Level_Project_Goal`.
+    *   Adjusted subsequent sub-section lettering in Section I accordingly.
+-   **Updated Canonical `prompts/Master_Prompt_Segment.txt` Template:**
+    *   Added a prominent instructional comment block at the very top. This guides users to:
+        1. Copy the template to create their own project-specific MPS file.
+        2. Add their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags) at the beginning of their file.
+        3. Edit all MPS configuration blocks within their file.
+        4. Use the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_file.txt]]` directive for AI invocation.
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Revised sections on setting up and invoking the MPS framework to detail the new directive-based workflow.
+    *   Explained how to prepare the single, comprehensive project-specific MPS file.
+    *   Clarified how the AI system handles the directive and makes the `[[USER_PROJECT_REQUEST]]` available.
+    *   Added a new subsection explaining how to use the directive to call specific utilities directly (e.g., `promptimizer.txt`), followed by the text input for that utility.
+
+**State of Deliverables:**
+- Core framework files (`Core_Planning_Instructions.txt`, `Master_Prompt_Segment.txt`) and the main usage guide (`MPS_Usage_Guide.md`) have been updated to support and document the new directive-based invocation workflow.
+- This simplifies the user's initial interaction with the AI system for MPS tasks.
+
+**Next Steps (User):**
+- Review all updated documentation for clarity and accuracy.
+- Test the new directive-based workflow thoroughly with various scenarios, including:
+    - Main MPS planning via a user-prepared project instruction file.
+    - Direct utility invocation (e.g., with `promptimizer`).
+---
+
+## MPS Performance Feedback Log
+
+This section logs specific feedback on the performance, clarity, and effectiveness of the Master Prompt Segment (MPS) versions and the artifacts they help generate.
+
+---
+**Feedback Entry - 2023-11-02**
+**Source of Feedback:** Initial setup of this feedback log section during MPS feature design.
+**MPS Version Referenced:** Relevant for `prompts/Master_Prompt_Segment.txt` (v0.3.2 and future versions).
+**Context/Scenario:** Establishing the feedback mechanism as per design discussions for feature "Feedback Loop for MPS Refinement".
+**Observation/Issue:** This log is intended to capture issues like:
+    - Ambiguities in any version of `Master_Prompt_Segment.md` that lead to incorrect or suboptimal behavior by a Planning AI.
+    - Problems encountered by Task AIs due to the structure or content of prompts generated based on an MPS version.
+    - User difficulties in understanding or using the MPS, its generated `00_task_launch_plan.md`, or other artifacts.
+    - Success stories where a particular MPS instruction proved very effective.
+**Suggestion for MPS Refinement (if any):** N/A
+---
+*(Future entries will be appended below this line)*
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request to Jules instance for refactoring).
+**MPS Version Referenced:** `prompts/Master_Prompt_Segment.txt` (approx. v0.3.2, prior to modularization) and the new modularized version (post this session's changes).
+**Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
+**Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
+**Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request and illustrative example: `[ ] task_spawning_addon.txt` to Jules instance).
+**MPS Version Referenced:** The modularized MPS version (where `Core_Planning_Instructions.txt` was already separate) and the current version implementing optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User desired to further enhance the framework's modularity by making the entire project planning and task generation process an optional component, selectable by the user, rather than an inherent, non-optional function of the MPS.
+**Observation/Issue:** While `Core_Planning_Instructions.txt` was already separated, it still implicitly mandated the task spawning workflow. The framework lacked the flexibility to be used for other purposes without invoking this primary planning behavior.
+**Suggestion for MPS Refinement (Implemented):** The user's suggestion to make task spawning an optional add-on was implemented.
+    - The core logic for project planning, TLP generation, and task prompt creation was moved from `prompts/iep/Core_Planning_Instructions.txt` to a new file: `prompts/add_ons/task_spawning_addon.txt`.
+    - `prompts/iep/Core_Planning_Instructions.txt` was updated to include conditional logic. It now checks if `task_spawning_addon.txt` is selected by the user in `[[USER_ADDON_SELECTION]]` (within `Master_Prompt_Segment.txt`).
+    - If selected, the `task_spawning_addon.txt` is executed.
+    - If not selected, the AI is instructed to acknowledge this, skip default plan generation, and process any other selected add-ons.
+    - This change makes the MPS framework significantly more flexible, allowing users to engage the Planning AI for potentially different primary functions by selecting different combinations of add-ons, or by using it with only utility add-ons.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifying questions and specific directive regarding `task_spawning_addon.txt` inheritance and add-on ordering).
+**MPS Version Referenced:** The MPS version with optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User inquired about how multiple add-ons interact, particularly how `task_spawning_addon.txt` would affect other add-ons, and then specifically requested that `task_spawning_addon.txt` should not be inherited by the Task AIs it generates. User also sought clarity on the importance of add-on ordering in the selection block.
+**Observation/Issue:**
+    1. The previous add-on processing logic could have resulted in `task_spawning_addon.txt` (intended for the Planning AI) being appended to Task AI prompts, leading to overly verbose prompts and potential for unintended behavior.
+    2. The impact of add-on order in `[[USER_ADDON_SELECTION]]` on the final content of Task AI prompts was not explicitly documented, potentially leading to user confusion.
+**Suggestion for MPS Refinement (Implemented):**
+    - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
+    - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
+    - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process,
+        *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
+        *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
+    These enhancements make the product specification generation process more guided and configurable.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** Jules (proactive refinement during development of `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** The introduction of `build_product_specs_process.txt` as a new "primary directive" add-on (similar in role to `task_spawning_addon.txt` but with a different function) highlighted the need to generalize how the core framework selects and manages such add-ons.
+**Observation/Issue:** The existing logic in `prompts/iep/Core_Planning_Instructions.txt` was somewhat hardcoded around `task_spawning_addon.txt` for determining the main execution path and for non-inheritance of add-on content into sub-prompts. This would not scale well if many different primary add-ons were developed.
+**Suggestion for MPS Refinement (Implemented):**
+    - Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B and II) to:
+        - Define a list of `Known_Primary_Directive_Addons`.
+        - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
+        - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
+    - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (specific feedback on research methodology, codebase interaction rules like "level 0 only for codebases," and codebase review preferences for the `build_product_specs_process.txt` add-on).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**Context/Scenario:** User provided detailed requirements to refine the initial `build_product_specs_process.txt` add-on to achieve a more structured, in-depth, and controllable research and content generation process, particularly focusing on how the AI should interact with a primary document and linked codebases.
+**Observation/Issue:** The initial version of `build_product_specs_process.txt` had a more general research phase. The user required a more granular, heading-based research approach for the Primary Input Document, specific rules for how the AI should analyze linked codebases (including different levels of review depth/focus), and a strict "level 0 only" rule for code analysis to prevent unintended deep dives into code.
+**Suggestion for MPS Refinement (Implemented):**
+The `prompts/add_ons/build_product_specs_process.txt` was significantly updated to incorporate the "Level 0 Deep Research" methodology as per user requirements:
+    - **New Configurations:** Introduced `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` in `Master_Prompt_Segment.txt` and documented them in `MPS_Usage_Guide.md`.
+    - **Per-Heading Research Cycle:** The add-on's Phase 3 was restructured. It now includes an initial high-level review of the Primary Input Document. Then, for each major heading in that document, it performs a 5-step analysis: Heading Context Analysis, Supporting Docs Analysis, References & Codebase Analysis, Consolidated Research for the heading, and Iterative Content Contribution for that heading.
+    - **Codebase Review Integration:** The "References & Codebase Analysis" step now explicitly uses the `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` ("complex", "cursory", "focused") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` to guide its interaction with linked code.
+    - **"Level 0 Code Analysis ONLY":** A strict rule was added, instructing the AI not to follow internal code references (like imports or function calls to other files) from any fetched code text. Its analysis is confined to the directly retrieved code content.
+    - **Iterative Content Drafting:** Content for output documents is now drafted iteratively during the per-heading analysis and then assembled and finalized in later phases.
+    This refined process provides a more systematic and controllable approach for the AI when generating product specifications.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifications and new requirements for iterative deepening for `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on incorporating "Level 0 Deep Research".
+**Context/Scenario:** Expanding the iterative capabilities of `build_product_specs_process.txt` from an initial 0-2 level concept to a more detailed 0-3 level process with specific content goals for each level.
+**Observation/Issue:** The initial iterative deepening plan (0-2 levels) for `build_product_specs_process.txt` needed more specific content goals for each level and an additional level for AI-driven insights to meet user's evolving requirements for content depth and sophistication.
+**Suggestion for MPS Refinement (Implemented):**
+The iterative deepening feature of `build_product_specs_process.txt` was expanded to support 0-3 levels, and associated configurations and documentation were updated:
+    - **Configuration Updates (`Master_Prompt_Segment.txt`):** `PRODUCT_SPECS_ITERATION_DEPTH` comment updated to reflect the 0-3 range and specific goals:
+        - `0`: Outline Generation (headings with single key idea paragraphs).
+        - `1`: Basic Content (Bachelor's level, ~3 paras per D0 heading).
+        - `2`: Expert Elaboration (~1 page per original D0 heading).
+        - `3`: AI Unique Insights (~3 pages per original D0 heading, novel ideas).
+    - **Add-on Logic (`build_product_specs_process.txt`):**
+        - Phase 1 (Initialization) now validates depth (0-3) and `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (required for D1-D3, critical error if missing). Output file suffixes `_D0` to `_D3` are determined.
+        - Phase 2 (Input Processing) is conditional: D0 uses original inputs; D1-D3 use previous iteration's outputs as primary, with original inputs as reference.
+        - Phase 3 (Content Generation) has distinct logic for each depth (0-3), detailing how to build upon previous work (for D1-D3) or generate outlines (D0) according to the specified content goals for each level.
+    - **Documentation (`MPS_Usage_Guide.md`):** Updated to detail the 0-3 levels, their specific purposes, and the user workflow for managing iterative runs and output folders.
+    This provides a more granular, powerful, and well-defined iterative workflow for the `build_product_specs_process.txt` add-on.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (vision for enhanced component modularity via "folder-per-app" architecture).
+**MPS Version Referenced:** Current version with multiple add-ons and utils.
+**Context/Scenario:** As the number of components (add-ons, utils, and potentially IPC handlers) grows, a flat file structure in their respective directories (`prompts/add_ons/`, `prompts/util/`) becomes less organized and limits the ability for components to have their own supporting files or sub-frameworks.
+**Observation/Issue:** The previous flat-file structure for add-ons and utils was not ideal for scalability or for components that might require multiple associated files (e.g., templates, data snippets, complex sub-instructions).
+**Suggestion for MPS Refinement (Implemented):**
+The framework was refactored to a "folder-per-app" architecture for all components (add-ons, utils, and anticipated IPC handlers):
+    - **Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):** Updated to discover and load components based on a new directory structure.
+        - It now expects component-specific parent paths like `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, `User_Path_IPC_Dir` to be defined in `[[USER PATH CONFIGURATION]]`.
+        - For each component "app" (e.g., `my_addon_app`), it looks for a subdirectory named `my_addon_app` within the relevant parent path.
+        - The primary instruction file for the app must be located at `[parent_path]/my_addon_app/my_addon_app.txt`.
+        - Internal references (e.g., `Known_Primary_Directive_Addon_Apps`, `Active_Primary_Addon_AppName`) now use these app/folder names.
+    - **Component Migration:** All existing add-ons (`task_spawning_addon`, `task_resumption_addon`, `build_product_specs_process`) and utils (`pre_flight_check_user_plan`) were moved into their respective new subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    - **New `prompts/ipc/` directory:** Created with a `.gitkeep` file for future IPC components.
+    - **Documentation Updates:**
+        - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
+        - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
+    This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (desire to simplify MPS, new way to handle app-specific data, AI assistance for missing/default configs, specific format for detecting edits).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment and Core Planning Instructions).
+**Context/Scenario:** This feedback entry summarizes a series of user requests and design discussions aimed at a comprehensive overhaul of the MPS framework's configuration system and a significant enhancement of the `build_product_specs_process` add-on's iterative capabilities.
+**Observation/Issue:**
+    1.  The global `[[USER PATH CONFIGURATION]]` in `Master_Prompt_Segment.txt` was becoming unwieldy; app-specific configs were mixed with global ones; parameter precedence and user edit detection were not formalized.
+    2.  A more structured and discoverable way to manage parameters for individual add-on apps was needed, including clear defaults and user override mechanisms.
+    3.  Users needed assistance in setting mandatory parameters, especially those with placeholder defaults.
+**Suggestion for MPS Refinement (Implemented):**
+A comprehensive refactoring of the configuration system was performed:
+    1.  **Fixed Global System Paths:** Core component discovery paths (for add-ons, utils, IEP, IPC) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup.
+    2.  **`[[USER PATH CONFIGURATION]]` Removed from `Master_Prompt_Segment.txt`:** This block was deleted. General output paths (like `Main Iteration Folder`) and other process-specific parameters are now intended to be managed as parameters within the configuration system of the relevant app.
+    3.  **App-Specific Configuration System:**
+        *   **`USER_appName_CONFIG.txt` Standard:** Defined a standard format for these template/storage files within each app's folder. This includes `[[USER_CONFIG_FOR_appName]]` delimiters, and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), description with default (`# Description: ... Default: ...`), and the value line (`PARAM_NAME: [USER_VALUE_START]value[USER_VALUE_END]`).
+        *   **Main Prompt Overrides:** Users can copy the content of a `USER_appName_CONFIG.txt` into their main spawn prompt to provide run-specific overrides.
+        *   **Parameter Resolution Precedence:** Implemented in app logic (demonstrated in `build_product_specs_process.txt`): Main prompt block > User-edited `USER_appName_CONFIG.txt` > AcceptedDefault in `USER_appName_CONFIG.txt`.
+        *   **AI-Assisted Updates:** If a `Required` parameter with a `PlaceholderDefault` remains unresolved, the app instructs the AI (Jules) to request the value from the user via chat. The AI then updates the on-disk `USER_appName_CONFIG.txt` with the new value and outputs the complete updated config block for the user to transfer to their main spawn prompt.
+    4.  **Documentation:** All changes were reflected in `Master_Prompt_Segment.txt` (now v0.4.0), `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, and relevant add-on files (e.g., `build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` and its primary instruction file).
+    This new system offers improved modularity, clarity in parameter management, and a better user experience through AI-assisted configuration.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Accomplishments This Session (Finalizing Configuration System & Preparing for "Concept Task" Handoff):**
+This session concluded the major refactoring of the MPS framework's configuration system and component architecture. It also prepared for the next phase of work focusing on the "Concept task."
+
+*   **Configuration System Refactoring (Completion & Documentation):**
+    *   **Standard for `USER_appName_CONFIG.txt`:** Formalized the standard for these files, including app-specific delimiters (`[[USER_CONFIG_FOR_appName]]`), and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), descriptions, defaults, and `[USER_VALUE_START]...[USER_VALUE_END]` markers. An illustrative example (`USER_exampleApp_CONFIG.txt`) was created as part of this standard definition.
+    *   **Applied Standard:** The `build_product_specs_process` add-on's `USER_build_product_specs_process_CONFIG.txt` was updated to fully adhere to this new standard, with all its parameters classified.
+    *   **Refined App Logic (`build_product_specs_process.txt` v0.4):** Its parameter resolution logic in Phase 1 was enhanced to parse the new metadata from `USER_..._CONFIG.txt`. The AI-assisted update mechanism (asking user via chat) now correctly triggers only for "Required" parameters with "PlaceholderDefault" values that haven't been overridden. A final validation step ensures all "Required" parameters have valid values before proceeding, halting with an error if not.
+    *   **Streamlined `Master_Prompt_Segment.txt` (v0.4.0):** The global `[[USER PATH CONFIGURATION]]` block was definitively removed. Instructions in `[[USER_ADDON_SELECTION]]` were updated to guide users on app-specific configurations via `[[USER_CONFIG_FOR_appName]]` blocks in their main spawn prompt.
+    *   **Consolidated `MPS_Usage_Guide.md`:** The guide was thoroughly reviewed and updated to provide a comprehensive and consistent explanation of the new configuration system. This includes: fixed global system paths, the role and format of `USER_appName_CONFIG.txt` files, the user workflow for app configuration (using main prompt blocks or editing `USER_...CONFIG.txt`), the AI's parameter resolution precedence, and how AI-assisted updates work. The "folder-per-app" architecture is also clearly documented.
+
+*   **Next Area of Work (User Directed - For Next Jules Instance):**
+    *   The user has directed focus towards refining an existing "Concept task."
+    *   This will involve analyzing the "Concept task" and splitting it into approximately three sub-tasks.
+    *   A key aspect of this work will be to use the "Concept task" sub-tasks as a practical use case for **exploring and implementing extensions to the 'add-on, util, and process' component concepts** within the MPS framework.
+    *   The next Jules instance is tasked with initiating this by requesting detailed requirements from the user regarding the "Concept task" (current state, materials possibly in `Inputs/concept/inputs`, ideas for sub-tasks) and their initial thoughts on evolving the component model.
+
+**State of Deliverables:**
+The comprehensive refactoring of the MPS configuration system is complete. This includes the "folder-per-app" architecture, fixed system paths for component discovery, and the new app-specific configuration mechanism using `USER_appName_CONFIG.txt` files and `[[USER_CONFIG_FOR_appName]]` blocks, featuring AI-assisted updates. All core prompts and documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`, and relevant add-ons like `build_product_specs_process`) have been updated to reflect these changes. The framework is significantly more modular, user-friendly, and robust in its configuration management. No new code or prompt changes were made in this specific summarization step. The system is ready for handoff to the next Jules instance to begin work on the "Concept task" and component model evolution.
+---
+---
+**Feedback Entry Date:** 2025-06-02
+**Source of Feedback:** User (new directive for next area of work following completion of major configuration system and architectural refactoring).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment) and related component architecture (folder-per-app, `USER_appName_CONFIG.txt` standard, etc.).
+**Context/Scenario:** Planning the next development cycle for the MPS framework after successfully implementing a new configuration system and "folder-per-app" architecture.
+**Observation/Issue:**
+    1.  An existing internal "Concept task" (details to be provided by the user to the next Jules instance, potentially located in `Inputs/concept/inputs`) is currently monolithic and needs to be broken down into more manageable sub-tasks (approximately three).
+    2.  The process of decomposing and implementing these "Concept task" sub-tasks is expected to reveal opportunities or requirements for evolving the framework's current component definitions (add-on, util, process) or potentially introducing new component types or interaction paradigms.
+**Suggestion (For Next Jules Instance):**
+The next Jules instance should:
+    1.  **Gather Detailed Requirements for "Concept Task":** Actively engage with the user to obtain a detailed understanding of the current "Concept task," its goals, any existing materials (potentially in `Inputs/concept/inputs`).
+    2.  Collaborate with the user to define the three (approx.) sub-tasks for the "Concept task."
+    3.  In parallel, analyze how the requirements of these sub-tasks might necessitate extensions to the existing component concepts (add-on, util, process) or the introduction of new component types/paradigms within the MPS framework.
+    4.  Plan and implement both the "Concept task" restructuring and the identified framework component extensions, using the former as a practical test case for the latter.
+---
+**Session Summary - 2025-06-03**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User directed a new phase of MPS development focusing on two major initiatives:
+    1.  Abstracting the existing `build_product_specs_process` add-on into a more generic `create_research_report` add-on.
+    2.  Introducing a new "promptApp" concept to allow users to define and execute multi-stage workflows composed of underlying MPS components.
+- Clarified requirements for `create_research_report` parameters, including separate controls for `ITERATIVE_OUTPUT_DEPTH` (D0-D3 style) and `REFERENCE_FOLLOWING_DEPTH` (document link traversal).
+- Confirmed that plain text input formats (.txt, .md, web text) are the initial target for document processing.
+- Decided that sequential tasks within a `promptApp` will be handled by user re-invocation of new AI instances for each task, simplifying initial framework orchestration.
+
+**Summary of Approved Plan:**
+The overall plan involves:
+1.  Developing the `create_research_report` add-on (now complete).
+2.  Defining the "promptApp" structure and manifest file format.
+3.  Updating `Core_Planning_Instructions.txt` and `Master_Prompt_Segment.txt` to support `promptApp` discovery, selection, and execution.
+4.  Creating an initial structural example of a `promptApp` (`CompliancePLM`).
+5.  Retiring the `build_product_specs_process` add-on files.
+6.  Updating all documentation.
+7.  Testing the new functionalities.
+
+**Summary of Changes Made This Session (to implement Step 1 of the plan):**
+-   **Created `prompts/add_ons/create_research_report/` directory.**
+-   **Created `prompts/add_ons/create_research_report/USER_create_research_report_CONFIG.txt`:**
+    *   Defined parameters: `PROPOSED_TABLE_OF_CONTENTS`, `GUIDELINES_DOC_PATHS`, `ADDITIONAL_WEB_LINKS_FILE`, `EXEMPLAR_DOCS`, `GENERAL_INPUT_DOCS`, `PRIMARY_INPUT_DOC_PATH`, `ITERATIVE_OUTPUT_DEPTH`, `REFERENCE_FOLLOWING_DEPTH`, `PREVIOUS_ITERATION_OUTPUT_PATH`, `REPORT_BASENAME`, `REPORT_OUTPUT_PATH`.
+    *   Included full metadata (Requirement, DefaultType, Description, Default) for each.
+-   **Created `prompts/add_ons/create_research_report/create_research_report.txt`:**
+    *   Adapted core logic from the former `build_product_specs_process.txt`.
+    *   Updated to use the new parameter set for generic report generation.
+    *   Removed product-specification-specific and detailed codebase review logic.
+    *   Maintained the 6-phase structure and parameter resolution mechanisms.
+-   **Updated `prompts/add_ons/available_addons_manifest.md`:**
+    *   Added entry for `create_research_report`.
+    *   Removed entry for `build_product_specs_process`.
+
+**State of Deliverables:**
+- The `create_research_report` add-on (v0.1) is developed and its configuration file is in place.
+- The add-on manifest is updated.
+- The `build_product_specs_process` add-on is effectively replaced by this new add-on (physical file deletion is pending a later plan step).
+- Plan step 1 is complete.
+
+**Next Steps (This Jules instance/session):**
+- Proceed to Plan Step 2: "Define 'promptApp' Structure and Manifest." This involves designing the manifest file format that will define how `promptApps` (like the `CompliancePLM` example) are structured and how their tasks map to MPS components.
+---
+**Session Summary - 2025-06-03 (Continued)**
+**Instance:** Jules
+**User Feedback/Requests Addressed (Post Initial 2025-06-03 Summary):**
+- User confirmed a critical change in component resolution strategy for `promptApps`: the search order should be "app-specific first" (flat file, then folder style within app), followed by global components (add-ons, then utils). This was a change from the initially implemented "globals first" approach.
+
+**Summary of Approved Plan (Revised Portion):**
+The plan was revised to implement and document this new search order:
+1.  Revise `Core_Planning_Instructions.txt` for the new "app-specific first" search order. (Completed)
+2.  Update `MPS_Usage_Guide.md` to reflect this new search order. (Completed)
+3.  Create test assets and conceptually outline tests for the new search order. (Completed)
+4.  Update `HANDOFF_NOTES.md` and submit. (This step)
+
+**Summary of Changes Made This Session (Implementing Revised Plan):**
+-   **Modified `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Updated the component resolution logic in Section II.A.1.a.viii to implement the "app-specific first" search order:
+        1.  App-Specific (flat file): `prompts/apps/[Selected_PromptAppName]/[componentName].txt`
+        2.  App-Specific (folder style): `prompts/apps/[Selected_PromptAppName]/[componentName]/[componentName].txt`
+        3.  Global Add-on: `prompts/add_ons/[componentName]/[componentName].txt`
+        4.  Global Util: `prompts/util/[componentName]/[componentName].txt`
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Modified Section 3.B.2.i ("Component Resolution Search Order") and Section 4 ("Developing New promptApps") to accurately document the new "app-specific first" search order.
+-   **Created Test Assets for Search Order Verification:**
+    *   Global add-on: `prompts/add_ons/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   App-specific component (folder style): `prompts/apps/CompliancePLM/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` for the global test component.
+    *   Updated `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` to include a task "Test Component Resolution" that calls `test_resolver_component`.
+
+**State of Deliverables:**
+- Core framework logic (`Core_Planning_Instructions.txt`) now correctly implements "app-specific first" component resolution for `promptApps`.
+- Documentation (`MPS_Usage_Guide.md`) accurately reflects this new search order.
+- Test assets are in place to verify this specific functionality.
+- The broader `promptApp` and `create_research_report` add-on implementation (from previous steps in this session) is complete.
+- The system is ready for user testing of the `promptApp` functionality, especially the component search order.
+
+**Next Steps (User):**
+- Thoroughly test the `promptApp` system, focusing on:
+    - Invoking the "Test Component Resolution" task within `CompliancePLM` to ensure the app-specific `test_resolver_component` is used.
+    - Invoking tasks that use global components (like "Product Specification" using `create_research_report` in `CompliancePLM`) to ensure they are correctly found.
+    - Testing the iteration flow and re-invocation prompts for iterable tasks.
+---
+**Session Summary - 2025-06-03 (Promptimizer Update)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a sample for the `pre_flight_check_user_plan` utility.
+- Upon discussion, the utility was renamed to `promptimizer` for better clarity and branding.
+- A sample usage document for the newly named `promptimizer` utility was created.
+
+**Summary of Changes Made This Session:**
+-   **Renamed Utility:**
+    *   The directory `prompts/util/pre_flight_check_user_plan/` was renamed to `prompts/util/promptimizer/`.
+    *   The file `pre_flight_check_user_plan.txt` within that directory was renamed to `promptimizer.txt`.
+    *   Internal text within `promptimizer.txt` (e.g., titles, role descriptions) was updated to reflect the new "Promptimizer" name and purpose (prompt optimization reviewer).
+-   **Created Example Document:**
+    *   A new example file `framework_dev_docs/examples/promptimizer_example.md` was created.
+    *   This document explains how the `promptimizer.txt` utility is used (AI primed with the utility reviews a user's high-level request).
+    *   It includes a sample user project request with deliberate minor weaknesses.
+    *   It provides detailed example feedback that an AI, guided by `promptimizer.txt`, would generate, structured according to the utility's 7 feedback points.
+
+**State of Deliverables:**
+- The `promptimizer` utility is updated and an example of its usage is now available.
+- This concludes the requested work on samples for this session.
+
+**Next Steps (User):**
+- Review the `promptimizer_example.md`.
+- Consider if further refinements to the `promptimizer.txt` utility itself are desired (e.g., to have the AI proactively rewrite parts of the prompt).
+---
+**Session Summary - 2025-06-03 (MPS Updater Plan)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a mechanism to transfer MPS framework improvements/features between different instances/repositories.
+- This feature was named "MPS Updater" (MPU).
+- Instead of implementing MPU directly, the task was to formulate a detailed plan and create a prompt file for a *future* Jules instance to implement MPU.
+- The prompt for the future instance is to include an instruction for that instance to first review and refine the provided plan before implementation.
+
+**Summary of Changes Made This Session:**
+-   **Formulated Detailed Plan for "MPS Updater" (MPU) Feature:**
+    *   Defined objectives for MPU.
+    *   Proposed "MPS Update Package" (MUP) formats, recommending a manifest-based approach for initial AI implementation, with standard `.patch` files as a more advanced alternative.
+    *   Outlined the conceptual design of an "Export MUP Package" utility (for the source repository, not for current implementation).
+    *   Designed the "Apply MPS Update Package" add-on (`apply_mps_update`):
+        *   Specified its location: `prompts/add_ons/apply_mps_update/`.
+        *   Detailed its `USER_apply_mps_update_CONFIG.txt` parameters (e.g., `MUP_PACKAGE_PATH`, `DRY_RUN_MODE`, `CONFLICT_RESOLUTION_STRATEGY`).
+        *   Outlined the phased logic for its `apply_mps_update.txt` instruction file (initialization, package parsing, pre-change analysis/dry run, change application, reporting/cleanup).
+    *   Emphasized the critical assumption of version synchronization between source and target repositories.
+    *   Defined initial scope for conflict handling (fail on conflict) and security considerations.
+-   **Created Prompt File for Future Implementation:**
+    *   A new file `framework_dev_docs/meta/implement_mps_updater.txt` was created.
+    *   This file contains the comprehensive starting plan for the MPU feature as formulated above.
+    *   It includes an explicit instruction for the future implementing Jules instance to first review, critique, and refine the provided plan before starting its work.
+    *   It also outlines expected deliverables for the future instance (the add-on, documentation, tests, handoff notes).
+
+**State of Deliverables:**
+- A detailed plan and a directive prompt for implementing the "MPS Updater" feature by a future Jules instance have been created and saved to `framework_dev_docs/meta/implement_mps_updater.txt`.
+- No changes were made to the operational MPS framework components in this specific sub-task; the work was purely planning and documentation for a future task.
+
+**Next Steps (User):**
+- Review the `framework_dev_docs/meta/implement_mps_updater.txt` file.
+- When ready, assign the task described in that file to a new Jules instance.
+---
+**Session Summary - 2025-06-03 (Directive-Based Invocation)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User proposed a new, simplified workflow for invoking the MPS framework.
+- Instead of users pasting the entire configured Master Prompt Segment into their initial interaction, they will prepare a single file in their repository (based on `Master_Prompt_Segment.txt` template) containing their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags at the top) and all their MPS configurations (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, specific `[[USER_...CONFIGURATION]]` blocks, etc.).
+- The user will then invoke the AI system with a simple directive, e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_configured_file.txt]]`.
+- The AI system is responsible for loading the specified file and making its content, including the prepended `[[USER_PROJECT_REQUEST]]` block, available for processing by `Core_Planning_Instructions.txt`.
+- This new directive method was also confirmed to be applicable for directly invoking utilities like `promptimizer`.
+
+**Summary of Changes Made This Session:**
+-   **Updated `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Verified/ensured a new Section I.A exists to parse the `[[USER_PROJECT_REQUEST]]` block from the beginning of the processed content and store it as `User_High_Level_Project_Goal`.
+    *   Adjusted subsequent sub-section lettering in Section I accordingly.
+-   **Updated Canonical `prompts/Master_Prompt_Segment.txt` Template:**
+    *   Added a prominent instructional comment block at the very top. This guides users to:
+        1. Copy the template to create their own project-specific MPS file.
+        2. Add their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags) at the beginning of their file.
+        3. Edit all MPS configuration blocks within their file.
+        4. Use the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_file.txt]]` directive for AI invocation.
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Revised sections on setting up and invoking the MPS framework to detail the new directive-based workflow.
+    *   Explained how to prepare the single, comprehensive project-specific MPS file.
+    *   Clarified how the AI system handles the directive and makes the `[[USER_PROJECT_REQUEST]]` available.
+    *   Added a new subsection explaining how to use the directive to call specific utilities directly (e.g., `promptimizer.txt`), followed by the text input for that utility.
+
+**State of Deliverables:**
+- Core framework files (`Core_Planning_Instructions.txt`, `Master_Prompt_Segment.txt`) and the main usage guide (`MPS_Usage_Guide.md`) have been updated to support and document the new directive-based invocation workflow.
+- This simplifies the user's initial interaction with the AI system for MPS tasks.
+
+**Next Steps (User):**
+- Review all updated documentation for clarity and accuracy.
+- Test the new directive-based workflow thoroughly with various scenarios, including:
+    - Main MPS planning via a user-prepared project instruction file.
+    - Direct utility invocation (e.g., with `promptimizer`).
+---
+
+## MPS Performance Feedback Log
+
+This section logs specific feedback on the performance, clarity, and effectiveness of the Master Prompt Segment (MPS) versions and the artifacts they help generate.
+
+---
+**Feedback Entry - 2023-11-02**
+**Source of Feedback:** Initial setup of this feedback log section during MPS feature design.
+**MPS Version Referenced:** Relevant for `prompts/Master_Prompt_Segment.txt` (v0.3.2 and future versions).
+**Context/Scenario:** Establishing the feedback mechanism as per design discussions for feature "Feedback Loop for MPS Refinement".
+**Observation/Issue:** This log is intended to capture issues like:
+    - Ambiguities in any version of `Master_Prompt_Segment.md` that lead to incorrect or suboptimal behavior by a Planning AI.
+    - Problems encountered by Task AIs due to the structure or content of prompts generated based on an MPS version.
+    - User difficulties in understanding or using the MPS, its generated `00_task_launch_plan.md`, or other artifacts.
+    - Success stories where a particular MPS instruction proved very effective.
+**Suggestion for MPS Refinement (if any):** N/A
+---
+*(Future entries will be appended below this line)*
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request to Jules instance for refactoring).
+**MPS Version Referenced:** `prompts/Master_Prompt_Segment.txt` (approx. v0.3.2, prior to modularization) and the new modularized version (post this session's changes).
+**Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
+**Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
+**Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request and illustrative example: `[ ] task_spawning_addon.txt` to Jules instance).
+**MPS Version Referenced:** The modularized MPS version (where `Core_Planning_Instructions.txt` was already separate) and the current version implementing optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User desired to further enhance the framework's modularity by making the entire project planning and task generation process an optional component, selectable by the user, rather than an inherent, non-optional function of the MPS.
+**Observation/Issue:** While `Core_Planning_Instructions.txt` was already separated, it still implicitly mandated the task spawning workflow. The framework lacked the flexibility to be used for other purposes without invoking this primary planning behavior.
+**Suggestion for MPS Refinement (Implemented):** The user's suggestion to make task spawning an optional add-on was implemented.
+    - The core logic for project planning, TLP generation, and task prompt creation was moved from `prompts/iep/Core_Planning_Instructions.txt` to a new file: `prompts/add_ons/task_spawning_addon.txt`.
+    - `prompts/iep/Core_Planning_Instructions.txt` was updated to include conditional logic. It now checks if `task_spawning_addon.txt` is selected by the user in `[[USER_ADDON_SELECTION]]` (within `Master_Prompt_Segment.txt`).
+    - If selected, the `task_spawning_addon.txt` is executed.
+    - If not selected, the AI is instructed to acknowledge this, skip default plan generation, and process any other selected add-ons.
+    - This change makes the MPS framework significantly more flexible, allowing users to engage the Planning AI for potentially different primary functions by selecting different combinations of add-ons, or by using it with only utility add-ons.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifying questions and specific directive regarding `task_spawning_addon.txt` inheritance and add-on ordering).
+**MPS Version Referenced:** The MPS version with optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User inquired about how multiple add-ons interact, particularly how `task_spawning_addon.txt` would affect other add-ons, and then specifically requested that `task_spawning_addon.txt` should not be inherited by the Task AIs it generates. User also sought clarity on the importance of add-on ordering in the selection block.
+**Observation/Issue:**
+    1. The previous add-on processing logic could have resulted in `task_spawning_addon.txt` (intended for the Planning AI) being appended to Task AI prompts, leading to overly verbose prompts and potential for unintended behavior.
+    2. The impact of add-on order in `[[USER_ADDON_SELECTION]]` on the final content of Task AI prompts was not explicitly documented, potentially leading to user confusion.
+**Suggestion for MPS Refinement (Implemented):**
+    - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
+    - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
+    - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process,
+        *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
+        *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
+    These enhancements make the product specification generation process more guided and configurable.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** Jules (proactive refinement during development of `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** The introduction of `build_product_specs_process.txt` as a new "primary directive" add-on (similar in role to `task_spawning_addon.txt` but with a different function) highlighted the need to generalize how the core framework selects and manages such add-ons.
+**Observation/Issue:** The existing logic in `prompts/iep/Core_Planning_Instructions.txt` was somewhat hardcoded around `task_spawning_addon.txt` for determining the main execution path and for non-inheritance of add-on content into sub-prompts. This would not scale well if many different primary add-ons were developed.
+**Suggestion for MPS Refinement (Implemented):**
+    - Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B and II) to:
+        - Define a list of `Known_Primary_Directive_Addons`.
+        - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
+        - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
+    - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (specific feedback on research methodology, codebase interaction rules like "level 0 only for codebases," and codebase review preferences for the `build_product_specs_process.txt` add-on).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**Context/Scenario:** User provided detailed requirements to refine the initial `build_product_specs_process.txt` add-on to achieve a more structured, in-depth, and controllable research and content generation process, particularly focusing on how the AI should interact with a primary document and linked codebases.
+**Observation/Issue:** The initial version of `build_product_specs_process.txt` had a more general research phase. The user required a more granular, heading-based research approach for the Primary Input Document, specific rules for how the AI should analyze linked codebases (including different levels of review depth/focus), and a strict "level 0 only" rule for code analysis to prevent unintended deep dives into code.
+**Suggestion for MPS Refinement (Implemented):**
+The `prompts/add_ons/build_product_specs_process.txt` was significantly updated to incorporate the "Level 0 Deep Research" methodology as per user requirements:
+    - **New Configurations:** Introduced `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` in `Master_Prompt_Segment.txt` and documented them in `MPS_Usage_Guide.md`.
+    - **Per-Heading Research Cycle:** The add-on's Phase 3 was restructured. It now includes an initial high-level review of the Primary Input Document. Then, for each major heading in that document, it performs a 5-step analysis: Heading Context Analysis, Supporting Docs Analysis, References & Codebase Analysis, Consolidated Research for the heading, and Iterative Content Contribution for that heading.
+    - **Codebase Review Integration:** The "References & Codebase Analysis" step now explicitly uses the `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` ("complex", "cursory", "focused") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` to guide its interaction with linked code.
+    - **"Level 0 Code Analysis ONLY":** A strict rule was added, instructing the AI not to follow internal code references (like imports or function calls to other files) from any fetched code text. Its analysis is confined to the directly retrieved code content.
+    - **Iterative Content Drafting:** Content for output documents is now drafted iteratively during the per-heading analysis and then assembled and finalized in later phases.
+    This refined process provides a more systematic and controllable approach for the AI when generating product specifications.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifications and new requirements for iterative deepening for `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on incorporating "Level 0 Deep Research".
+**Context/Scenario:** Expanding the iterative capabilities of `build_product_specs_process.txt` from an initial 0-2 level concept to a more detailed 0-3 level process with specific content goals for each level.
+**Observation/Issue:** The initial iterative deepening plan (0-2 levels) for `build_product_specs_process.txt` needed more specific content goals for each level and an additional level for AI-driven insights to meet user's evolving requirements for content depth and sophistication.
+**Suggestion for MPS Refinement (Implemented):**
+The iterative deepening feature of `build_product_specs_process.txt` was expanded to support 0-3 levels, and associated configurations and documentation were updated:
+    - **Configuration Updates (`Master_Prompt_Segment.txt`):** `PRODUCT_SPECS_ITERATION_DEPTH` comment updated to reflect the 0-3 range and specific goals:
+        - `0`: Outline Generation (headings with single key idea paragraphs).
+        - `1`: Basic Content (Bachelor's level, ~3 paras per D0 heading).
+        - `2`: Expert Elaboration (~1 page per original D0 heading).
+        - `3`: AI Unique Insights (~3 pages per original D0 heading, novel ideas).
+    - **Add-on Logic (`build_product_specs_process.txt`):**
+        - Phase 1 (Initialization) now validates depth (0-3) and `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (required for D1-D3, critical error if missing). Output file suffixes `_D0` to `_D3` are determined.
+        - Phase 2 (Input Processing) is conditional: D0 uses original inputs; D1-D3 use previous iteration's outputs as primary, with original inputs as reference.
+        - Phase 3 (Content Generation) has distinct logic for each depth (0-3), detailing how to build upon previous work (for D1-D3) or generate outlines (D0) according to the specified content goals for each level.
+    - **Documentation (`MPS_Usage_Guide.md`):** Updated to detail the 0-3 levels, their specific purposes, and the user workflow for managing iterative runs and output folders.
+    This provides a more granular, powerful, and well-defined iterative workflow for the `build_product_specs_process.txt` add-on.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (vision for enhanced component modularity via "folder-per-app" architecture).
+**MPS Version Referenced:** Current version with multiple add-ons and utils.
+**Context/Scenario:** As the number of components (add-ons, utils, and potentially IPC handlers) grows, a flat file structure in their respective directories (`prompts/add_ons/`, `prompts/util/`) becomes less organized and limits the ability for components to have their own supporting files or sub-frameworks.
+**Observation/Issue:** The previous flat-file structure for add-ons and utils was not ideal for scalability or for components that might require multiple associated files (e.g., templates, data snippets, complex sub-instructions).
+**Suggestion for MPS Refinement (Implemented):**
+The framework was refactored to a "folder-per-app" architecture for all components (add-ons, utils, and anticipated IPC handlers):
+    - **Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):** Updated to discover and load components based on a new directory structure.
+        - It now expects component-specific parent paths like `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, `User_Path_IPC_Dir` to be defined in `[[USER PATH CONFIGURATION]]`.
+        - For each component "app" (e.g., `my_addon_app`), it looks for a subdirectory named `my_addon_app` within the relevant parent path.
+        - The primary instruction file for the app must be located at `[parent_path]/my_addon_app/my_addon_app.txt`.
+        - Internal references (e.g., `Known_Primary_Directive_Addon_Apps`, `Active_Primary_Addon_AppName`) now use these app/folder names.
+    - **Component Migration:** All existing add-ons (`task_spawning_addon`, `task_resumption_addon`, `build_product_specs_process`) and utils (`pre_flight_check_user_plan`) were moved into their respective new subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    - **New `prompts/ipc/` directory:** Created with a `.gitkeep` file for future IPC components.
+    - **Documentation Updates:**
+        - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
+        - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
+    This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (desire to simplify MPS, new way to handle app-specific data, AI assistance for missing/default configs, specific format for detecting edits).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment and Core Planning Instructions).
+**Context/Scenario:** This feedback entry summarizes a series of user requests and design discussions aimed at a comprehensive overhaul of the MPS framework's configuration system and a significant enhancement of the `build_product_specs_process` add-on's iterative capabilities.
+**Observation/Issue:**
+    1.  The global `[[USER PATH CONFIGURATION]]` in `Master_Prompt_Segment.txt` was becoming unwieldy; app-specific configs were mixed with global ones; parameter precedence and user edit detection were not formalized.
+    2.  A more structured and discoverable way to manage parameters for individual add-on apps was needed, including clear defaults and user override mechanisms.
+    3.  Users needed assistance in setting mandatory parameters, especially those with placeholder defaults.
+**Suggestion for MPS Refinement (Implemented):**
+A comprehensive refactoring of the configuration system was performed:
+    1.  **Fixed Global System Paths:** Core component discovery paths (for add-ons, utils, IEP, IPC) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup.
+    2.  **`[[USER PATH CONFIGURATION]]` Removed from `Master_Prompt_Segment.txt`:** This block was deleted. General output paths (like `Main Iteration Folder`) and other process-specific parameters are now intended to be managed as parameters within the configuration system of the relevant app.
+    3.  **App-Specific Configuration System:**
+        *   **`USER_appName_CONFIG.txt` Standard:** Defined a standard format for these template/storage files within each app's folder. This includes `[[USER_CONFIG_FOR_appName]]` delimiters, and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), description with default (`# Description: ... Default: ...`), and the value line (`PARAM_NAME: [USER_VALUE_START]value[USER_VALUE_END]`).
+        *   **Main Prompt Overrides:** Users can copy the content of a `USER_appName_CONFIG.txt` into their main spawn prompt to provide run-specific overrides.
+        *   **Parameter Resolution Precedence:** Implemented in app logic (demonstrated in `build_product_specs_process.txt`): Main prompt block > User-edited `USER_appName_CONFIG.txt` > AcceptedDefault in `USER_appName_CONFIG.txt`.
+        *   **AI-Assisted Updates:** If a `Required` parameter with a `PlaceholderDefault` remains unresolved, the app instructs the AI (Jules) to request the value from the user via chat. The AI then updates the on-disk `USER_appName_CONFIG.txt` with the new value and outputs the complete updated config block for the user to transfer to their main spawn prompt.
+    4.  **Documentation:** All changes were reflected in `Master_Prompt_Segment.txt` (now v0.4.0), `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, and relevant add-on files (e.g., `build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` and its primary instruction file).
+    This new system offers improved modularity, clarity in parameter management, and a better user experience through AI-assisted configuration.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Accomplishments This Session (Finalizing Configuration System & Preparing for "Concept Task" Handoff):**
+This session concluded the major refactoring of the MPS framework's configuration system and component architecture. It also prepared for the next phase of work focusing on the "Concept task."
+
+*   **Configuration System Refactoring (Completion & Documentation):**
+    *   **Standard for `USER_appName_CONFIG.txt`:** Formalized the standard for these files, including app-specific delimiters (`[[USER_CONFIG_FOR_appName]]`), and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), descriptions, defaults, and `[USER_VALUE_START]...[USER_VALUE_END]` markers. An illustrative example (`USER_exampleApp_CONFIG.txt`) was created as part of this standard definition.
+    *   **Applied Standard:** The `build_product_specs_process` add-on's `USER_build_product_specs_process_CONFIG.txt` was updated to fully adhere to this new standard, with all its parameters classified.
+    *   **Refined App Logic (`build_product_specs_process.txt` v0.4):** Its parameter resolution logic in Phase 1 was enhanced to parse the new metadata from `USER_..._CONFIG.txt`. The AI-assisted update mechanism (asking user via chat) now correctly triggers only for "Required" parameters with "PlaceholderDefault" values that haven't been overridden. A final validation step ensures all "Required" parameters have valid values before proceeding, halting with an error if not.
+    *   **Streamlined `Master_Prompt_Segment.txt` (v0.4.0):** The global `[[USER PATH CONFIGURATION]]` block was definitively removed. Instructions in `[[USER_ADDON_SELECTION]]` were updated to guide users on app-specific configurations via `[[USER_CONFIG_FOR_appName]]` blocks in their main spawn prompt.
+    *   **Consolidated `MPS_Usage_Guide.md`:** The guide was thoroughly reviewed and updated to provide a comprehensive and consistent explanation of the new configuration system. This includes: fixed global system paths, the role and format of `USER_appName_CONFIG.txt` files, the user workflow for app configuration (using main prompt blocks or editing `USER_...CONFIG.txt`), the AI's parameter resolution precedence, and how AI-assisted updates work. The "folder-per-app" architecture is also clearly documented.
+
+*   **Next Area of Work (User Directed - For Next Jules Instance):**
+    *   The user has directed focus towards refining an existing "Concept task."
+    *   This will involve analyzing the "Concept task" and splitting it into approximately three sub-tasks.
+    *   A key aspect of this work will be to use the "Concept task" sub-tasks as a practical use case for **exploring and implementing extensions to the 'add-on, util, and process' component concepts** within the MPS framework.
+    *   The next Jules instance is tasked with initiating this by requesting detailed requirements from the user regarding the "Concept task" (current state, materials possibly in `Inputs/concept/inputs`, ideas for sub-tasks) and their initial thoughts on evolving the component model.
+
+**State of Deliverables:**
+The comprehensive refactoring of the MPS configuration system is complete. This includes the "folder-per-app" architecture, fixed system paths for component discovery, and the new app-specific configuration mechanism using `USER_appName_CONFIG.txt` files and `[[USER_CONFIG_FOR_appName]]` blocks, featuring AI-assisted updates. All core prompts and documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`, and relevant add-ons like `build_product_specs_process`) have been updated to reflect these changes. The framework is significantly more modular, user-friendly, and robust in its configuration management. No new code or prompt changes were made in this specific summarization step. The system is ready for handoff to the next Jules instance to begin work on the "Concept task" and component model evolution.
+---
+---
+**Feedback Entry Date:** 2025-06-02
+**Source of Feedback:** User (new directive for next area of work following completion of major configuration system and architectural refactoring).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment) and related component architecture (folder-per-app, `USER_appName_CONFIG.txt` standard, etc.).
+**Context/Scenario:** Planning the next development cycle for the MPS framework after successfully implementing a new configuration system and "folder-per-app" architecture.
+**Observation/Issue:**
+    1.  An existing internal "Concept task" (details to be provided by the user to the next Jules instance, potentially located in `Inputs/concept/inputs`) is currently monolithic and needs to be broken down into more manageable sub-tasks (approximately three).
+    2.  The process of decomposing and implementing these "Concept task" sub-tasks is expected to reveal opportunities or requirements for evolving the framework's current component definitions (add-on, util, process) or potentially introducing new component types or interaction paradigms.
+**Suggestion (For Next Jules Instance):**
+The next Jules instance should:
+    1.  **Gather Detailed Requirements for "Concept Task":** Actively engage with the user to obtain a detailed understanding of the current "Concept task," its goals, any existing materials (potentially in `Inputs/concept/inputs`).
+    2.  Collaborate with the user to define the three (approx.) sub-tasks for the "Concept task."
+    3.  In parallel, analyze how the requirements of these sub-tasks might necessitate extensions to the existing component concepts (add-on, util, process) or the introduction of new component types/paradigms within the MPS framework.
+    4.  Plan and implement both the "Concept task" restructuring and the identified framework component extensions, using the former as a practical test case for the latter.
+---
+**Session Summary - 2025-06-03**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User directed a new phase of MPS development focusing on two major initiatives:
+    1.  Abstracting the existing `build_product_specs_process` add-on into a more generic `create_research_report` add-on.
+    2.  Introducing a new "promptApp" concept to allow users to define and execute multi-stage workflows composed of underlying MPS components.
+- Clarified requirements for `create_research_report` parameters, including separate controls for `ITERATIVE_OUTPUT_DEPTH` (D0-D3 style) and `REFERENCE_FOLLOWING_DEPTH` (document link traversal).
+- Confirmed that plain text input formats (.txt, .md, web text) are the initial target for document processing.
+- Decided that sequential tasks within a `promptApp` will be handled by user re-invocation of new AI instances for each task, simplifying initial framework orchestration.
+
+**Summary of Approved Plan:**
+The overall plan involves:
+1.  Developing the `create_research_report` add-on (now complete).
+2.  Defining the "promptApp" structure and manifest file format.
+3.  Updating `Core_Planning_Instructions.txt` and `Master_Prompt_Segment.txt` to support `promptApp` discovery, selection, and execution.
+4.  Creating an initial structural example of a `promptApp` (`CompliancePLM`).
+5.  Retiring the `build_product_specs_process` add-on files.
+6.  Updating all documentation.
+7.  Testing the new functionalities.
+
+**Summary of Changes Made This Session (to implement Step 1 of the plan):**
+-   **Created `prompts/add_ons/create_research_report/` directory.**
+-   **Created `prompts/add_ons/create_research_report/USER_create_research_report_CONFIG.txt`:**
+    *   Defined parameters: `PROPOSED_TABLE_OF_CONTENTS`, `GUIDELINES_DOC_PATHS`, `ADDITIONAL_WEB_LINKS_FILE`, `EXEMPLAR_DOCS`, `GENERAL_INPUT_DOCS`, `PRIMARY_INPUT_DOC_PATH`, `ITERATIVE_OUTPUT_DEPTH`, `REFERENCE_FOLLOWING_DEPTH`, `PREVIOUS_ITERATION_OUTPUT_PATH`, `REPORT_BASENAME`, `REPORT_OUTPUT_PATH`.
+    *   Included full metadata (Requirement, DefaultType, Description, Default) for each.
+-   **Created `prompts/add_ons/create_research_report/create_research_report.txt`:**
+    *   Adapted core logic from the former `build_product_specs_process.txt`.
+    *   Updated to use the new parameter set for generic report generation.
+    *   Removed product-specification-specific and detailed codebase review logic.
+    *   Maintained the 6-phase structure and parameter resolution mechanisms.
+-   **Updated `prompts/add_ons/available_addons_manifest.md`:**
+    *   Added entry for `create_research_report`.
+    *   Removed entry for `build_product_specs_process`.
+
+**State of Deliverables:**
+- The `create_research_report` add-on (v0.1) is developed and its configuration file is in place.
+- The add-on manifest is updated.
+- The `build_product_specs_process` add-on is effectively replaced by this new add-on (physical file deletion is pending a later plan step).
+- Plan step 1 is complete.
+
+**Next Steps (This Jules instance/session):**
+- Proceed to Plan Step 2: "Define 'promptApp' Structure and Manifest." This involves designing the manifest file format that will define how `promptApps` (like the `CompliancePLM` example) are structured and how their tasks map to MPS components.
+---
+**Session Summary - 2025-06-03 (Continued)**
+**Instance:** Jules
+**User Feedback/Requests Addressed (Post Initial 2025-06-03 Summary):**
+- User confirmed a critical change in component resolution strategy for `promptApps`: the search order should be "app-specific first" (flat file, then folder style within app), followed by global components (add-ons, then utils). This was a change from the initially implemented "globals first" approach.
+
+**Summary of Approved Plan (Revised Portion):**
+The plan was revised to implement and document this new search order:
+1.  Revise `Core_Planning_Instructions.txt` for the new "app-specific first" search order. (Completed)
+2.  Update `MPS_Usage_Guide.md` to reflect this new search order. (Completed)
+3.  Create test assets and conceptually outline tests for the new search order. (Completed)
+4.  Update `HANDOFF_NOTES.md` and submit. (This step)
+
+**Summary of Changes Made This Session (Implementing Revised Plan):**
+-   **Modified `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Updated the component resolution logic in Section II.A.1.a.viii to implement the "app-specific first" search order:
+        1.  App-Specific (flat file): `prompts/apps/[Selected_PromptAppName]/[componentName].txt`
+        2.  App-Specific (folder style): `prompts/apps/[Selected_PromptAppName]/[componentName]/[componentName].txt`
+        3.  Global Add-on: `prompts/add_ons/[componentName]/[componentName].txt`
+        4.  Global Util: `prompts/util/[componentName]/[componentName].txt`
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Modified Section 3.B.2.i ("Component Resolution Search Order") and Section 4 ("Developing New promptApps") to accurately document the new "app-specific first" search order.
+-   **Created Test Assets for Search Order Verification:**
+    *   Global add-on: `prompts/add_ons/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   App-specific component (folder style): `prompts/apps/CompliancePLM/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` for the global test component.
+    *   Updated `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` to include a task "Test Component Resolution" that calls `test_resolver_component`.
+
+**State of Deliverables:**
+- Core framework logic (`Core_Planning_Instructions.txt`) now correctly implements "app-specific first" component resolution for `promptApps`.
+- Documentation (`MPS_Usage_Guide.md`) accurately reflects this new search order.
+- Test assets are in place to verify this specific functionality.
+- The broader `promptApp` and `create_research_report` add-on implementation (from previous steps in this session) is complete.
+- The system is ready for user testing of the `promptApp` functionality, especially the component search order.
+
+**Next Steps (User):**
+- Thoroughly test the `promptApp` system, focusing on:
+    - Invoking the "Test Component Resolution" task within `CompliancePLM` to ensure the app-specific `test_resolver_component` is used.
+    - Invoking tasks that use global components (like "Product Specification" using `create_research_report` in `CompliancePLM`) to ensure they are correctly found.
+    - Testing the iteration flow and re-invocation prompts for iterable tasks.
+---
+**Session Summary - 2025-06-03 (Promptimizer Update)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a sample for the `pre_flight_check_user_plan` utility.
+- Upon discussion, the utility was renamed to `promptimizer` for better clarity and branding.
+- A sample usage document for the newly named `promptimizer` utility was created.
+
+**Summary of Changes Made This Session:**
+-   **Renamed Utility:**
+    *   The directory `prompts/util/pre_flight_check_user_plan/` was renamed to `prompts/util/promptimizer/`.
+    *   The file `pre_flight_check_user_plan.txt` within that directory was renamed to `promptimizer.txt`.
+    *   Internal text within `promptimizer.txt` (e.g., titles, role descriptions) was updated to reflect the new "Promptimizer" name and purpose (prompt optimization reviewer).
+-   **Created Example Document:**
+    *   A new example file `framework_dev_docs/examples/promptimizer_example.md` was created.
+    *   This document explains how the `promptimizer.txt` utility is used (AI primed with the utility reviews a user's high-level request).
+    *   It includes a sample user project request with deliberate minor weaknesses.
+    *   It provides detailed example feedback that an AI, guided by `promptimizer.txt`, would generate, structured according to the utility's 7 feedback points.
+
+**State of Deliverables:**
+- The `promptimizer` utility is updated and an example of its usage is now available.
+- This concludes the requested work on samples for this session.
+
+**Next Steps (User):**
+- Review the `promptimizer_example.md`.
+- Consider if further refinements to the `promptimizer.txt` utility itself are desired (e.g., to have the AI proactively rewrite parts of the prompt).
+---
+**Session Summary - 2025-06-03 (MPS Updater Plan)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a mechanism to transfer MPS framework improvements/features between different instances/repositories.
+- This feature was named "MPS Updater" (MPU).
+- Instead of implementing MPU directly, the task was to formulate a detailed plan and create a prompt file for a *future* Jules instance to implement MPU.
+- The prompt for the future instance is to include an instruction for that instance to first review and refine the provided plan before implementation.
+
+**Summary of Changes Made This Session:**
+-   **Formulated Detailed Plan for "MPS Updater" (MPU) Feature:**
+    *   Defined objectives for MPU.
+    *   Proposed "MPS Update Package" (MUP) formats, recommending a manifest-based approach for initial AI implementation, with standard `.patch` files as a more advanced alternative.
+    *   Outlined the conceptual design of an "Export MUP Package" utility (for the source repository, not for current implementation).
+    *   Designed the "Apply MPS Update Package" add-on (`apply_mps_update`):
+        *   Specified its location: `prompts/add_ons/apply_mps_update/`.
+        *   Detailed its `USER_apply_mps_update_CONFIG.txt` parameters (e.g., `MUP_PACKAGE_PATH`, `DRY_RUN_MODE`, `CONFLICT_RESOLUTION_STRATEGY`).
+        *   Outlined the phased logic for its `apply_mps_update.txt` instruction file (initialization, package parsing, pre-change analysis/dry run, change application, reporting/cleanup).
+    *   Emphasized the critical assumption of version synchronization between source and target repositories.
+    *   Defined initial scope for conflict handling (fail on conflict) and security considerations.
+-   **Created Prompt File for Future Implementation:**
+    *   A new file `framework_dev_docs/meta/implement_mps_updater.txt` was created.
+    *   This file contains the comprehensive starting plan for the MPU feature as formulated above.
+    *   It includes an explicit instruction for the future implementing Jules instance to first review, critique, and refine the provided plan before starting its work.
+    *   It also outlines expected deliverables for the future instance (the add-on, documentation, tests, handoff notes).
+
+**State of Deliverables:**
+- A detailed plan and a directive prompt for implementing the "MPS Updater" feature by a future Jules instance have been created and saved to `framework_dev_docs/meta/implement_mps_updater.txt`.
+- No changes were made to the operational MPS framework components in this specific sub-task; the work was purely planning and documentation for a future task.
+
+**Next Steps (User):**
+- Review the `framework_dev_docs/meta/implement_mps_updater.txt` file.
+- When ready, assign the task described in that file to a new Jules instance.
+---
+**Session Summary - 2025-06-03 (Directive-Based Invocation)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User proposed a new, simplified workflow for invoking the MPS framework.
+- Instead of users pasting the entire configured Master Prompt Segment into their initial interaction, they will prepare a single file in their repository (based on `Master_Prompt_Segment.txt` template) containing their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags at the top) and all their MPS configurations (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, specific `[[USER_...CONFIGURATION]]` blocks, etc.).
+- The user will then invoke the AI system with a simple directive, e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_configured_file.txt]]`.
+- The AI system is responsible for loading the specified file and making its content, including the prepended `[[USER_PROJECT_REQUEST]]` block, available for processing by `Core_Planning_Instructions.txt`.
+- This new directive method was also confirmed to be applicable for directly invoking utilities like `promptimizer`.
+
+**Summary of Changes Made This Session:**
+-   **Updated `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Verified/ensured a new Section I.A exists to parse the `[[USER_PROJECT_REQUEST]]` block from the beginning of the processed content and store it as `User_High_Level_Project_Goal`.
+    *   Adjusted subsequent sub-section lettering in Section I accordingly.
+-   **Updated Canonical `prompts/Master_Prompt_Segment.txt` Template:**
+    *   Added a prominent instructional comment block at the very top. This guides users to:
+        1. Copy the template to create their own project-specific MPS file.
+        2. Add their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags) at the beginning of their file.
+        3. Edit all MPS configuration blocks within their file.
+        4. Use the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_file.txt]]` directive for AI invocation.
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Revised sections on setting up and invoking the MPS framework to detail the new directive-based workflow.
+    *   Explained how to prepare the single, comprehensive project-specific MPS file.
+    *   Clarified how the AI system handles the directive and makes the `[[USER_PROJECT_REQUEST]]` available.
+    *   Added a new subsection explaining how to use the directive to call specific utilities directly (e.g., `promptimizer.txt`), followed by the text input for that utility.
+
+**State of Deliverables:**
+- Core framework files (`Core_Planning_Instructions.txt`, `Master_Prompt_Segment.txt`) and the main usage guide (`MPS_Usage_Guide.md`) have been updated to support and document the new directive-based invocation workflow.
+- This simplifies the user's initial interaction with the AI system for MPS tasks.
+
+**Next Steps (User):**
+- Review all updated documentation for clarity and accuracy.
+- Test the new directive-based workflow thoroughly with various scenarios, including:
+    - Main MPS planning via a user-prepared project instruction file.
+    - Direct utility invocation (e.g., with `promptimizer`).
+---
+
+## MPS Performance Feedback Log
+
+This section logs specific feedback on the performance, clarity, and effectiveness of the Master Prompt Segment (MPS) versions and the artifacts they help generate.
+
+---
+**Feedback Entry - 2023-11-02**
+**Source of Feedback:** Initial setup of this feedback log section during MPS feature design.
+**MPS Version Referenced:** Relevant for `prompts/Master_Prompt_Segment.txt` (v0.3.2 and future versions).
+**Context/Scenario:** Establishing the feedback mechanism as per design discussions for feature "Feedback Loop for MPS Refinement".
+**Observation/Issue:** This log is intended to capture issues like:
+    - Ambiguities in any version of `Master_Prompt_Segment.md` that lead to incorrect or suboptimal behavior by a Planning AI.
+    - Problems encountered by Task AIs due to the structure or content of prompts generated based on an MPS version.
+    - User difficulties in understanding or using the MPS, its generated `00_task_launch_plan.md`, or other artifacts.
+    - Success stories where a particular MPS instruction proved very effective.
+**Suggestion for MPS Refinement (if any):** N/A
+---
+*(Future entries will be appended below this line)*
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request to Jules instance for refactoring).
+**MPS Version Referenced:** `prompts/Master_Prompt_Segment.txt` (approx. v0.3.2, prior to modularization) and the new modularized version (post this session's changes).
+**Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
+**Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
+**Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request and illustrative example: `[ ] task_spawning_addon.txt` to Jules instance).
+**MPS Version Referenced:** The modularized MPS version (where `Core_Planning_Instructions.txt` was already separate) and the current version implementing optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User desired to further enhance the framework's modularity by making the entire project planning and task generation process an optional component, selectable by the user, rather than an inherent, non-optional function of the MPS.
+**Observation/Issue:** While `Core_Planning_Instructions.txt` was already separated, it still implicitly mandated the task spawning workflow. The framework lacked the flexibility to be used for other purposes without invoking this primary planning behavior.
+**Suggestion for MPS Refinement (Implemented):** The user's suggestion to make task spawning an optional add-on was implemented.
+    - The core logic for project planning, TLP generation, and task prompt creation was moved from `prompts/iep/Core_Planning_Instructions.txt` to a new file: `prompts/add_ons/task_spawning_addon.txt`.
+    - `prompts/iep/Core_Planning_Instructions.txt` was updated to include conditional logic. It now checks if `task_spawning_addon.txt` is selected by the user in `[[USER_ADDON_SELECTION]]` (within `Master_Prompt_Segment.txt`).
+    - If selected, the `task_spawning_addon.txt` is executed.
+    - If not selected, the AI is instructed to acknowledge this, skip default plan generation, and process any other selected add-ons.
+    - This change makes the MPS framework significantly more flexible, allowing users to engage the Planning AI for potentially different primary functions by selecting different combinations of add-ons, or by using it with only utility add-ons.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifying questions and specific directive regarding `task_spawning_addon.txt` inheritance and add-on ordering).
+**MPS Version Referenced:** The MPS version with optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User inquired about how multiple add-ons interact, particularly how `task_spawning_addon.txt` would affect other add-ons, and then specifically requested that `task_spawning_addon.txt` should not be inherited by the Task AIs it generates. User also sought clarity on the importance of add-on ordering in the selection block.
+**Observation/Issue:**
+    1. The previous add-on processing logic could have resulted in `task_spawning_addon.txt` (intended for the Planning AI) being appended to Task AI prompts, leading to overly verbose prompts and potential for unintended behavior.
+    2. The impact of add-on order in `[[USER_ADDON_SELECTION]]` on the final content of Task AI prompts was not explicitly documented, potentially leading to user confusion.
+**Suggestion for MPS Refinement (Implemented):**
+    - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
+    - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
+    - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process,
+        *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
+        *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
+    These enhancements make the product specification generation process more guided and configurable.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** Jules (proactive refinement during development of `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** The introduction of `build_product_specs_process.txt` as a new "primary directive" add-on (similar in role to `task_spawning_addon.txt` but with a different function) highlighted the need to generalize how the core framework selects and manages such add-ons.
+**Observation/Issue:** The existing logic in `prompts/iep/Core_Planning_Instructions.txt` was somewhat hardcoded around `task_spawning_addon.txt` for determining the main execution path and for non-inheritance of add-on content into sub-prompts. This would not scale well if many different primary add-ons were developed.
+**Suggestion for MPS Refinement (Implemented):**
+    - Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B and II) to:
+        - Define a list of `Known_Primary_Directive_Addons`.
+        - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
+        - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
+    - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (specific feedback on research methodology, codebase interaction rules like "level 0 only for codebases," and codebase review preferences for the `build_product_specs_process.txt` add-on).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**Context/Scenario:** User provided detailed requirements to refine the initial `build_product_specs_process.txt` add-on to achieve a more structured, in-depth, and controllable research and content generation process, particularly focusing on how the AI should interact with a primary document and linked codebases.
+**Observation/Issue:** The initial version of `build_product_specs_process.txt` had a more general research phase. The user required a more granular, heading-based research approach for the Primary Input Document, specific rules for how the AI should analyze linked codebases (including different levels of review depth/focus), and a strict "level 0 only" rule for code analysis to prevent unintended deep dives into code.
+**Suggestion for MPS Refinement (Implemented):**
+The `prompts/add_ons/build_product_specs_process.txt` was significantly updated to incorporate the "Level 0 Deep Research" methodology as per user requirements:
+    - **New Configurations:** Introduced `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` in `Master_Prompt_Segment.txt` and documented them in `MPS_Usage_Guide.md`.
+    - **Per-Heading Research Cycle:** The add-on's Phase 3 was restructured. It now includes an initial high-level review of the Primary Input Document. Then, for each major heading in that document, it performs a 5-step analysis: Heading Context Analysis, Supporting Docs Analysis, References & Codebase Analysis, Consolidated Research for the heading, and Iterative Content Contribution for that heading.
+    - **Codebase Review Integration:** The "References & Codebase Analysis" step now explicitly uses the `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` ("complex", "cursory", "focused") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` to guide its interaction with linked code.
+    - **"Level 0 Code Analysis ONLY":** A strict rule was added, instructing the AI not to follow internal code references (like imports or function calls to other files) from any fetched code text. Its analysis is confined to the directly retrieved code content.
+    - **Iterative Content Drafting:** Content for output documents is now drafted iteratively during the per-heading analysis and then assembled and finalized in later phases.
+    This refined process provides a more systematic and controllable approach for the AI when generating product specifications.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifications and new requirements for iterative deepening for `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on incorporating "Level 0 Deep Research".
+**Context/Scenario:** Expanding the iterative capabilities of `build_product_specs_process.txt` from an initial 0-2 level concept to a more detailed 0-3 level process with specific content goals for each level.
+**Observation/Issue:** The initial iterative deepening plan (0-2 levels) for `build_product_specs_process.txt` needed more specific content goals for each level and an additional level for AI-driven insights to meet user's evolving requirements for content depth and sophistication.
+**Suggestion for MPS Refinement (Implemented):**
+The iterative deepening feature of `build_product_specs_process.txt` was expanded to support 0-3 levels, and associated configurations and documentation were updated:
+    - **Configuration Updates (`Master_Prompt_Segment.txt`):** `PRODUCT_SPECS_ITERATION_DEPTH` comment updated to reflect the 0-3 range and specific goals:
+        - `0`: Outline Generation (headings with single key idea paragraphs).
+        - `1`: Basic Content (Bachelor's level, ~3 paras per D0 heading).
+        - `2`: Expert Elaboration (~1 page per original D0 heading).
+        - `3`: AI Unique Insights (~3 pages per original D0 heading, novel ideas).
+    - **Add-on Logic (`build_product_specs_process.txt`):**
+        - Phase 1 (Initialization) now validates depth (0-3) and `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (required for D1-D3, critical error if missing). Output file suffixes `_D0` to `_D3` are determined.
+        - Phase 2 (Input Processing) is conditional: D0 uses original inputs; D1-D3 use previous iteration's outputs as primary, with original inputs as reference.
+        - Phase 3 (Content Generation) has distinct logic for each depth (0-3), detailing how to build upon previous work (for D1-D3) or generate outlines (D0) according to the specified content goals for each level.
+    - **Documentation (`MPS_Usage_Guide.md`):** Updated to detail the 0-3 levels, their specific purposes, and the user workflow for managing iterative runs and output folders.
+    This provides a more granular, powerful, and well-defined iterative workflow for the `build_product_specs_process.txt` add-on.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (vision for enhanced component modularity via "folder-per-app" architecture).
+**MPS Version Referenced:** Current version with multiple add-ons and utils.
+**Context/Scenario:** As the number of components (add-ons, utils, and potentially IPC handlers) grows, a flat file structure in their respective directories (`prompts/add_ons/`, `prompts/util/`) becomes less organized and limits the ability for components to have their own supporting files or sub-frameworks.
+**Observation/Issue:** The previous flat-file structure for add-ons and utils was not ideal for scalability or for components that might require multiple associated files (e.g., templates, data snippets, complex sub-instructions).
+**Suggestion for MPS Refinement (Implemented):**
+The framework was refactored to a "folder-per-app" architecture for all components (add-ons, utils, and anticipated IPC handlers):
+    - **Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):** Updated to discover and load components based on a new directory structure.
+        - It now expects component-specific parent paths like `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, `User_Path_IPC_Dir` to be defined in `[[USER PATH CONFIGURATION]]`.
+        - For each component "app" (e.g., `my_addon_app`), it looks for a subdirectory named `my_addon_app` within the relevant parent path.
+        - The primary instruction file for the app must be located at `[parent_path]/my_addon_app/my_addon_app.txt`.
+        - Internal references (e.g., `Known_Primary_Directive_Addon_Apps`, `Active_Primary_Addon_AppName`) now use these app/folder names.
+    - **Component Migration:** All existing add-ons (`task_spawning_addon`, `task_resumption_addon`, `build_product_specs_process`) and utils (`pre_flight_check_user_plan`) were moved into their respective new subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    - **New `prompts/ipc/` directory:** Created with a `.gitkeep` file for future IPC components.
+    - **Documentation Updates:**
+        - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
+        - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
+    This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (desire to simplify MPS, new way to handle app-specific data, AI assistance for missing/default configs, specific format for detecting edits).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment and Core Planning Instructions).
+**Context/Scenario:** This feedback entry summarizes a series of user requests and design discussions aimed at a comprehensive overhaul of the MPS framework's configuration system and a significant enhancement of the `build_product_specs_process` add-on's iterative capabilities.
+**Observation/Issue:**
+    1.  The global `[[USER PATH CONFIGURATION]]` in `Master_Prompt_Segment.txt` was becoming unwieldy; app-specific configs were mixed with global ones; parameter precedence and user edit detection were not formalized.
+    2.  A more structured and discoverable way to manage parameters for individual add-on apps was needed, including clear defaults and user override mechanisms.
+    3.  Users needed assistance in setting mandatory parameters, especially those with placeholder defaults.
+**Suggestion for MPS Refinement (Implemented):**
+A comprehensive refactoring of the configuration system was performed:
+    1.  **Fixed Global System Paths:** Core component discovery paths (for add-ons, utils, IEP, IPC) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup.
+    2.  **`[[USER PATH CONFIGURATION]]` Removed from `Master_Prompt_Segment.txt`:** This block was deleted. General output paths (like `Main Iteration Folder`) and other process-specific parameters are now intended to be managed as parameters within the configuration system of the relevant app.
+    3.  **App-Specific Configuration System:**
+        *   **`USER_appName_CONFIG.txt` Standard:** Defined a standard format for these template/storage files within each app's folder. This includes `[[USER_CONFIG_FOR_appName]]` delimiters, and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), description with default (`# Description: ... Default: ...`), and the value line (`PARAM_NAME: [USER_VALUE_START]value[USER_VALUE_END]`).
+        *   **Main Prompt Overrides:** Users can copy the content of a `USER_appName_CONFIG.txt` into their main spawn prompt to provide run-specific overrides.
+        *   **Parameter Resolution Precedence:** Implemented in app logic (demonstrated in `build_product_specs_process.txt`): Main prompt block > User-edited `USER_appName_CONFIG.txt` > AcceptedDefault in `USER_appName_CONFIG.txt`.
+        *   **AI-Assisted Updates:** If a `Required` parameter with a `PlaceholderDefault` remains unresolved, the app instructs the AI (Jules) to request the value from the user via chat. The AI then updates the on-disk `USER_appName_CONFIG.txt` with the new value and outputs the complete updated config block for the user to transfer to their main spawn prompt.
+    4.  **Documentation:** All changes were reflected in `Master_Prompt_Segment.txt` (now v0.4.0), `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, and relevant add-on files (e.g., `build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` and its primary instruction file).
+    This new system offers improved modularity, clarity in parameter management, and a better user experience through AI-assisted configuration.
+---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Accomplishments This Session (Finalizing Configuration System & Preparing for "Concept Task" Handoff):**
+This session concluded the major refactoring of the MPS framework's configuration system and component architecture. It also prepared for the next phase of work focusing on the "Concept task."
+
+*   **Configuration System Refactoring (Completion & Documentation):**
+    *   **Standard for `USER_appName_CONFIG.txt`:** Formalized the standard for these files, including app-specific delimiters (`[[USER_CONFIG_FOR_appName]]`), and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), descriptions, defaults, and `[USER_VALUE_START]...[USER_VALUE_END]` markers. An illustrative example (`USER_exampleApp_CONFIG.txt`) was created as part of this standard definition.
+    *   **Applied Standard:** The `build_product_specs_process` add-on's `USER_build_product_specs_process_CONFIG.txt` was updated to fully adhere to this new standard, with all its parameters classified.
+    *   **Refined App Logic (`build_product_specs_process.txt` v0.4):** Its parameter resolution logic in Phase 1 was enhanced to parse the new metadata from `USER_..._CONFIG.txt`. The AI-assisted update mechanism (asking user via chat) now correctly triggers only for "Required" parameters with "PlaceholderDefault" values that haven't been overridden. A final validation step ensures all "Required" parameters have valid values before proceeding, halting with an error if not.
+    *   **Streamlined `Master_Prompt_Segment.txt` (v0.4.0):** The global `[[USER PATH CONFIGURATION]]` block was definitively removed. Instructions in `[[USER_ADDON_SELECTION]]` were updated to guide users on app-specific configurations via `[[USER_CONFIG_FOR_appName]]` blocks in their main spawn prompt.
+    *   **Consolidated `MPS_Usage_Guide.md`:** The guide was thoroughly reviewed and updated to provide a comprehensive and consistent explanation of the new configuration system. This includes: fixed global system paths, the role and format of `USER_appName_CONFIG.txt` files, the user workflow for app configuration (using main prompt blocks or editing `USER_...CONFIG.txt`), the AI's parameter resolution precedence, and how AI-assisted updates work. The "folder-per-app" architecture is also clearly documented.
+
+*   **Next Area of Work (User Directed - For Next Jules Instance):**
+    *   The user has directed focus towards refining an existing "Concept task."
+    *   This will involve analyzing the "Concept task" and splitting it into approximately three sub-tasks.
+    *   A key aspect of this work will be to use the "Concept task" sub-tasks as a practical use case for **exploring and implementing extensions to the 'add-on, util, and process' component concepts** within the MPS framework.
+    *   The next Jules instance is tasked with initiating this by requesting detailed requirements from the user regarding the "Concept task" (current state, materials possibly in `Inputs/concept/inputs`, ideas for sub-tasks) and their initial thoughts on evolving the component model.
+
+**State of Deliverables:**
+The comprehensive refactoring of the MPS configuration system is complete. This includes the "folder-per-app" architecture, fixed system paths for component discovery, and the new app-specific configuration mechanism using `USER_appName_CONFIG.txt` files and `[[USER_CONFIG_FOR_appName]]` blocks, featuring AI-assisted updates. All core prompts and documentation (`Master_Prompt_Segment.txt`, `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, `available_addons_manifest.md`, and relevant add-ons like `build_product_specs_process`) have been updated to reflect these changes. The framework is significantly more modular, user-friendly, and robust in its configuration management. No new code or prompt changes were made in this specific summarization step. The system is ready for handoff to the next Jules instance to begin work on the "Concept task" and component model evolution.
+---
+---
+**Feedback Entry Date:** 2025-06-02
+**Source of Feedback:** User (new directive for next area of work following completion of major configuration system and architectural refactoring).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment) and related component architecture (folder-per-app, `USER_appName_CONFIG.txt` standard, etc.).
+**Context/Scenario:** Planning the next development cycle for the MPS framework after successfully implementing a new configuration system and "folder-per-app" architecture.
+**Observation/Issue:**
+    1.  An existing internal "Concept task" (details to be provided by the user to the next Jules instance, potentially located in `Inputs/concept/inputs`) is currently monolithic and needs to be broken down into more manageable sub-tasks (approximately three).
+    2.  The process of decomposing and implementing these "Concept task" sub-tasks is expected to reveal opportunities or requirements for evolving the framework's current component definitions (add-on, util, process) or potentially introducing new component types or interaction paradigms.
+**Suggestion (For Next Jules Instance):**
+The next Jules instance should:
+    1.  **Gather Detailed Requirements for "Concept Task":** Actively engage with the user to obtain a detailed understanding of the current "Concept task," its goals, any existing materials (potentially in `Inputs/concept/inputs`).
+    2.  Collaborate with the user to define the three (approx.) sub-tasks for the "Concept task."
+    3.  In parallel, analyze how the requirements of these sub-tasks might necessitate extensions to the existing component concepts (add-on, util, process) or the introduction of new component types/paradigms within the MPS framework.
+    4.  Plan and implement both the "Concept task" restructuring and the identified framework component extensions, using the former as a practical test case for the latter.
+---
+**Session Summary - 2025-06-03**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User directed a new phase of MPS development focusing on two major initiatives:
+    1.  Abstracting the existing `build_product_specs_process` add-on into a more generic `create_research_report` add-on.
+    2.  Introducing a new "promptApp" concept to allow users to define and execute multi-stage workflows composed of underlying MPS components.
+- Clarified requirements for `create_research_report` parameters, including separate controls for `ITERATIVE_OUTPUT_DEPTH` (D0-D3 style) and `REFERENCE_FOLLOWING_DEPTH` (document link traversal).
+- Confirmed that plain text input formats (.txt, .md, web text) are the initial target for document processing.
+- Decided that sequential tasks within a `promptApp` will be handled by user re-invocation of new AI instances for each task, simplifying initial framework orchestration.
+
+**Summary of Approved Plan:**
+The overall plan involves:
+1.  Developing the `create_research_report` add-on (now complete).
+2.  Defining the "promptApp" structure and manifest file format.
+3.  Updating `Core_Planning_Instructions.txt` and `Master_Prompt_Segment.txt` to support `promptApp` discovery, selection, and execution.
+4.  Creating an initial structural example of a `promptApp` (`CompliancePLM`).
+5.  Retiring the `build_product_specs_process` add-on files.
+6.  Updating all documentation.
+7.  Testing the new functionalities.
+
+**Summary of Changes Made This Session (to implement Step 1 of the plan):**
+-   **Created `prompts/add_ons/create_research_report/` directory.**
+-   **Created `prompts/add_ons/create_research_report/USER_create_research_report_CONFIG.txt`:**
+    *   Defined parameters: `PROPOSED_TABLE_OF_CONTENTS`, `GUIDELINES_DOC_PATHS`, `ADDITIONAL_WEB_LINKS_FILE`, `EXEMPLAR_DOCS`, `GENERAL_INPUT_DOCS`, `PRIMARY_INPUT_DOC_PATH`, `ITERATIVE_OUTPUT_DEPTH`, `REFERENCE_FOLLOWING_DEPTH`, `PREVIOUS_ITERATION_OUTPUT_PATH`, `REPORT_BASENAME`, `REPORT_OUTPUT_PATH`.
+    *   Included full metadata (Requirement, DefaultType, Description, Default) for each.
+-   **Created `prompts/add_ons/create_research_report/create_research_report.txt`:**
+    *   Adapted core logic from the former `build_product_specs_process.txt`.
+    *   Updated to use the new parameter set for generic report generation.
+    *   Removed product-specification-specific and detailed codebase review logic.
+    *   Maintained the 6-phase structure and parameter resolution mechanisms.
+-   **Updated `prompts/add_ons/available_addons_manifest.md`:**
+    *   Added entry for `create_research_report`.
+    *   Removed entry for `build_product_specs_process`.
+
+**State of Deliverables:**
+- The `create_research_report` add-on (v0.1) is developed and its configuration file is in place.
+- The add-on manifest is updated.
+- The `build_product_specs_process` add-on is effectively replaced by this new add-on (physical file deletion is pending a later plan step).
+- Plan step 1 is complete.
+
+**Next Steps (This Jules instance/session):**
+- Proceed to Plan Step 2: "Define 'promptApp' Structure and Manifest." This involves designing the manifest file format that will define how `promptApps` (like the `CompliancePLM` example) are structured and how their tasks map to MPS components.
+---
+**Session Summary - 2025-06-03 (Continued)**
+**Instance:** Jules
+**User Feedback/Requests Addressed (Post Initial 2025-06-03 Summary):**
+- User confirmed a critical change in component resolution strategy for `promptApps`: the search order should be "app-specific first" (flat file, then folder style within app), followed by global components (add-ons, then utils). This was a change from the initially implemented "globals first" approach.
+
+**Summary of Approved Plan (Revised Portion):**
+The plan was revised to implement and document this new search order:
+1.  Revise `Core_Planning_Instructions.txt` for the new "app-specific first" search order. (Completed)
+2.  Update `MPS_Usage_Guide.md` to reflect this new search order. (Completed)
+3.  Create test assets and conceptually outline tests for the new search order. (Completed)
+4.  Update `HANDOFF_NOTES.md` and submit. (This step)
+
+**Summary of Changes Made This Session (Implementing Revised Plan):**
+-   **Modified `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Updated the component resolution logic in Section II.A.1.a.viii to implement the "app-specific first" search order:
+        1.  App-Specific (flat file): `prompts/apps/[Selected_PromptAppName]/[componentName].txt`
+        2.  App-Specific (folder style): `prompts/apps/[Selected_PromptAppName]/[componentName]/[componentName].txt`
+        3.  Global Add-on: `prompts/add_ons/[componentName]/[componentName].txt`
+        4.  Global Util: `prompts/util/[componentName]/[componentName].txt`
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Modified Section 3.B.2.i ("Component Resolution Search Order") and Section 4 ("Developing New promptApps") to accurately document the new "app-specific first" search order.
+-   **Created Test Assets for Search Order Verification:**
+    *   Global add-on: `prompts/add_ons/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   App-specific component (folder style): `prompts/apps/CompliancePLM/test_resolver_component/` (with `test_resolver_component.txt` and `USER_...CONFIG.txt`).
+    *   Updated `prompts/add_ons/available_addons_manifest.md` for the global test component.
+    *   Updated `prompts/apps/CompliancePLM/CompliancePLM_manifest.json` to include a task "Test Component Resolution" that calls `test_resolver_component`.
+
+**State of Deliverables:**
+- Core framework logic (`Core_Planning_Instructions.txt`) now correctly implements "app-specific first" component resolution for `promptApps`.
+- Documentation (`MPS_Usage_Guide.md`) accurately reflects this new search order.
+- Test assets are in place to verify this specific functionality.
+- The broader `promptApp` and `create_research_report` add-on implementation (from previous steps in this session) is complete.
+- The system is ready for user testing of the `promptApp` functionality, especially the component search order.
+
+**Next Steps (User):**
+- Thoroughly test the `promptApp` system, focusing on:
+    - Invoking the "Test Component Resolution" task within `CompliancePLM` to ensure the app-specific `test_resolver_component` is used.
+    - Invoking tasks that use global components (like "Product Specification" using `create_research_report` in `CompliancePLM`) to ensure they are correctly found.
+    - Testing the iteration flow and re-invocation prompts for iterable tasks.
+---
+**Session Summary - 2025-06-03 (Promptimizer Update)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a sample for the `pre_flight_check_user_plan` utility.
+- Upon discussion, the utility was renamed to `promptimizer` for better clarity and branding.
+- A sample usage document for the newly named `promptimizer` utility was created.
+
+**Summary of Changes Made This Session:**
+-   **Renamed Utility:**
+    *   The directory `prompts/util/pre_flight_check_user_plan/` was renamed to `prompts/util/promptimizer/`.
+    *   The file `pre_flight_check_user_plan.txt` within that directory was renamed to `promptimizer.txt`.
+    *   Internal text within `promptimizer.txt` (e.g., titles, role descriptions) was updated to reflect the new "Promptimizer" name and purpose (prompt optimization reviewer).
+-   **Created Example Document:**
+    *   A new example file `framework_dev_docs/examples/promptimizer_example.md` was created.
+    *   This document explains how the `promptimizer.txt` utility is used (AI primed with the utility reviews a user's high-level request).
+    *   It includes a sample user project request with deliberate minor weaknesses.
+    *   It provides detailed example feedback that an AI, guided by `promptimizer.txt`, would generate, structured according to the utility's 7 feedback points.
+
+**State of Deliverables:**
+- The `promptimizer` utility is updated and an example of its usage is now available.
+- This concludes the requested work on samples for this session.
+
+**Next Steps (User):**
+- Review the `promptimizer_example.md`.
+- Consider if further refinements to the `promptimizer.txt` utility itself are desired (e.g., to have the AI proactively rewrite parts of the prompt).
+---
+**Session Summary - 2025-06-03 (MPS Updater Plan)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User requested a mechanism to transfer MPS framework improvements/features between different instances/repositories.
+- This feature was named "MPS Updater" (MPU).
+- Instead of implementing MPU directly, the task was to formulate a detailed plan and create a prompt file for a *future* Jules instance to implement MPU.
+- The prompt for the future instance is to include an instruction for that instance to first review and refine the provided plan before implementation.
+
+**Summary of Changes Made This Session:**
+-   **Formulated Detailed Plan for "MPS Updater" (MPU) Feature:**
+    *   Defined objectives for MPU.
+    *   Proposed "MPS Update Package" (MUP) formats, recommending a manifest-based approach for initial AI implementation, with standard `.patch` files as a more advanced alternative.
+    *   Outlined the conceptual design of an "Export MUP Package" utility (for the source repository, not for current implementation).
+    *   Designed the "Apply MPS Update Package" add-on (`apply_mps_update`):
+        *   Specified its location: `prompts/add_ons/apply_mps_update/`.
+        *   Detailed its `USER_apply_mps_update_CONFIG.txt` parameters (e.g., `MUP_PACKAGE_PATH`, `DRY_RUN_MODE`, `CONFLICT_RESOLUTION_STRATEGY`).
+        *   Outlined the phased logic for its `apply_mps_update.txt` instruction file (initialization, package parsing, pre-change analysis/dry run, change application, reporting/cleanup).
+    *   Emphasized the critical assumption of version synchronization between source and target repositories.
+    *   Defined initial scope for conflict handling (fail on conflict) and security considerations.
+-   **Created Prompt File for Future Implementation:**
+    *   A new file `framework_dev_docs/meta/implement_mps_updater.txt` was created.
+    *   This file contains the comprehensive starting plan for the MPU feature as formulated above.
+    *   It includes an explicit instruction for the future implementing Jules instance to first review, critique, and refine the provided plan before starting its work.
+    *   It also outlines expected deliverables for the future instance (the add-on, documentation, tests, handoff notes).
+
+**State of Deliverables:**
+- A detailed plan and a directive prompt for implementing the "MPS Updater" feature by a future Jules instance have been created and saved to `framework_dev_docs/meta/implement_mps_updater.txt`.
+- No changes were made to the operational MPS framework components in this specific sub-task; the work was purely planning and documentation for a future task.
+
+**Next Steps (User):**
+- Review the `framework_dev_docs/meta/implement_mps_updater.txt` file.
+- When ready, assign the task described in that file to a new Jules instance.
+---
+**Session Summary - 2025-06-03 (Directive-Based Invocation)**
+**Instance:** Jules
+**User Feedback/Requests Addressed:**
+- User proposed a new, simplified workflow for invoking the MPS framework.
+- Instead of users pasting the entire configured Master Prompt Segment into their initial interaction, they will prepare a single file in their repository (based on `Master_Prompt_Segment.txt` template) containing their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags at the top) and all their MPS configurations (`[[USER_APP_SELECTION]]`, `[[USER_ADDON_SELECTION]]`, specific `[[USER_...CONFIGURATION]]` blocks, etc.).
+- The user will then invoke the AI system with a simple directive, e.g., `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_configured_file.txt]]`.
+- The AI system is responsible for loading the specified file and making its content, including the prepended `[[USER_PROJECT_REQUEST]]` block, available for processing by `Core_Planning_Instructions.txt`.
+- This new directive method was also confirmed to be applicable for directly invoking utilities like `promptimizer`.
+
+**Summary of Changes Made This Session:**
+-   **Updated `prompts/iep/Core_Planning_Instructions.txt`:**
+    *   Verified/ensured a new Section I.A exists to parse the `[[USER_PROJECT_REQUEST]]` block from the beginning of the processed content and store it as `User_High_Level_Project_Goal`.
+    *   Adjusted subsequent sub-section lettering in Section I accordingly.
+-   **Updated Canonical `prompts/Master_Prompt_Segment.txt` Template:**
+    *   Added a prominent instructional comment block at the very top. This guides users to:
+        1. Copy the template to create their own project-specific MPS file.
+        2. Add their high-level project request (wrapped in `[[USER_PROJECT_REQUEST]]` tags) at the beginning of their file.
+        3. Edit all MPS configuration blocks within their file.
+        4. Use the `[[PROCESS_FRAMEWORK_INSTRUCTIONS FROM /path/to/their_file.txt]]` directive for AI invocation.
+-   **Updated `framework_dev_docs/guides/MPS_Usage_Guide.md`:**
+    *   Revised sections on setting up and invoking the MPS framework to detail the new directive-based workflow.
+    *   Explained how to prepare the single, comprehensive project-specific MPS file.
+    *   Clarified how the AI system handles the directive and makes the `[[USER_PROJECT_REQUEST]]` available.
+    *   Added a new subsection explaining how to use the directive to call specific utilities directly (e.g., `promptimizer.txt`), followed by the text input for that utility.
+
+**State of Deliverables:**
+- Core framework files (`Core_Planning_Instructions.txt`, `Master_Prompt_Segment.txt`) and the main usage guide (`MPS_Usage_Guide.md`) have been updated to support and document the new directive-based invocation workflow.
+- This simplifies the user's initial interaction with the AI system for MPS tasks.
+
+**Next Steps (User):**
+- Review all updated documentation for clarity and accuracy.
+- Test the new directive-based workflow thoroughly with various scenarios, including:
+    - Main MPS planning via a user-prepared project instruction file.
+    - Direct utility invocation (e.g., with `promptimizer`).
+---
+
+## MPS Performance Feedback Log
+
+This section logs specific feedback on the performance, clarity, and effectiveness of the Master Prompt Segment (MPS) versions and the artifacts they help generate.
+
+---
+**Feedback Entry - 2023-11-02**
+**Source of Feedback:** Initial setup of this feedback log section during MPS feature design.
+**MPS Version Referenced:** Relevant for `prompts/Master_Prompt_Segment.txt` (v0.3.2 and future versions).
+**Context/Scenario:** Establishing the feedback mechanism as per design discussions for feature "Feedback Loop for MPS Refinement".
+**Observation/Issue:** This log is intended to capture issues like:
+    - Ambiguities in any version of `Master_Prompt_Segment.md` that lead to incorrect or suboptimal behavior by a Planning AI.
+    - Problems encountered by Task AIs due to the structure or content of prompts generated based on an MPS version.
+    - User difficulties in understanding or using the MPS, its generated `00_task_launch_plan.md`, or other artifacts.
+    - Success stories where a particular MPS instruction proved very effective.
+**Suggestion for MPS Refinement (if any):** N/A
+---
+*(Future entries will be appended below this line)*
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request to Jules instance for refactoring).
+**MPS Version Referenced:** `prompts/Master_Prompt_Segment.txt` (approx. v0.3.2, prior to modularization) and the new modularized version (post this session's changes).
+**Context/Scenario:** User identified that the `Master_Prompt_Segment.txt` was becoming very long and dense, making it difficult to read, manage, and maintain.
+**Observation/Issue:** The monolithic nature of `Master_Prompt_Segment.txt` was impacting usability and the ease of making targeted changes to core planning instructions without affecting user-configurable sections.
+**Suggestion for MPS Refinement (Implemented):** To improve readability and maintainability, the core planning AI instructions were extracted from `Master_Prompt_Segment.txt` and placed into a new, dedicated file: `prompts/iep/Core_Planning_Instructions.txt`. The `Master_Prompt_Segment.txt` now includes these instructions using an `[[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]` directive. This separation is intended to make both the user-facing configuration parts of the MPS and the core instructional logic easier to manage.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (via direct request and illustrative example: `[ ] task_spawning_addon.txt` to Jules instance).
+**MPS Version Referenced:** The modularized MPS version (where `Core_Planning_Instructions.txt` was already separate) and the current version implementing optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User desired to further enhance the framework's modularity by making the entire project planning and task generation process an optional component, selectable by the user, rather than an inherent, non-optional function of the MPS.
+**Observation/Issue:** While `Core_Planning_Instructions.txt` was already separated, it still implicitly mandated the task spawning workflow. The framework lacked the flexibility to be used for other purposes without invoking this primary planning behavior.
+**Suggestion for MPS Refinement (Implemented):** The user's suggestion to make task spawning an optional add-on was implemented.
+    - The core logic for project planning, TLP generation, and task prompt creation was moved from `prompts/iep/Core_Planning_Instructions.txt` to a new file: `prompts/add_ons/task_spawning_addon.txt`.
+    - `prompts/iep/Core_Planning_Instructions.txt` was updated to include conditional logic. It now checks if `task_spawning_addon.txt` is selected by the user in `[[USER_ADDON_SELECTION]]` (within `Master_Prompt_Segment.txt`).
+    - If selected, the `task_spawning_addon.txt` is executed.
+    - If not selected, the AI is instructed to acknowledge this, skip default plan generation, and process any other selected add-ons.
+    - This change makes the MPS framework significantly more flexible, allowing users to engage the Planning AI for potentially different primary functions by selecting different combinations of add-ons, or by using it with only utility add-ons.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifying questions and specific directive regarding `task_spawning_addon.txt` inheritance and add-on ordering).
+**MPS Version Referenced:** The MPS version with optional task spawning via `task_spawning_addon.txt`.
+**Context/Scenario:** User inquired about how multiple add-ons interact, particularly how `task_spawning_addon.txt` would affect other add-ons, and then specifically requested that `task_spawning_addon.txt` should not be inherited by the Task AIs it generates. User also sought clarity on the importance of add-on ordering in the selection block.
+**Observation/Issue:**
+    1. The previous add-on processing logic could have resulted in `task_spawning_addon.txt` (intended for the Planning AI) being appended to Task AI prompts, leading to overly verbose prompts and potential for unintended behavior.
+    2. The impact of add-on order in `[[USER_ADDON_SELECTION]]` on the final content of Task AI prompts was not explicitly documented, potentially leading to user confusion.
+**Suggestion for MPS Refinement (Implemented):**
+    - **Non-inheritance of `task_spawning_addon.txt`**: Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B) to create a filtered list (`Inheritable_Addons_Content_Ordered_List`) of add-on contents for Task AI prompt inheritance, which explicitly excludes the content of `task_spawning_addon.txt`. This ensures the Planning AI uses `task_spawning_addon.txt` for its process, but Task AIs receive cleaner, more focused prompts.
+    - **Clarified Add-on Ordering**: Updated `prompts/Master_Prompt_Segment.txt` (comments in `[[USER_ADDON_SELECTION]]`) and `framework_dev_docs/guides/MPS_Usage_Guide.md` to explain that the order of inheritable add-ons is preserved when `task_spawning_addon.txt` appends them to task prompts. Also recommended listing `task_spawning_addon.txt` last for visual clarity if used.
+    - These refinements improve the safety and predictability of add-on interactions and provide users with better control and understanding of how their selections affect Task AI prompts.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process,
+        *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
+        *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
+    These enhancements make the product specification generation process more guided and configurable.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** Jules (proactive refinement during development of `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with extensible primary add-on logic.
+**Context/Scenario:** The introduction of `build_product_specs_process.txt` as a new "primary directive" add-on (similar in role to `task_spawning_addon.txt` but with a different function) highlighted the need to generalize how the core framework selects and manages such add-ons.
+**Observation/Issue:** The existing logic in `prompts/iep/Core_Planning_Instructions.txt` was somewhat hardcoded around `task_spawning_addon.txt` for determining the main execution path and for non-inheritance of add-on content into sub-prompts. This would not scale well if many different primary add-ons were developed.
+**Suggestion for MPS Refinement (Implemented):**
+    - Modified `prompts/iep/Core_Planning_Instructions.txt` (Section I.B and II) to:
+        - Define a list of `Known_Primary_Directive_Addons`.
+        - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
+        - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
+    - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (specific feedback on research methodology, codebase interaction rules like "level 0 only for codebases," and codebase review preferences for the `build_product_specs_process.txt` add-on).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**Context/Scenario:** User provided detailed requirements to refine the initial `build_product_specs_process.txt` add-on to achieve a more structured, in-depth, and controllable research and content generation process, particularly focusing on how the AI should interact with a primary document and linked codebases.
+**Observation/Issue:** The initial version of `build_product_specs_process.txt` had a more general research phase. The user required a more granular, heading-based research approach for the Primary Input Document, specific rules for how the AI should analyze linked codebases (including different levels of review depth/focus), and a strict "level 0 only" rule for code analysis to prevent unintended deep dives into code.
+**Suggestion for MPS Refinement (Implemented):**
+The `prompts/add_ons/build_product_specs_process.txt` was significantly updated to incorporate the "Level 0 Deep Research" methodology as per user requirements:
+    - **New Configurations:** Introduced `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` in `Master_Prompt_Segment.txt` and documented them in `MPS_Usage_Guide.md`.
+    - **Per-Heading Research Cycle:** The add-on's Phase 3 was restructured. It now includes an initial high-level review of the Primary Input Document. Then, for each major heading in that document, it performs a 5-step analysis: Heading Context Analysis, Supporting Docs Analysis, References & Codebase Analysis, Consolidated Research for the heading, and Iterative Content Contribution for that heading.
+    - **Codebase Review Integration:** The "References & Codebase Analysis" step now explicitly uses the `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` ("complex", "cursory", "focused") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` to guide its interaction with linked code.
+    - **"Level 0 Code Analysis ONLY":** A strict rule was added, instructing the AI not to follow internal code references (like imports or function calls to other files) from any fetched code text. Its analysis is confined to the directly retrieved code content.
+    - **Iterative Content Drafting:** Content for output documents is now drafted iteratively during the per-heading analysis and then assembled and finalized in later phases.
+    This refined process provides a more systematic and controllable approach for the AI when generating product specifications.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (clarifications and new requirements for iterative deepening for `build_product_specs_process.txt`).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on incorporating "Level 0 Deep Research".
+**Context/Scenario:** Expanding the iterative capabilities of `build_product_specs_process.txt` from an initial 0-2 level concept to a more detailed 0-3 level process with specific content goals for each level.
+**Observation/Issue:** The initial iterative deepening plan (0-2 levels) for `build_product_specs_process.txt` needed more specific content goals for each level and an additional level for AI-driven insights to meet user's evolving requirements for content depth and sophistication.
+**Suggestion for MPS Refinement (Implemented):**
+The iterative deepening feature of `build_product_specs_process.txt` was expanded to support 0-3 levels, and associated configurations and documentation were updated:
+    - **Configuration Updates (`Master_Prompt_Segment.txt`):** `PRODUCT_SPECS_ITERATION_DEPTH` comment updated to reflect the 0-3 range and specific goals:
+        - `0`: Outline Generation (headings with single key idea paragraphs).
+        - `1`: Basic Content (Bachelor's level, ~3 paras per D0 heading).
+        - `2`: Expert Elaboration (~1 page per original D0 heading).
+        - `3`: AI Unique Insights (~3 pages per original D0 heading, novel ideas).
+    - **Add-on Logic (`build_product_specs_process.txt`):**
+        - Phase 1 (Initialization) now validates depth (0-3) and `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (required for D1-D3, critical error if missing). Output file suffixes `_D0` to `_D3` are determined.
+        - Phase 2 (Input Processing) is conditional: D0 uses original inputs; D1-D3 use previous iteration's outputs as primary, with original inputs as reference.
+        - Phase 3 (Content Generation) has distinct logic for each depth (0-3), detailing how to build upon previous work (for D1-D3) or generate outlines (D0) according to the specified content goals for each level.
+    - **Documentation (`MPS_Usage_Guide.md`):** Updated to detail the 0-3 levels, their specific purposes, and the user workflow for managing iterative runs and output folders.
+    This provides a more granular, powerful, and well-defined iterative workflow for the `build_product_specs_process.txt` add-on.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (vision for enhanced component modularity via "folder-per-app" architecture).
+**MPS Version Referenced:** Current version with multiple add-ons and utils.
+**Context/Scenario:** As the number of components (add-ons, utils, and potentially IPC handlers) grows, a flat file structure in their respective directories (`prompts/add_ons/`, `prompts/util/`) becomes less organized and limits the ability for components to have their own supporting files or sub-frameworks.
+**Observation/Issue:** The previous flat-file structure for add-ons and utils was not ideal for scalability or for components that might require multiple associated files (e.g., templates, data snippets, complex sub-instructions).
+**Suggestion for MPS Refinement (Implemented):**
+The framework was refactored to a "folder-per-app" architecture for all components (add-ons, utils, and anticipated IPC handlers):
+    - **Core Logic (`prompts/iep/Core_Planning_Instructions.txt`):** Updated to discover and load components based on a new directory structure.
+        - It now expects component-specific parent paths like `User_Path_Addons_Dir`, `User_Path_Utils_Dir`, `User_Path_IPC_Dir` to be defined in `[[USER PATH CONFIGURATION]]`.
+        - For each component "app" (e.g., `my_addon_app`), it looks for a subdirectory named `my_addon_app` within the relevant parent path.
+        - The primary instruction file for the app must be located at `[parent_path]/my_addon_app/my_addon_app.txt`.
+        - Internal references (e.g., `Known_Primary_Directive_Addon_Apps`, `Active_Primary_Addon_AppName`) now use these app/folder names.
+    - **Component Migration:** All existing add-ons (`task_spawning_addon`, `task_resumption_addon`, `build_product_specs_process`) and utils (`pre_flight_check_user_plan`) were moved into their respective new subdirectories (e.g., `prompts/add_ons/task_spawning_addon/task_spawning_addon.txt`).
+    - **New `prompts/ipc/` directory:** Created with a `.gitkeep` file for future IPC components.
+    - **Documentation Updates:**
+        - `prompts/add_ons/available_addons_manifest.md`: Updated to list add-ons by their app/folder name and describe the new structure.
+        - `framework_dev_docs/guides/MPS_Usage_Guide.md`: Comprehensively updated to explain the "folder-per-app" architecture, how users should set up paths, how components are selected, and how developers should structure new components.
+    This architectural change significantly improves modularity, organization, and the potential for more complex, self-contained components within the MPS framework.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (desire to simplify MPS, new way to handle app-specific data, AI assistance for missing/default configs, specific format for detecting edits).
+**MPS Version Referenced:** v0.4.0 (Master Prompt Segment and Core Planning Instructions).
+**Context/Scenario:** This feedback entry summarizes a series of user requests and design discussions aimed at a comprehensive overhaul of the MPS framework's configuration system and a significant enhancement of the `build_product_specs_process` add-on's iterative capabilities.
+**Observation/Issue:**
+    1.  The global `[[USER PATH CONFIGURATION]]` in `Master_Prompt_Segment.txt` was becoming unwieldy; app-specific configs were mixed with global ones; parameter precedence and user edit detection were not formalized.
+    2.  A more structured and discoverable way to manage parameters for individual add-on apps was needed, including clear defaults and user override mechanisms.
+    3.  Users needed assistance in setting mandatory parameters, especially those with placeholder defaults.
+**Suggestion for MPS Refinement (Implemented):**
+A comprehensive refactoring of the configuration system was performed:
+    1.  **Fixed Global System Paths:** Core component discovery paths (for add-ons, utils, IEP, IPC) are now hardcoded in `Core_Planning_Instructions.txt`, simplifying user setup.
+    2.  **`[[USER PATH CONFIGURATION]]` Removed from `Master_Prompt_Segment.txt`:** This block was deleted. General output paths (like `Main Iteration Folder`) and other process-specific parameters are now intended to be managed as parameters within the configuration system of the relevant app.
+    3.  **App-Specific Configuration System:**
+        *   **`USER_appName_CONFIG.txt` Standard:** Defined a standard format for these template/storage files within each app's folder. This includes `[[USER_CONFIG_FOR_appName]]` delimiters, and per-parameter metadata (`# Requirement: [Required|Optional] | DefaultType: [Accepted|Placeholder]`), description with default (`# Description: ... Default: ...`), and the value line (`PARAM_NAME: [USER_VALUE_START]value[USER_VALUE_END]`).
+        *   **Main Prompt Overrides:** Users can copy the content of a `USER_appName_CONFIG.txt` into their main spawn prompt to provide run-specific overrides.
+        *   **Parameter Resolution Precedence:** Implemented in app logic (demonstrated in `build_product_specs_process.txt`): Main prompt block > User-edited `USER_appName_CONFIG.txt` > AcceptedDefault in `USER_appName_CONFIG.txt`.
+        *   **AI-Assisted Updates:** If a `Required` parameter with a `PlaceholderDefault` remains unresolved, the app instructs the AI (Jules) to request the value from the user via chat. The AI then updates the on-disk `USER_appName_CONFIG.txt` with the new value and outputs the complete updated config block for the user to transfer to their main spawn prompt.
+    4.  **Documentation:** All changes were reflected in `Master_Prompt_Segment.txt` (now v0.4.0), `Core_Planning_Instructions.txt`, `MPS_Usage_Guide.md`, and relevant add-on files (e.g., `build_product_specs_process/USER_build_product_specs_process_CONFIG.txt` and its primary instruction file).
+    This new system offers improved modularity, clarity in parameter management, and a better user experience through AI-assisted configuration.
+---
+---
+**Feedback Entry Date:** 2025-06-07
+**Source of Feedback:** User request for new invocation scenarios.
+**Promptu Version Referenced:** Current version of `promptu/core/core_planning_instructions.txt` (modified in session of 2025-06-07).
+**Context/Scenario:** Implementing fallback behaviors when `pre_promptu.txt` or `post_promptu.txt` are invoked without necessary initial user input (project request, app/add-on selections).
+**Observation/Issue:**
+The Promptu framework previously lacked specific, graceful handling for scenarios where `pre_promptu.txt` or `post_promptu.txt` were invoked without a `User_High_Level_Project_Goal`, or in the case of `post_promptu.txt`, without any selected promptApp or add-ons. This could lead to undefined behavior, errors, or the AI proceeding without a clear objective. The user requested specific fallback mechanisms to guide the AI in these "empty input" states.
+**Suggestion for Promptu Refinement (Implemented):**
+Section II.A of `promptu/core/core_planning_instructions.txt` was updated to introduce a new initial step "0. Determine Invocation Context and Handle Special Empty States:". This step implements the following logic:
+    *   An `Invocation_Context` variable is assumed ('PRE_PROMPTU' or 'POST_PROMPTU').
+    *   **Scenario 1 (pre_promptu with no request):**
+        *   IF `Invocation_Context` is 'PRE_PROMPTU' AND `User_High_Level_Project_Goal` is missing:
+            *   The AI is instructed to engage the user to elicit requirements for pre-processing utilities and to HALT further framework processing until these are clarified.
+    *   **Scenario 2 (post_promptu with no request, no app, no add-ons):**
+        *   ELSE IF `Invocation_Context` is 'POST_PROMPTU' AND `User_High_Level_Project_Goal` is missing AND no `Selected_PromptAppName` AND no `Active_Primary_Addon_AppName` AND `Inheritable_Addons_Content_Ordered_List` is empty:
+            *   The AI is instructed to engage the user to elicit project requirements or understand their intent. This is a placeholder for a more specific "continuation prompt" whose content is pending user clarification. The AI is instructed to HALT further framework processing.
+    *   **Scenario 3 (post_promptu with no request, but app selected):**
+        *   ELSE IF `Invocation_Context` is 'POST_PROMPTU' AND `User_High_Level_Project_Goal` is missing AND a valid `Selected_PromptAppName` with tasks exists:
+            *   The framework proceeds with promptApp execution. The selected promptApp component becomes responsible for handling the missing `User_High_Level_Project_Goal`.
+    *   **Else (Standard Path):**
+        *   If none of the above conditions are met, the framework proceeds to the standard execution logic (II.A.1).
+This refinement aims to make the Promptu framework more robust to varied invocation states and improve user interaction when essential inputs are initially omitted. The behavior of Scenario 2, particularly the "continuation prompt," may require further user input for optimal design.
+---
