@@ -119,6 +119,34 @@ This session focused on introducing a new "process" type add-on, `build_product_
 **State of Deliverables:**
 The new `build_product_specs_process.txt` add-on is created, documented, and integrated with new configuration options. The core MPS framework's add-on handling is now significantly more robust, extensible to multiple primary directive add-ons, and clearly defines precedence and inheritance rules. All relevant documentation (`MPS_Usage_Guide.md`, `available_addons_manifest.md`, `Master_Prompt_Segment.txt`) has been updated. The system is ready for submission and testing of these new capabilities.
 ---
+---
+**Session Summary - 2023-10-27**
+**Instance:** Jules
+**Key Actions:**
+This session focused on fully implementing the "Level 0 Deep Research" methodology within the `build_product_specs_process.txt` add-on, including integration of previously defined codebase review preferences.
+
+*   **`build_product_specs_process.txt` "Level 0 Deep Research" Implementation:**
+    *   **New User Configurations:** Added `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` (options: "complex", "cursory", "focused"; default "cursory") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` (optional keywords for "focused" review) to `prompts/Master_Prompt_Segment.txt`.
+    *   **Documentation:** Updated `framework_dev_docs/guides/MPS_Usage_Guide.md` to document these new configuration variables for the "Build Product Specs" process.
+    *   **Add-on Logic Refinement (`prompts/add_ons/build_product_specs_process.txt`):**
+        *   **Phase 1 (Initialization):** Ensured retrieval and validation of the new codebase review variables.
+        *   **Phase 2 (Input Ingestion):** Clarified identification of the 'Primary Input Document'.
+        *   **New Sub-Phase 3.A (Overall Primary Input Document Review):** Added an initial high-level review of the Primary Input Document to identify broad themes.
+        *   **Restructured Sub-Phase 3.B (Per-Heading Deep Dive Cycle):** This is now the core of the research process. For each major heading in the Primary Input Document, the AI performs a 5-step analysis:
+            1.  Heading Context Analysis.
+            2.  Supporting Input Documents Analysis (contextual to the current heading).
+            3.  References & Codebase Analysis:
+                *   Document-to-document references honor `PRODUCT_SPECS_REF_DEPTH`.
+                *   Codebase references are analyzed based on `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`.
+                *   **"Level 0 Code Analysis ONLY"** rule strictly enforced (AI does not follow internal code references like imports from fetched code text).
+            4.  Consolidated Research Execution (for the current heading, using all gathered information).
+            5.  Iterative Content Contribution (drafting content for output documents relevant to the current heading).
+        *   **Revised Phase 4 (Decision Making):** Now explicitly follows the per-heading cycle, focusing on finalizing document structures based on iteratively drafted content.
+        *   **Revised Phase 5 (Output Generation):** Changed to "Output Document Assembly and Finalization," emphasizing assembly and review of the iteratively drafted content.
+
+**State of Deliverables:**
+The `build_product_specs_process.txt` add-on now implements a detailed "Level 0 Deep Research" methodology with per-heading analysis. This includes configurable codebase review preferences and a strict "Level 0" approach to code analysis. All associated configurations in `Master_Prompt_Segment.txt` and documentation in `MPS_Usage_Guide.md` have been updated. This "Phase A" of the `build_product_specs_process.txt` development is complete and ready for submission and testing before considering any potential "Phase B" (multi-pass iterative deepening) refinements.
+---
 
 ## MPS Performance Feedback Log
 
@@ -177,11 +205,7 @@ This section logs specific feedback on the performance, clarity, and effectivene
 **Source of Feedback:** User (initial idea for process automation, then specific refinements for primary input and reference depth for product specs).
 **MPS Version Referenced:** Current version with extensible primary add-on logic.
 **Context/Scenario:** User expressed a need to use the MPS framework for more than just task spawning, specifically for a structured process to generate product specification documents from various inputs. Later refinements included requests for more control over the research phase of this process.
-**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process, initial broad research needed focusing mechanisms for efficiency and user guidance.
-**Suggestion for MPS Refinement (Implemented):**
-    1.  Created the `prompts/add_ons/build_product_specs_process.txt` add-on, outlining detailed phases: Initialization, Input Ingestion, Deep Research, Decision Making, Output Generation, and Finalization. This provides a template for "process" type add-ons.
-    2.  Introduced specific `[[USER PATH CONFIGURATION]]` variables for this process (`PRODUCT_NAME`, `PRODUCT_SPECS_INPUT_DOCS_PATH`, etc.).
-    3.  To give users more control over the research phase within this add-on:
+**Observation/Issue:** The initial MPS framework was primarily geared towards task spawning. A structured approach was needed to define and execute other complex, multi-step AI-driven processes. For the product specs process,
         *   Added `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: An optional path to a specific document. The AI is instructed to focus its research by analyzing at least every numbered heading in this document. If not provided, the AI selects the most comprehensive input document for this role.
         *   Added `PRODUCT_SPECS_REF_DEPTH`: An optional integer (0-2, default 1) to control how many levels deep the AI will follow internal references within the provided document set.
     These enhancements make the product specification generation process more guided and configurable.
@@ -198,4 +222,19 @@ This section logs specific feedback on the performance, clarity, and effectivene
         - Dynamically identify an `Active_Primary_Addon_Filename` by checking the user's selection against this known list, prioritizing the first one selected by the user if multiple are chosen. A warning is logged if multiple primary add-ons are selected.
         - Ensure that the `Inheritable_Addons_Content_Ordered_List` (used for appending to sub-prompts) correctly excludes the content of the currently `Active_Primary_Addon_Filename`, not just `task_spawning_addon.txt`.
     - This makes the core framework more robust and extensible, allowing new primary add-ons to be integrated more easily without requiring significant changes to the core conditional logic each time. It also handles user selection of multiple primary add-ons more gracefully.
+---
+---
+**Feedback Entry Date:** 2023-10-27
+**Source of Feedback:** User (specific feedback on research methodology, codebase interaction rules like "level 0 only for codebases," and codebase review preferences for the `build_product_specs_process.txt` add-on).
+**MPS Version Referenced:** Current version with `build_product_specs_process.txt` add-on.
+**Context/Scenario:** User provided detailed requirements to refine the initial `build_product_specs_process.txt` add-on to achieve a more structured, in-depth, and controllable research and content generation process, particularly focusing on how the AI should interact with a primary document and linked codebases.
+**Observation/Issue:** The initial version of `build_product_specs_process.txt` had a more general research phase. The user required a more granular, heading-based research approach for the Primary Input Document, specific rules for how the AI should analyze linked codebases (including different levels of review depth/focus), and a strict "level 0 only" rule for code analysis to prevent unintended deep dives into code.
+**Suggestion for MPS Refinement (Implemented):**
+The `prompts/add_ons/build_product_specs_process.txt` was significantly updated to incorporate the "Level 0 Deep Research" methodology as per user requirements:
+    - **New Configurations:** Introduced `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` in `Master_Prompt_Segment.txt` and documented them in `MPS_Usage_Guide.md`.
+    - **Per-Heading Research Cycle:** The add-on's Phase 3 was restructured. It now includes an initial high-level review of the Primary Input Document. Then, for each major heading in that document, it performs a 5-step analysis: Heading Context Analysis, Supporting Docs Analysis, References & Codebase Analysis, Consolidated Research for the heading, and Iterative Content Contribution for that heading.
+    - **Codebase Review Integration:** The "References & Codebase Analysis" step now explicitly uses the `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` ("complex", "cursory", "focused") and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` to guide its interaction with linked code.
+    - **"Level 0 Code Analysis ONLY":** A strict rule was added, instructing the AI not to follow internal code references (like imports or function calls to other files) from any fetched code text. Its analysis is confined to the directly retrieved code content.
+    - **Iterative Content Drafting:** Content for output documents is now drafted iteratively during the per-heading analysis and then assembled and finalized in later phases.
+    This refined process provides a more systematic and controllable approach for the AI when generating product specifications.
 ---

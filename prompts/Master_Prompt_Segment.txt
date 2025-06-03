@@ -23,6 +23,8 @@ User-Specified Task Output Base Path: dev/default_task_outputs
 # PRODUCT_SPECS_OUTPUT_PATH: product_dev/specifications # Relative to repo root. Folder where generated specification documents (e.g., PRD, MRD, technical specs) will be saved.
 # PRODUCT_SPECS_PRIMARY_INPUT_FILE: product_dev/inputs/main_requirements_document.md # Optional: Specific document (path relative to repo root) to guide heading-based research.
 # PRODUCT_SPECS_REF_DEPTH: 1 # Optional: Depth for following internal references within provided documents (0, 1, or 2). Default is 1 if not specified.
+# PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE: cursory # Optional: "complex", "cursory", or "focused". Default: "cursory". Controls AI's depth when reviewing linked codebases/files.
+# PRODUCT_SPECS_CODEBASE_FOCUS_AREAS: "" # Optional: Comma-separated keywords or phrases if preference is "focused", to guide AI's attention within code. (e.g., "authentication, API integration, data validation")
 [[END USER PATH CONFIGURATION]]
 
 [[USER_ADDON_SELECTION]]
