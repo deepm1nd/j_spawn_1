@@ -105,21 +105,45 @@
 #   blocks (e.g., `[[USER_CONFIG_FOR_componentName]]`) if the underlying component used by that
 #   task requires parameters beyond its defaults or any overrides set in the promptApp manifest.
 
-# Example for a hypothetical `[[USER_CompliancePLM_App_CONFIGURATION]]` block:
+# Example for `[[USER_CompliancePLM_App_CONFIGURATION]]` block:
 # [[USER_CompliancePLM_App_CONFIGURATION]]
-# # Check the tasks you want to run.
-# # For tasks using components that require configuration (e.g., 'create_research_report'),
-# # ensure you also provide the necessary `[[USER_CONFIG_FOR_componentName]]` block(s)
-# # in your main prompt if the defaults are not sufficient.
+# # Instructions:
+# # 1. Review the phases and tasks below, which correspond to the CompliancePLM app's manifest.
+# # 2. Mark the tasks you want to execute for the current session with '[x]'.
+# # 3. For tasks that use configurable components (like 'create_research_report' or 'task_spawning_addon'),
+# #    ensure you also provide the necessary `[[USER_CONFIG_FOR_componentName]]` blocks
+# #    in your main prompt if the defaults (from the component's USER_config.txt or
+# #    the promptApp manifest's defaultConfigOverrides) are not sufficient for your needs.
+# #    Consult the component's `USER_..._CONFIG.txt` file or the MPS_Usage_Guide.md for parameter details.
 #
-# # [Concept Phase]
-# #   [ ] Architectural Specification
-# #   [x] Product Specification  # Example: User wants to run this task
-# #   [ ] Product Requirements
+# # --- Concept Phase ---
+# [ ] Research
+# [ ] Architectural Specification
+# [ ] Product Specification
+# [ ] Product Requirements
 #
-# # [Plan Phase]
-# #   [ ] Development Planning
-# #   ... etc.
+# # --- Plan Phase ---
+# [ ] Development Planning
+# [ ] Change Management Planning
+# [ ] Document Management Planning
+# [ ] Requirements Management Planning
+# [ ] Safety Planning
+# [ ] CyberSecurity Planning
+#
+# # --- Development Phase ---
+# [ ] Design
+# [ ] Develop
+# [ ] Test
+# [ ] Review
+#
+# # --- Release Phase ---
+# # (No specific tasks defined in manifest yet - selecting this phase currently has no direct action
+# # unless future framework versions allow phase-level directives without specific tasks)
+# # [ ] *Placeholder for future Release Task 1*
+#
+# # --- Retire Phase ---
+# # (No specific tasks defined in manifest yet - selecting this phase currently has no direct action)
+# # [ ] *Placeholder for future Retire Task 1*
 # [[END_USER_CompliancePLM_App_CONFIGURATION]]
 
 [[END_USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]

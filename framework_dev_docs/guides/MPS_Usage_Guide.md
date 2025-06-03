@@ -41,9 +41,9 @@ This section outlines the key pieces of the MPS framework and what you, the user
 
 *   **Component "Apps" (Add-ons, Utils - Framework Source):**
     *   Located in fixed base directories: `prompts/add_ons/` and `prompts/util/`.
-    *   Each component resides in its own subdirectory (e.g., `prompts/add_ons/create_research_report/`).
+    *   Each component resides in its own subdirectory (e.g., `prompts/add_ons/create_research_report/` or `prompts/add_ons/task_spawning_addon/`).
     *   Each component folder must contain a primary instruction file named `[componentName]/[componentName].txt`.
-    *   Configurable components **must** also contain a `USER_componentName_CONFIG.txt` file defining their parameters, defaults, and metadata.
+    *   Configurable components **must** also contain a `USER_componentName_CONFIG.txt` file defining their parameters, defaults, and metadata (e.g., `USER_create_research_report_CONFIG.txt` or `USER_task_spawning_addon_CONFIG.txt`).
     *   **Action Required:** Copy the entire folder of each desired add-on or util component from the framework (e.g., `/prompts/add_ons/create_research_report/`) to the corresponding location in your target repository (e.g., `target_repo/prompts/add_ons/create_research_report/`).
     *   Refer to `/prompts/add_ons/available_addons_manifest.md` for details on available add-on apps.
 
@@ -120,7 +120,7 @@ The way you interact with the MPS framework has been streamlined. Instead of pas
         **3.B.1. Understanding Path Configurations in the New System**
         Path management relies on:
         *   **Fixed System Paths:** The Planning AI, guided by `Core_Planning_Instructions.txt`, uses fixed relative paths (from the repository root) to discover core components (promptApps in `prompts/apps/`, add-ons in `prompts/add_ons/`, etc.). These are internal to the framework.
-        *   **Component-Specific Path Parameters:** Paths that control where a component reads its specific inputs or writes its outputs (e.g., `PRIMARY_INPUT_DOC_PATH`, `REPORT_OUTPUT_PATH` for the `create_research_report` component) are defined as parameters *within that component's own configuration system*. You manage these via `[[USER_CONFIG_FOR_componentName]]` blocks within your project instruction file.
+        *   **Component-Specific Path Parameters:** Paths that control where a component reads its specific inputs or writes its outputs (e.g., `PRIMARY_INPUT_DOC_PATH`, `REPORT_OUTPUT_PATH` for the `create_research_report` component) are defined as parameters *within that component's own configuration system*. You manage these via `[[USER_CONFIG_FOR_componentName]]` blocks within your project instruction file. For example, the `task_spawning_addon` now manages all its output paths (main plan, TLP, task prompts, submodule plans, task artifacts) via parameters in its `USER_task_spawning_addon_CONFIG.txt` file, which can be overridden by a `[[USER_CONFIG_FOR_task_spawning_addon]]` block.
 
         **3.B.2. Configuring and Running MPS Workflows**
         Within your prepared project instruction file, you direct the MPS framework:
@@ -138,7 +138,7 @@ The way you interact with the MPS framework has been streamlined. Instead of pas
                     3.  `defaultConfigOverrides` from the `promptApp` manifest for that task.
                     4.  Accepted defaults from the component's `USER_componentName_CONFIG.txt`.
                     5.  AI-assisted user query for required/placeholder parameters.
-                *   Provide `[[USER_CONFIG_FOR_componentName]]` blocks if manifest/component defaults are insufficient.
+                *   Provide `[[USER_CONFIG_FOR_componentName]]` blocks if manifest/component defaults are insufficient. For instance, if a promptApp task uses `task_spawning_addon`, you might provide a `[[USER_CONFIG_FOR_task_spawning_addon]]` block to customize its output paths for that specific workflow task.
             *   **Component Resolution Search Order (App-Specific First):**
                 1.  `prompts/apps/[SelectedAppName]/[componentName].txt`
                 2.  `prompts/apps/[SelectedAppName]/[componentName]/[componentName].txt`
@@ -148,13 +148,14 @@ The way you interact with the MPS framework has been streamlined. Instead of pas
 
         *   **ii. Selecting and Configuring Standalone Add-on Apps (if no promptApp is selected):**
             *   **Selection (`[[USER_ADDON_SELECTION]]` Block):**
-                *   List add-on folder names (e.g., `[x] create_research_report`). The AI looks for `prompts/add_ons/[addonName]/[addonName].txt`.
+                *   List add-on folder names (e.g., `[x] create_research_report` or `[x] task_spawning_addon`). The AI looks for `prompts/add_ons/[addonName]/[addonName].txt`.
                 *   Order matters for inheritable add-ons if a primary add-on like `task_spawning_addon` is used.
             *   **Parameter Configuration:** Parameters for standalone add-ons are resolved with precedence:
                     1.  `[[USER_CONFIG_FOR_componentName]]` block in your project instruction file.
                     2.  User-edited value in its `USER_componentName_CONFIG.txt` (in `target_repo`).
                     3.  Accepted default from its `USER_componentName_CONFIG.txt`.
                     4.  AI-Assisted Update for required/placeholder parameters.
+                *   For example, if you select `task_spawning_addon` here, you would configure its behavior (like output directories `BASE_OUTPUT_PATH`, `TASK_PROMPTS_SUBDIR`, filename for the main plan `MAIN_DEV_PLAN_FILENAME`, etc.) by providing a `[[USER_CONFIG_FOR_task_spawning_addon]]` block or by editing its `USER_task_spawning_addon_CONFIG.txt` file (located in `prompts/add_ons/task_spawning_addon/`). Refer to this `USER_...CONFIG.txt` file for a full list of its parameters and their descriptions.
 
 **D. Invoke the Planning AI:** (This section is now covered by 3.B Step 2)
 
