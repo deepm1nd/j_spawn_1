@@ -57,20 +57,19 @@ To have a Planning AI operate on your project (e.g., "gritos"):
             Some add-ons may require their own set of path configurations. These should also be defined in the `[[USER PATH CONFIGURATION]]` block if you intend to use such add-ons.
             *   **For "Build Product Specs" Process (used by the `build_product_specs_process.txt` add-on):**
                 *   `PRODUCT_NAME`: (Example: `"NovaSystem"`) The name of your product. Used for naming output files and internal references.
-                *   `PRODUCT_SPECS_INPUT_DOCS_PATH`: (Example: `product_dev/inputs`) Path relative to the repository root, pointing to a folder containing primary input documents for product specification generation, such as market research, user feedback, competitive analysis, etc.
-                *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`: (Example: `product_dev/guidance`) Path relative to the repository root, pointing to a folder containing documents that provide rules, constraints, and guidance for product development. This includes branding guides, compliance requirements, technical constraints, style guides, etc.
-                *   `PRODUCT_SPECS_OUTPUT_PATH`: (Example: `product_dev/specifications`) Path relative to the repository root, specifying the folder where the AI should save the generated product specification documents (e.g., Product Requirements Document (PRD), Market Requirements Document (MRD), technical specifications).
-                *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: (Example: `product_dev/inputs/main_requirements_document.md`) **Optional.** Path relative to the repository root to a specific document within `PRODUCT_SPECS_INPUT_DOCS_PATH` (or elsewhere if an absolute path is provided, though relative is recommended). If specified, the AI is guided to use this document as the central point for its heading-based research phase.
-                *   `PRODUCT_SPECS_REF_DEPTH`: (Example: `1`) **Optional.** An integer (0, 1, or 2) specifying the depth for following internal document references during the research phase. 
-                    - `0`: No internal references will be followed.
-                    - `1`: Only directly referenced documents will be consulted.
-                    - `2`: Documents referenced by directly referenced documents may also be consulted.
-                    If not specified or if an invalid value is provided, the AI will default to a depth of 1.
-                *   `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`: (Example: `cursory`) **Optional.** Specifies how the AI should approach reviewing any codebase links found in input documents. Valid options:
-                    - `complex`: AI attempts its most detailed analysis of fetched code text. This can be time-consuming.
-                    - `cursory` (Default): AI performs a brief review (e.g., reads file names, overall structure, comments if readily available from fetched text) and primarily reports the link for human review if full, deep analysis seems difficult or too extensive from the fetched text representation.
-                    - `focused`: AI attempts to narrow its analysis of fetched code text based on keywords provided in `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` or other contextual cues from the input documents.
-                *   `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`: (Example: `"authentication, API integration, data validation"`) **Optional.** A comma-separated list of keywords or phrases. This is used only if `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` is set to "focused". It helps guide the AI's attention to specific parts or aspects of any linked codebase it reviews.
+                *   `PRODUCT_SPECS_INPUT_DOCS_PATH`: (Example: `product_dev/inputs`) Path relative to the repository root, pointing to a folder containing primary input documents for product specification generation.
+                *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`: (Example: `product_dev/guidance`) Path relative to the repository root, pointing to a folder containing documents that provide rules, constraints, and guidance.
+                *   `PRODUCT_SPECS_OUTPUT_PATH`: (Example: `product_dev/specifications_D0`) Path relative to the repository root, specifying the folder where the AI should save the generated product specification documents for the *current iteration*.
+                *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: (Example: `product_dev/inputs/main_requirements_document.md`) **Optional.** Path relative to the repository root to a specific document. If specified, the AI uses this for its heading-based research.
+                *   `PRODUCT_SPECS_REF_DEPTH`: (Example: `1`) **Optional.** An integer (0, 1, or 2) for internal document reference depth. Defaults to 1.
+                *   `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`: (Example: `cursory`) **Optional.** "complex", "cursory" (default), or "focused". Controls AI's approach to linked codebases.
+                *   `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`: (Example: `"authentication, API integration"`) **Optional.** Comma-separated keywords for "focused" codebase review.
+                *   `PRODUCT_SPECS_ITERATION_DEPTH`: (Example: `0`) **Optional.** An integer (0, 1, 2, or 3) controlling the iteration depth for the product specs generation. Defaults to `0` if not specified.
+                    - `0` (Outline): AI generates an outline of the product specification, typically with headings 3-4 levels deep, a title, and one paragraph of key ideas per heading.
+                    - `1` (Basic Content): AI builds upon the D0 outline (or generates a D0 equivalent if not provided), expanding each section with basic content (e.g., ~3 paragraphs per original D0 heading) covering concepts and examples, roughly at a Bachelor's level of detail.
+                    - `2` (Expert Elaboration): AI builds upon D1 outputs, providing deeper analysis, more nuanced explanations, and more comprehensive coverage, aiming for approximately 1 page of content per original D0 heading.
+                    - `3` (AI Unique Insights): AI builds upon D2 outputs, offering extensive elaboration (potentially ~3 pages per original D0 heading), including novel ideas, critical analysis of trade-offs, and potentially identifying gaps or new opportunities.
+                *   `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`: (Example: `product_dev/specifications_D0`) **Required if `PRODUCT_SPECS_ITERATION_DEPTH` is 1, 2, or 3.** Path relative to the repository root, pointing to the folder containing the complete set of output documents from the immediately preceding iteration.
 
         **3.B.2. Configuring `[[USER_ADDON_SELECTION]]`**
         This block allows you to specify which add-on functionalities you want to activate.
@@ -83,16 +82,59 @@ To have a Planning AI operate on your project (e.g., "gritos"):
             [x] task_resumption_addon.txt               # Example: Provides task state resumption.
             # [ ] example_coding_standards_addon.txt    # Example: Could provide coding standards.
             
-            # Primary Orchestrating Add-on
+            # Primary Add-ons (typically select only one primary)
+            # [ ] build_product_specs_process.txt # Example: For generating product specs.
             [x] task_spawning_addon.txt  # Enables project planning & task generation.
             [[END USER_ADDON_SELECTION]]
             ```
-        *   If you do *not* select `task_spawning_addon.txt`, the AI will not generate a project plan unless another selected add-on provides such specific instructions.
+        *   If you do *not* select a primary add-on like `task_spawning_addon.txt` or `build_product_specs_process.txt`, the AI will not generate a project plan or product specifications unless another selected add-on provides such specific instructions.
 
-**C. Invoke the Planning AI:**
+**C. Using Iterative Deepening for `build_product_specs_process.txt`**
+
+The `build_product_specs_process.txt` add-on supports a multi-pass iterative workflow to generate and progressively refine product specifications. This allows for different levels of detail and analysis:
+
+1.  **Iteration 0 (Outline Generation):**
+    *   **Goal:** Create a structured outline of the product documentation, with titles, all heading levels (typically 3-4 deep), and a single paragraph summarizing key ideas for each heading.
+    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 0`** in `[[USER PATH CONFIGURATION]]`.
+    *   `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` should be empty or omitted (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: ""`).
+    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a unique directory for this iteration's output (e.g., `product_dev/specifications_D0`).
+    *   Ensure `build_product_specs_process.txt` is selected in `[[USER_ADDON_SELECTION]]`.
+    *   Run the Planning AI. It will generate `*_D0.md` files in the specified `PRODUCT_SPECS_OUTPUT_PATH`.
+    *   **User Action:** Review the D0 outputs. These become the input for Iteration 1.
+
+2.  **Iteration 1 (Basic Content Generation):**
+    *   **Goal:** Expand the D0 outline with basic content, roughly equivalent to a Bachelor's level of detail, with approximately 3 paragraphs per original D0 heading, covering concepts and examples.
+    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 1`**.
+    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D0 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D0`).
+    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory for this iteration's output (e.g., `product_dev/specifications_D1`).
+    *   Run the Planning AI. It will read the D0 documents and generate refined `*_D1.md` files.
+    *   **User Action:** Review the D1 outputs. These become the input for Iteration 2.
+
+3.  **Iteration 2 (Expert Elaboration):**
+    *   **Goal:** Provide deeper analysis and more nuanced explanations, aiming for approximately 1 page of content per original D0 heading.
+    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 2`**.
+    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D1 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D1`).
+    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory (e.g., `product_dev/specifications_D2`).
+    *   Run the Planning AI. It will read the D1 documents and generate `*_D2.md` files.
+    *   **User Action:** Review the D2 outputs. These become the input for Iteration 3.
+
+4.  **Iteration 3 (AI Unique Insights & Extensive Elaboration):**
+    *   **Goal:** Offer extensive elaboration (potentially ~3 pages per original D0 heading), including novel ideas, critical analysis of trade-offs, identification of potential gaps, or new opportunities.
+    *   **Set `PRODUCT_SPECS_ITERATION_DEPTH: 3`**.
+    *   **Set `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`** to the directory where the D2 outputs were saved (e.g., `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH: product_dev/specifications_D2`).
+    *   Set `PRODUCT_SPECS_OUTPUT_PATH` to a new unique directory (e.g., `product_dev/specifications_D3`).
+    *   Run the Planning AI. It will read the D2 documents and generate `*_D3.md` files.
+
+**Important Considerations for Iterative Deepening:**
+*   **User Responsibility:** You are responsible for managing the output folders from each iteration and correctly setting `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` for subsequent runs.
+*   **Output Naming:** The `build_product_specs_process.txt` add-on is expected to append `_D0`, `_D1`, `_D2`, or `_D3` to filenames based on the `PRODUCT_SPECS_ITERATION_DEPTH`.
+*   **Review Between Iterations:** While not strictly enforced by the AI, it's highly recommended to review the outputs of each iteration before proceeding to the next.
+
+**D. Invoke the Planning AI:**
    Provide the simple prompt to your Planning AI, pointing to the spawn prompt file you just created in your target repository:
    `"/prompts/p_your_project_spawn.txt is the prompt, it is in the repo"` (adjust path if you named or placed it differently).
 
+**E. Understanding the Planning AI's Process:**
 The Planning AI will then:
 1.  **Read your spawn prompt.**
 2.  **Process Core Instructions:** It will first process the included `/prompts/iep/Core_Planning_Instructions.txt`. This involves:
@@ -100,14 +142,14 @@ The Planning AI will then:
     *   Parsing the `[[USER_ADDON_SELECTION]]` to identify which add-on files to load from `/prompts/add_ons/` in your target repository. This step also prepares a filtered list of "inheritable" add-on content (excluding the active primary add-on itself) for potential use by that primary add-on.
 3.  **Conditional Add-on Execution:**
     *   **If `task_spawning_addon.txt` IS SELECTED** (and is the active primary add-on):
-        *   The AI will load and execute the instructions from `task_spawning_addon.txt`. This will lead to the primary planning activities: interpretation of your project request, generation of a main development plan (e.g., `project_dev_plan.md`), a `00_task_launch_plan.md`, and individual task prompt files.
-        *   When generating task prompts, `task_spawning_addon.txt` will append the content of other selected, inheritable add-ons (e.g., `task_resumption_addon.txt`) in the order they were listed in `[[USER_ADDON_SELECTION]]`. **The content of the active primary add-on itself is NOT appended to the Task AI prompts**; it is solely for the Planning AI's use. This keeps Task AI prompts focused on their specific tasks plus any supplementary (inheritable) instructions.
+        *   The AI will load and execute the instructions from `task_spawning_addon.txt`. This will lead to the primary planning activities.
+        *   When generating task prompts, `task_spawning_addon.txt` will append the content of other selected, inheritable add-ons. The content of the active primary add-on itself is NOT appended to the Task AI prompts.
         *   Outputs will be placed according to your `[[USER PATH CONFIGURATION]]`.
-    *   **If other primary directive add-ons ARE SELECTED** (e.g., `build_product_specs_process.txt` is the active primary add-on): The AI will execute the instructions from that add-on, using any specific path configurations you've provided for it (like `PRODUCT_SPECS_INPUT_DOCS_PATH`, `PRODUCT_SPECS_PRIMARY_INPUT_FILE`, `PRODUCT_SPECS_REF_DEPTH`, `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` etc.). If that primary add-on is designed to create further sub-prompts (currently `build_product_specs_process.txt` is not), it would also use the inheritable add-on list.
+    *   **If other primary directive add-ons ARE SELECTED** (e.g., `build_product_specs_process.txt` is the active primary add-on): The AI will execute the instructions from that add-on, using any specific path configurations you've provided for it (like `PRODUCT_SPECS_INPUT_DOCS_PATH`, `PRODUCT_SPECS_ITERATION_DEPTH`, etc.). If that primary add-on is designed to create further sub-prompts, it would also use the inheritable add-on list.
     *   **If NO primary directive add-on IS SELECTED**:
         *   The AI will acknowledge this and will **not** generate a main development plan, TLP, or task prompts by default.
-        *   It will proceed to load and execute any *other* add-ons you have selected (based on their content from `All_Selected_Addons_Content_Map` as per `Core_Planning_Instructions.txt`). These add-ons must provide their own complete directives if they are to perform significant actions.
-        *   If no other primary directive add-ons are selected, the AI will perform minimal actions (e.g., generate `Information_Exchange_Protocol.md` as per `Core_Planning_Instructions.txt`), report that no main planning tasks were performed, and await further instructions or conclude its operations.
+        *   It will proceed to load and execute any *other* utility add-ons you have selected.
+        *   If no other primary directive add-ons are selected, the AI will perform minimal actions, report that no main planning tasks were performed, and await further instructions or conclude.
 4.  **Read Supporting Files:** It will read `Base_IEP.txt` and the content of all successfully located selected add-ons from your target repository as needed.
 
 This modular approach provides greater flexibility. While the full planning and task generation capabilities are available via `task_spawning_addon.txt`, you can also use the MPS framework with other add-ons for different purposes, or develop new add-ons with unique functionalities.

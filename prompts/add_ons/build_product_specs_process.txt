@@ -1,6 +1,6 @@
-[[START OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.1: Instructions for AI Product Specification Generation]]
+[[START OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.2: Instructions for AI Product Specification Generation with Iterative Deepening]]
 
-**Overall Goal:** To analyze provided input documents and guidance materials, and then generate a comprehensive set of product specification documents by performing deep research focused on the headings of a primary input document.
+**Overall Goal:** To analyze provided input documents and guidance materials, and then generate a comprehensive set of product specification documents by performing deep research focused on the headings of a primary input document. This process supports iterative deepening across multiple runs.
 
 ---
 ### Phase 1: Initialization and Setup
@@ -8,142 +8,147 @@
 1.  **Acknowledge Process:** Your primary objective is to execute the "Build Product Specifications Process."
 2.  **Retrieve Configuration Variables:**
     *   You must identify and understand the following variables defined by the user in the `[[USER PATH CONFIGURATION]]` block of the main prompt:
-        *   `PRODUCT_NAME`: The designated name for the product, which will be used in naming output files.
-        *   `PRODUCT_SPECS_INPUT_DOCS_PATH`: The folder path containing primary source documents.
-        *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`: The folder path containing documents that provide rules, constraints, etc.
-        *   `PRODUCT_SPECS_OUTPUT_PATH`: The folder path where all generated specification documents must be saved.
-        *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE`: (Optional) A specific document to guide heading-based research.
-        *   `PRODUCT_SPECS_REF_DEPTH`: (Optional) Depth for following internal references (0, 1, or 2).
-        *   `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`: (Optional) "complex", "cursory", or "focused". Default: "cursory".
-        *   `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`: (Optional) Comma-separated keywords if preference is "focused".
-3.  **Confirm Path Accessibility (Conceptual):**
-    *   Conceptually verify that you can access and list files within `PRODUCT_SPECS_INPUT_DOCS_PATH` and `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
-    *   If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` is specified, conceptually verify its path.
-    *   Report actual file access issues if encountered during Phase 2 or 3.
-4.  **Validate Configuration Values:**
-    *   **`PRODUCT_SPECS_REF_DEPTH`**: If this variable is provided by the user, validate that its value is an integer within the range [0, 1, 2]. If it's not provided, or if the value is invalid (e.g., not a number, or outside this range), you **must** default to `1`. State the reference depth you will be using.
-    *   **`PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`**: If this variable is provided, validate its value is one of "complex", "cursory", or "focused". If not provided or invalid, default to "cursory". State the preference you will be using.
-    *   Note the path provided for `PRODUCT_SPECS_PRIMARY_INPUT_FILE` (if specified) and the keywords for `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` (if preference is "focused" and areas are provided).
-    *   Designate the validated or defaulted value for `PRODUCT_SPECS_REF_DEPTH` as `Max_Ref_Depth`.
-    *   Designate the validated or defaulted value for `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` as `Code_Review_Preference`.
+        *   `PRODUCT_NAME`
+        *   `PRODUCT_SPECS_INPUT_DOCS_PATH`
+        *   `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`
+        *   `PRODUCT_SPECS_OUTPUT_PATH` (This is where outputs for the *current* iteration will be saved)
+        *   `PRODUCT_SPECS_PRIMARY_INPUT_FILE` (Optional)
+        *   `PRODUCT_SPECS_REF_DEPTH` (Optional, 0-2, defaults to 1 for document-to-document references)
+        *   `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE` (Optional, "complex", "cursory", "focused", defaults to "cursory")
+        *   `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` (Optional, for "focused" codebase review)
+        *   `PRODUCT_SPECS_ITERATION_DEPTH` (Optional, 0-3, defaults to 0)
+        *   `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH` (Optional, path to previous iteration's outputs)
+3.  **Validate Configuration Values & Determine Iteration Context:**
+    *   **`Current_Iteration_Depth`**: Validate `PRODUCT_SPECS_ITERATION_DEPTH`. If not specified, or invalid (not an integer 0-3), default to `0`. State the `Current_Iteration_Depth` you are using.
+    *   **`Max_Ref_Depth`**: Validate `PRODUCT_SPECS_REF_DEPTH`. If not specified, or invalid (not an integer 0-2), default to `1`.
+    *   **`Code_Review_Preference`**: Validate `PRODUCT_SPECS_CODEBASE_REVIEW_PREFERENCE`. If not specified, or invalid (not "complex", "cursory", or "focused"), default to "cursory".
+    *   **`Previous_Iteration_Path`**: This is `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`. If `Current_Iteration_Depth` is 1, 2, or 3, this path **must** be provided and point to an accessible folder containing the outputs of the previous iteration. If it's missing or inaccessible under these conditions, report this as a CRITICAL ERROR and HALT processing. For `Current_Iteration_Depth` 0, this path is not strictly required and can be ignored if empty.
+    *   Note other paths and variables: `PRODUCT_NAME`, `PRODUCT_SPECS_INPUT_DOCS_PATH`, `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`, `PRODUCT_SPECS_OUTPUT_PATH`, `PRODUCT_SPECS_PRIMARY_INPUT_FILE`, `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`.
+4.  **Determine Output File Suffix:**
+    *   Based on `Current_Iteration_Depth`, determine the suffix for output files: `_D0.md`, `_D1.md`, `_D2.md`, or `_D3.md`. This will be used in Phase 6. E.g., if `Current_Iteration_Depth` is 0, output files will be like `{PRODUCT_NAME}_product_specification_D0.md`.
 
 ---
-### Phase 2: Input Ingestion and Document Identification
+### Phase 2: Input Processing (Conditional on Iteration Depth)
 
-1.  **Process Input Documents:**
-    *   Thoroughly read, parse, and understand the content of all documents found directly within the `PRODUCT_SPECS_INPUT_DOCS_PATH`.
-2.  **Process Guidance Documents:**
-    *   Thoroughly read, parse, and understand the content of all documents found directly within the `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
-3.  **Identify Primary Input Document:**
-    a.  If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` was specified and successfully read in this phase (or conceptually verified in Phase 1 and confirmed accessible now), designate it as your 'Primary Input Document'.
-    b.  If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` was NOT specified, or if it was specified but is inaccessible: You MUST select the most comprehensive or foundational document from those successfully read from `PRODUCT_SPECS_INPUT_DOCS_PATH` to serve as your 'Primary Input Document'. Clearly state which document you have selected for this role and why.
-    c.  If no documents are found in `PRODUCT_SPECS_INPUT_DOCS_PATH` or the specified `PRODUCT_SPECS_PRIMARY_INPUT_FILE` is inaccessible and no other documents are available, you must report this as a critical failure and halt processing.
-4.  **Emphasis on Understanding:**
-    *   For all documents, focus on extracting key information, explicit requirements, user needs, market context, technical constraints, business goals, and any other data relevant to defining a new product or enhancing an existing one. This includes noting any links to codebases or specific code files.
-    *   Identify any conflicting information between documents if it exists.
+**A. For `Current_Iteration_Depth` 0 (Outline Generation):**
+    1.  **Process Initial Input Documents:**
+        *   Thoroughly read, parse, and understand all documents from `PRODUCT_SPECS_INPUT_DOCS_PATH`.
+        *   Thoroughly read, parse, and understand all documents from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
+    2.  **Identify Primary Input Document:**
+        a.  If `PRODUCT_SPECS_PRIMARY_INPUT_FILE` was specified and is accessible from the read documents, designate it as your 'Primary Input Document'.
+        b.  If not specified or inaccessible, select the most comprehensive/foundational document from those read from `PRODUCT_SPECS_INPUT_DOCS_PATH` to be the 'Primary Input Document'. State your choice and rationale.
+        c.  CRITICAL ERROR: If no Primary Input Document can be determined (no inputs or specified primary is inaccessible), HALT and report.
+    3.  Store the content of the 'Primary Input Document' and all other supporting input/guidance documents for use in research.
 
----
-### Phase 3: Deep Research and Iterative Content Drafting (Per-Heading Cycle)
-
-**A. Overall Primary Input Document Review & Initial Theme Identification:**
-Before diving into per-heading analysis, conduct a high-level review of the entire 'Primary Input Document' (identified in Phase 2.3). The goal of this initial pass is to understand its overall structure, main sections, and to identify any broad, top-level research themes or questions that emerge. List these initial themes to provide context for the detailed per-heading research that follows.
-
-**B. Per-Heading Deep Dive Cycle:**
-This phase is a systematic cycle. You will iterate through each major numbered or clearly delineated heading (e.g., H1, H2, H3, or equivalent Markdown sections) of the 'Primary Input Document'. For each such heading, perform the following five steps:
-
-    **i. Heading Context Analysis:**
-        *   Read the text content directly under the current heading in the Primary Input Document.
-        *   Identify and list initial research topics, questions, or keywords explicitly mentioned or strongly implied by this section.
-
-    **ii. Supporting Input Documents Analysis (Contextual):**
-        *   Review other documents within `PRODUCT_SPECS_INPUT_DOCS_PATH` (excluding the Primary Input Document itself unless it's being re-consulted for a specific identified term) that appear relevant to the context of the *current heading* and the topics identified in Step i.
-        *   Extract relevant information and list any additional research topics or clarifications needed.
-
-    **iii. References & Codebase Analysis (Contextual & Controlled):**
-        *   **Document References:** Examine the current heading's section (and relevant supporting documents from Step ii) for explicit inter-document references (e.g., by document name, ID, hyperlink). Follow these references as per `Max_Ref_Depth` (from Phase 1.4). Analyze the referenced content for relevance to the current heading's context. Extract key information. Crucially, only follow references to documents *within the provided set of input or guidance documents*. Do not seek external information.
-        *   **Codebase References:** If the current heading's section or directly related documents contain links to codebases, specific code files, or repositories that seem relevant:
-            *   **Accessibility:** Attempt to fetch the textual content of these code assets using appropriate tools (e.g., `view_text_website` for repository URLs). If inaccessible, note this.
-            *   **Review Depth & Focus (Adhere to `Code_Review_Preference` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` from Phase 1.4):**
-                *   `complex`: Attempt detailed analysis of fetched code text. Extract relevant info on functionality, architecture, constraints.
-                *   `cursory` (default): Perform brief review (purpose, main components, technologies). If deep analysis is complex, note existence and potential relevance for human review.
-                *   `focused`: Use `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS` (if provided) or infer focus from context to guide analysis of fetched code.
-            *   **Level 0 Code Analysis ONLY:** When analyzing fetched code text, your analysis is confined *only to the code text directly at hand for that specific file/URL*. **Do NOT attempt to follow internal code references** (e.g., import statements, function calls to other modules/files not present in the currently fetched text, or links to other parts of a repo not directly fetched).
-            *   **Reporting:** Summarize code review findings, noting the preference used, focus areas (if any), and limitations. Extract relevant code snippets, data structures, or links if concise and illustrative.
-        *   List any additional research topics or clarifications arising from document or codebase references.
-
-    **iv. Consolidated Research Execution (Current Heading):**
-        *   Based on the accumulated list of research topics and questions for the *current heading* (from Steps i, ii, and iii), perform a consolidated research effort. This research primarily involves re-analyzing and synthesizing information *already present* within the full set of provided documents (Primary Input Document, other documents in `PRODUCT_SPECS_INPUT_DOCS_PATH`, guidance documents in `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`, and documents accessed via valid internal references up to `Max_Ref_Depth`). Do not seek external information.
-        *   Synthesize this information to form a comprehensive understanding related to the current heading.
-
-    **v. Content Contribution (Iterative - Current Heading):**
-        *   Based on the consolidated research for the *current heading* (from Step iv), draft the content that will contribute to the corresponding section(s) in the final output documents: `{PRODUCT_NAME}_product_specification.md`, `{PRODUCT_NAME}_product_requirements.md`, and (if deemed necessary in Phase 4) `{PRODUCT_NAME}_architectural_specification.md`.
-        *   This is an iterative drafting process. Your goal is to capture the necessary information, requirements, and specifications relevant to this heading as you process it. This content will be assembled and finalized in Phase 5.
-
-    After completing these five steps for one heading, proceed to the next major heading in the Primary Input Document and repeat the cycle until all major headings have been processed.
+**B. For `Current_Iteration_Depth` 1, 2, or 3 (Iterative Elaboration):**
+    1.  **Process Previous Iteration's Output Documents:**
+        *   You MUST read and parse all `*_D[Current_Iteration_Depth - 1].md` documents (e.g., `*_D0.md` if current depth is 1) from the `Previous_Iteration_Path`. These are your primary input for this iteration.
+        *   CRITICAL ERROR: If these documents are not found or are inaccessible, HALT and report.
+    2.  **Process Original Input & Guidance Documents (As Reference):**
+        *   Re-read/ensure you have access to the original documents from `PRODUCT_SPECS_INPUT_DOCS_PATH` and `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`. These serve as reference material to ensure consistency and to draw further details from if needed during elaboration, but your main focus is expanding the previous iteration's documents.
+    3.  The 'Primary Input Document' for these iterations is effectively the set of documents from the previous iteration, particularly the main specification document (e.g., `{PRODUCT_NAME}_product_specification_D[Current_Iteration_Depth - 1].md`).
 
 ---
-### Phase 4: Decision Making and Content Planning
+### Phase 3: Content Generation (Conditional on Iteration Depth)
 
-This phase occurs *after* the per-heading deep dive cycle in Phase 3.B is complete.
+**A. If `Current_Iteration_Depth` is 0 ("Outline Generation"):**
 
-1.  **Formulate Specification Structure:** Review the iteratively drafted content from Phase 3.B. Based on this and the guidance documents, finalize the key sections for the main `{PRODUCT_NAME}_product_specification.md` document, ensuring a logical flow that reflects the structure of the Primary Input Document and your synthesized findings.
-2.  **Draft Requirements List:** Consolidate and refine all requirements identified and iteratively drafted during Phase 3.B into a final, structured list for `{PRODUCT_NAME}_product_requirements.md`. Ensure categorization and clarity.
-3.  **Determine Need for Architectural Specification:**
-    *   Evaluate if an architectural specification document is warranted based on the overall understanding gained through Phase 3.
-    *   **Guideline:** If the input documents describe a complex system with multiple interacting components, if there are significant non-functional requirements (e.g., scalability, security, performance targets) that demand specific architectural consideration, or if a particular technology stack or architectural pattern is mandated by the guidance documents, then plan to generate an architectural specification. Otherwise, you may omit it. Clearly state your decision and rationale.
-4.  **Outline Document Contents:** Review and finalize the outlines for each document (`{PRODUCT_NAME}_product_specification.md`, `{PRODUCT_NAME}_product_requirements.md`, and `{PRODUCT_NAME}_architectural_specification.md` if deemed necessary) based on the iteratively drafted content and overall synthesis.
+    **i. Overall Primary Input Document Review & Initial Theme Identification:**
+        Conduct a high-level review of the entire 'Primary Input Document' (identified in Phase 2.A.2). Understand its structure and identify broad, top-level research themes.
+
+    **ii. Per-Heading Deep Dive Cycle (Level 0 Research for Outline):**
+        Iterate through each major numbered or clearly delineated heading (e.g., H1, H2, H3, H4, or equivalent Markdown sections up to 3-4 levels deep) of the 'Primary Input Document'. For each heading:
+        1.  **Heading Context Analysis:** Read text under the current heading; list initial research topics/keywords.
+        2.  **Supporting Docs Analysis (Contextual):** Review docs in `PRODUCT_SPECS_INPUT_DOCS_PATH` relevant to the current heading; list additional topics.
+        3.  **References & Codebase Analysis (Contextual & Controlled):**
+            *   **Document References:** Follow explicit inter-document references (within provided input/guidance sets) as per `Max_Ref_Depth`. Analyze for relevance.
+            *   **Codebase References:** If links to codebases/files are found:
+                *   Fetch text content (e.g., via `view_text_website`). Note if inaccessible.
+                *   Review per `Code_Review_Preference` and `PRODUCT_SPECS_CODEBASE_FOCUS_AREAS`.
+                *   **Level 0 Code Analysis ONLY:** Confine analysis to directly fetched text. **Do NOT follow internal code references (imports, calls to other files not in current text).**
+                *   Summarize findings, noting preference and limitations.
+            *   List additional research topics from references.
+        4.  **Consolidated Research Execution (Current Heading):** Perform consolidated research on topics for the current heading, using all provided documents (original inputs, guidance, referenced docs). Do not seek external information.
+        5.  **Content Contribution (Iterative - Outline for Current Heading):**
+            *   **Output Constraint for Depth 0:** For the current heading (and any sub-headings identified within it down to 3-4 levels), generate ONLY:
+                *   The Heading Title itself (maintaining its level).
+                *   A single paragraph summarizing the key ideas, purpose, or main points relevant to this heading, based on your research for this heading.
+            *   Store this drafted outline content iteratively.
+
+**B. If `Current_Iteration_Depth` is 1 ("Basic Content - Bachelor's Level"):**
+
+    **i. Iterative Elaboration from D0 Outline:**
+        For each heading and its corresponding key ideas paragraph in the `*_D0.md` documents (read from `Previous_Iteration_Path`):
+        1.  **Expand Content:** Elaborate on the D0 key ideas paragraph to approximately 3 well-developed paragraphs.
+        2.  **Detail Level:** Content should introduce and explain specific concepts, ideas, algorithms (if applicable), examples, and relevant names or terminology associated with the heading's topic. Aim for a level of detail and explanation akin to a "Bachelor's Degree Education" on the subject of that heading.
+        3.  **Reference Original Inputs:** You MAY refer back to the original documents in `PRODUCT_SPECS_INPUT_DOCS_PATH` and `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`, and perform focused re-analysis of specific sections if necessary to achieve this depth of content for the D1 output. Adhere to `Max_Ref_Depth` for any new document-to-document links explored and `Code_Review_Preference` for any new code links.
+        4.  Store this elaborated content iteratively.
+
+**C. If `Current_Iteration_Depth` is 2 ("Expert Elaboration"):**
+
+    **i. Iterative Elaboration from D1 Content:**
+        For each major section corresponding to an *original major heading* from the Primary Input Document (now elaborated in the `*_D1.md` documents from `Previous_Iteration_Path`):
+        1.  **Identify Key Aspects:** Review the D1 content for that major section and identify the key aspects, concepts, and components discussed.
+        2.  **Deepen Elaboration:** Elaborate significantly on these aspects to an "expert level." This involves providing more in-depth analysis, discussing nuances, exploring implications, comparing alternatives (if relevant from source materials), and offering more comprehensive explanations.
+        3.  **Target Length/Density:** Aim for a target length equivalent to approximately 1 full page of 10pt single-spaced text (around 500-600 words, or equivalent information density) for each original major heading's expanded section.
+        4.  **Reference Original Inputs:** You MAY refer back to original documents and guidance for deeper insights or to ensure all relevant details are captured.
+        5.  Store this expert-level content iteratively.
+
+**D. If `Current_Iteration_Depth` is 3 ("AI Unique Insights"):**
+
+    **i. Iterative Elaboration from D2 Content:**
+        For each major section corresponding to an *original major heading* from the Primary Input Document (now elaborated in the `*_D2.md` documents from `Previous_Iteration_Path`):
+        1.  **Synthesize D2 Content:** Thoroughly understand the expert-level elaboration provided in D2.
+        2.  **Generate Unique Insights:** Expand significantly upon the D2 content. Focus on generating "unique insights that only an AI may be able to extract from the depth and volume of information available to it through all researched materials (original inputs, guidance, and previous iteration documents)." This could include:
+            *   Identifying subtle patterns or connections.
+            *   Proposing novel ideas or innovative approaches based on the synthesized knowledge.
+            *   Performing critical analysis of trade-offs, potential risks, or hidden assumptions.
+            *   Identifying potential gaps in the existing information or suggesting new avenues for exploration.
+        3.  **Target Length/Density:** Aim for a target length of at least 3 full pages (around 1500-1800 words, or equivalent information density) for each original major heading's expanded section.
+        4.  Store this insight-rich content iteratively.
+
+**E. General Instructions for Iterations 1, 2, & 3:**
+    *   **Build Upon Previous Work:** Your primary task is to build upon, expand, and deepen the content from the documents provided via `PRODUCT_SPECS_PREVIOUS_ITERATION_OUTPUT_PATH`. Do not simply repeat information or regenerate content from scratch as if it were Depth 0.
+    *   **Maintain Consistency:** Ensure consistency in style, terminology, and overall structure with the documents from the previous iteration. Ensure smooth transitions and logical flow between previously existing content and newly added elaborations.
+    *   **Indicate Iteration Depth:** While filename conventions will denote the depth, you may also include a brief introductory note in each document specifying the iteration depth it represents (e.g., "This document represents Depth 1: Basic Content elaboration...").
+
+---
+### Phase 4: Decision Making and Document Structure Finalization
+
+This phase adapts based on `Current_Iteration_Depth`.
+
+*   **For `Current_Iteration_Depth` 0:**
+    1.  **Formulate Specification Structure:** Review the iteratively drafted outline content from Phase 3.A. Based on this and guidance documents, finalize the key sections for `{PRODUCT_NAME}_product_specification_D0.md`.
+    2.  **Draft Requirements List Structure:** Plan the initial structure for `{PRODUCT_NAME}_product_requirements_D0.md` based on themes from Phase 3.A.
+    3.  **Determine Need for Architectural Specification:** Evaluate if an architectural specification is warranted (as per original guideline). If so, plan its outline for `{PRODUCT_NAME}_architectural_specification_D0.md`.
+*   **For `Current_Iteration_Depth` 1, 2, or 3:**
+    1.  The overall document structure (which documents to produce: spec, reqs, and optionally arch) is typically defined by Depth 0. For these higher depths, review the elaborated content from Phase 3 (B, C, or D) and ensure it logically fits within the established document structures.
+    2.  Refine requirements in `{PRODUCT_NAME}_product_requirements_D[current_depth].md` based on new elaborations.
+    3.  If new insights significantly impact the decision for an architectural spec, or its content, make necessary adjustments.
 
 ---
 ### Phase 5: Output Document Assembly and Finalization
 
-Using the content iteratively drafted in Phase 3.B (Step v for each heading) and the final structural decisions and consolidated lists from Phase 4, assemble the complete versions of the following Markdown documents. Review for coherence, consistency, formatting, and completeness before finalizing. Ensure adherence to any stylistic or formatting guidelines from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
+Assemble the complete versions of the output documents using the content drafted/elaborated in Phase 3 and structured in Phase 4. Apply the correct depth suffix (`_D0`, `_D1`, `_D2`, or `_D3` as determined in Phase 1.4) to each filename. Review for coherence, consistency, formatting, and completeness. Adhere to guidelines from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
 
-1.  **`{PRODUCT_NAME}_product_specification.md`**:
-    *   Assemble based on the finalized structure from Phase 4.1 and drafted content.
-    *   **Suggested Outline (adapt as needed):**
-        *   `## 1. Introduction`
-        *   `## 2. Goals and Objectives`
-        *   `## 3. Target Audience`
-        *   `## 4. Key Features`
-        *   `## 5. Functional Specifications`
-        *   `## 6. Non-Functional Specifications`
-        *   `## 7. Data Specifications` (If applicable)
-        *   `## 8. Interface Specifications` (If applicable)
-        *   `## 9. Open Issues / Future Considerations`
+1.  **`{PRODUCT_NAME}_product_specification_[SUFFIX].md`**
+2.  **`{PRODUCT_NAME}_product_requirements_[SUFFIX].md`**
+3.  **`{PRODUCT_NAME}_architectural_specification_[SUFFIX].md` (Conditional)** (Generate if decided in Phase 4)
 
-2.  **`{PRODUCT_NAME}_product_requirements.md`**:
-    *   Assemble based on the finalized list from Phase 4.2.
-    *   **Structure:** Present as a structured list of requirements.
-    *   **Requirement Format (Suggestion):** REQ_ID, Description, Category, Source (Optional), Priority (Optional).
-
-3.  **`{PRODUCT_NAME}_architectural_specification.md` (Conditional)**:
-    *   Generate this document **only if** you determined it was necessary in Phase 4.3.
-    *   Assemble based on the finalized outline and relevant drafted content.
-    *   **Suggested Outline (adapt as needed):**
-        *   `## 1. Introduction & Overview`
-        *   `## 2. Architectural Goals & Constraints`
-        *   `## 3. System Components & Interactions`
-        *   `## 4. Data Flows & Storage`
-        *   `## 5. Technology Stack Considerations`
-        *   `## 6. Deployment Strategy Considerations`
-        *   `## 7. Security Architecture`
+    (Refer to original suggested outlines in the previous version of this prompt for general structure of these documents, adapting content based on the current iteration's depth and focus.)
 
 ---
 ### Phase 6: Finalization and Output
 
-1.  **Save Documents:**
-    *   Save all generated Markdown documents to the directory specified by the `PRODUCT_SPECS_OUTPUT_PATH` variable.
-2.  **Report Completion:**
-    *   State that the "Build Product Specifications Process" is complete.
-    *   List the full paths of all documents generated and saved.
-    *   If any significant ambiguities were unresolved (as per General Instructions below), briefly mention them here.
+1.  **Save Documents:** Save all generated Markdown documents to `PRODUCT_SPECS_OUTPUT_PATH`.
+2.  **Report Completion:** State "Build Product Specifications Process - Iteration Depth [Current_Iteration_Depth] complete." List full paths of generated documents. Note any unresolved ambiguities or critical errors encountered (e.g., missing previous iteration files).
 
 ---
-### General Instructions for AI
+### General Instructions for AI (Applicable to all Iteration Depths)
 
-*   **Logical Flow and Traceability:** Throughout this process, maintain a logical flow. Ensure decisions and specifications are traceable to input documents or guidance where possible.
-*   **Clarity and Conciseness:** All generated content should be clear, concise, and unambiguous.
-*   **Handling Ambiguity:** If ambiguity in source materials cannot be resolved with provided information (including up to `Max_Ref_Depth` for internal document references and level 0 for code), note this in your output (e.g., "Open Issues" section). Do not invent information.
-*   **Adherence to Guidance:** Strictly adhere to rules, constraints, or stylistic guidelines from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`. If guidance conflicts, prioritize the most restrictive or explicit instruction and note the conflict.
+*   **Logical Flow and Traceability:** Maintain logical flow. Ensure decisions and specifications are traceable to input documents or guidance where possible, especially for Depth 0. Higher iterations should trace back to the previous iteration's content.
+*   **Clarity and Conciseness:** All content should be clear, concise, and unambiguous for its intended depth.
+*   **Handling Ambiguity:** If ambiguity cannot be resolved (respecting `Max_Ref_Depth` for docs, Level 0 for code), note this in an "Open Issues" section or final report. Do not invent information.
+*   **Adherence to Guidance:** Strictly adhere to rules from `PRODUCT_SPECS_GUIDANCE_DOCS_PATH`.
 
-[[END OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.1]]
+[[END OF 'BUILD_PRODUCT_SPECS_PROCESS_ADDON' v0.2]]
