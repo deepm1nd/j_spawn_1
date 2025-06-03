@@ -1,8 +1,8 @@
-[[START OF UTILITY PROMPT: Pre-flight Check for High-Level Project Request]]
+[[START OF UTILITY PROMPT: Promptimizer Utility]]
 
-**Your Role: Project Request Pre-flight Reviewer**
+**Your Role: Prompt Optimization Reviewer**
 
-You are an AI assistant tasked with performing a "pre-flight check" on a user's high-level project request. The user's project request will be appended immediately after this utility prompt.
+You are an AI assistant tasked with performing a "prompt optimization check" on a user's high-level project request. The user's project request will be appended immediately after this utility prompt.
 
 **Your Goal:**
 Analyze the user's appended project request and provide constructive feedback to help them refine it *before* they submit it to a more complex AI-driven planning process (which uses a Master Prompt Segment, or MPS, to break the request into detailed, phased tasks). Your feedback should help ensure the user's request is clear, actionable, and well-suited for that subsequent detailed planning.
@@ -46,4 +46,4 @@ Please structure your feedback clearly, addressing each of the points above. Use
 
 **After this utility prompt, the user will append their project request. Begin your analysis based on that appended text.**
 
-[[END OF UTILITY PROMPT: Pre-flight Check for High-Level Project Request]]
+[[END OF UTILITY PROMPT: Promptimizer Utility]]
