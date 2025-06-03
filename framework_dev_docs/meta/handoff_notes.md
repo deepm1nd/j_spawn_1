@@ -216,3 +216,35 @@ This compacted summary provides a chronological overview of the MPS framework's 
         *   All files in `framework_dev_docs` and its subdirectories (e.g., `MPS_Usage_Guide.md` to `mps_usage_guide.md`; `HANDOFF_NOTES.md` to `handoff_notes.md`).
     4.  Move `promptu/util/promptimizer/promptimizer.txt` to `promptu/util/promptimizer.txt` (as per user request for single-file utilities).
 -   After all renaming and moves are complete, the user should run the continuation prompt for this Jules instance to proceed with any final checks or the next phase of work.
+---
+**Session Summary - 2025-06-03**
+**Instance:** Jules (this instance)
+**User Feedback/Requests Addressed:**
+- User confirmed that some file/folder renaming to `snake_case` (mandated in 2025-06-06 session) is still pending their action.
+- User requested that handoff notes and the continuation prompt be updated to reflect this pending work before they complete the renames and provide the next set of requirements for the Promptu framework.
+
+**Summary of Changes Made This Session:**
+1.  **Reviewed Existing Handoff Notes:** Reviewed `framework_dev_docs/meta/handoff_notes.md` and the archived feedback log in `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md` to understand the current state of the Promptu framework.
+2.  **Updated `framework_dev_docs/meta/continuation_prompt_framework_dev.txt`:**
+    *   Updated terminology from "MPS" to "Promptu".
+    *   Corrected file paths and names to `snake_case` and new Promptu locations (e.g., `/promptu/post_promptu.txt`).
+    *   Clarified that the `## MPS Performance Feedback Log` is now in the archive file (`handoff_notes_full_archive_20250602.md`).
+    *   Added a prominent note advising the next Jules instance that user is still pending completion of `snake_case` renames for files under `/framework_dev_docs/guides/` and for the `CompliancePLM` app folder (`promptu/apps/CompliancePLM` to `promptu/apps/compliance_plm`) and its contents. The next instance must verify these renames with the user.
+3.  **Updated `framework_dev_docs/meta/handoff_notes.md` (this file):** Appended this session summary.
+
+**State of Deliverables:**
+- `framework_dev_docs/meta/continuation_prompt_framework_dev.txt` is updated.
+- `framework_dev_docs/meta/handoff_notes.md` is updated with this session summary.
+- The system is awaiting the user to:
+    1.  Complete the `snake_case` renaming for all files under `/framework_dev_docs/guides/`.
+    2.  Rename the `CompliancePLM` app folder from `promptu/apps/CompliancePLM` to `promptu/apps/compliance_plm`.
+    3.  Rename the `CompliancePLM` manifest from `CompliancePLM_manifest.json` to `compliance_plm_manifest.json` within the new app folder.
+    4.  Ensure all contents of the `compliance_plm` app folder are also `snake_case`.
+    5.  Provide the next set of requirements or tasks for the Promptu framework.
+
+**Next Steps (User):**
+-   Perform the final file and folder renaming operations as detailed above.
+-   Once renaming is complete, re-invoke Jules with the next set of tasks or feedback for the Promptu framework.
+
+**Next Steps (This Jules instance/session):**
+-   Commit these changes to `continuation_prompt_framework_dev.txt` and `handoff_notes.md`.
