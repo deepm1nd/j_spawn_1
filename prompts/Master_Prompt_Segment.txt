@@ -24,6 +24,7 @@
 #    Edit the user configuration blocks within your new file as needed:
 #    *   `[[USER_APP_SELECTION]]`: Select a promptApp if you are using one.
 #    *   `[[USER_ADDON_SELECTION]]`: Select standalone add-ons if not using a promptApp.
+#    *   `[[USER_FRAMEWORK_SETTINGS]]`: Configure framework-level settings (see new block below).
 #    *   `[[USER_promptAPP_NAME_CONFIGURATION]]`: If you selected a promptApp, define
 #       which of its tasks to run. (See examples in this template).
 #    *   `[[USER_CONFIG_FOR_componentName]]`: Provide specific configurations for
@@ -84,6 +85,14 @@
                                # If selected as primary, list last.
 [[END_USER_ADDON_SELECTION]]
 
+[[USER_FRAMEWORK_SETTINGS]]
+# --- Handoff Notes Granularity ---
+# Controls the level of detail Jules will record in the HANDOFF_NOTES.md file at the end of its session.
+# If checked, Jules will record detailed session notes, similar to traditional verbose logging.
+# If unchecked (default), Jules will only record a concise summary focusing on major architectural changes, key decisions, and the state of deliverables.
+[ ] Full_Handoff_Notes_Logging_Enabled
+[[END_USER_FRAMEWORK_SETTINGS]]
+
 [[USER_promptAPP_NAME_CONFIGURATION_EXAMPLES_SECTION]]
 # Instructions for user:
 # - If you select a promptApp in `[[USER_APP_SELECTION]]` (e.g., `CompliancePLM_App`), you MUST provide a
@@ -131,7 +140,7 @@
 [[INCLUDE Core_Planning_Instructions.txt FROM /prompts/iep/Core_Planning_Instructions.txt]]
 
 # Note: The `Core_Planning_Instructions.txt` will guide you on parsing `[[USER_APP_SELECTION]]`,
-# `[[USER_ADDON_SELECTION]]`, discovering app-specific config blocks and promptApp task configuration
+# `[[USER_ADDON_SELECTION]]`, `[[USER_FRAMEWORK_SETTINGS]]`, discovering app-specific config blocks and promptApp task configuration
 # blocks from the main prompt, loading components, and executing the selected promptApp or add-ons.
 
 [[END OF MASTER PROMPT SEGMENT (v0.5.0 - PromptApp Support)]]

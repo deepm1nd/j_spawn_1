@@ -98,6 +98,22 @@ H. **Parse User PromptApp Selection & Configuration:**
         d.  If the configuration block is missing: Issue a warning: "Warning: PromptApp '[Selected_PromptAppName]' is selected, but its configuration block '[[USER_[Selected_PromptAppName]_CONFIGURATION]]' was not found. No tasks can be run." Set `Selected_PromptAppName` to null.
         e.  If the block is found but no tasks are checked `[x]`: Issue a warning: "Warning: PromptApp '[Selected_PromptAppName]' configuration block found, but no tasks were selected with '[x]'. No tasks will be run." Set `Selected_PromptAppName` to null.
 
+I. **Parse User Framework Settings:**
+    1.  Initialize `Framework_Full_Handoff_Notes_Enabled`: `false`.
+    2.  Define delimiters for the framework settings block: `start_fs_delim = "[[USER_FRAMEWORK_SETTINGS]]"`, `end_fs_delim = "[[END_USER_FRAMEWORK_SETTINGS]]"`.
+    3.  Search the *entire original user-provided main spawn prompt file content* (typically the user's configured copy of `Master_Prompt_Segment.txt`) for text between these delimiters.
+    4.  If the `[[USER_FRAMEWORK_SETTINGS]]` block is found:
+        a.  Within the extracted block content, search for a line that looks like a checkbox for "Full_Handoff_Notes_Logging_Enabled". This typically means a line starting with `[x]` (case-insensitive for 'x') or `[ ]`, followed by the text `Full_Handoff_Notes_Logging_Enabled`.
+        b.  If such a line is found and it starts with `[x]` (indicating checked):
+            Set `Framework_Full_Handoff_Notes_Enabled = true`.
+            INFO "Full_Handoff_Notes_Logging_Enabled is TRUE."
+        c.  Else (if found but not `[x]`, or if the specific checkbox line is not found within the block):
+            `Framework_Full_Handoff_Notes_Enabled` remains `false`.
+            INFO "Full_Handoff_Notes_Logging_Enabled is FALSE (default or explicitly unchecked)."
+    5.  Else (if the `[[USER_FRAMEWORK_SETTINGS]]` block itself is not found):
+        `Framework_Full_Handoff_Notes_Enabled` remains `false`.
+        INFO "[[USER_FRAMEWORK_SETTINGS]] block not found. Full_Handoff_Notes_Logging_Enabled is FALSE (default)."
+
 **II. PRIMARY EXECUTION LOGIC (Revised for PromptApps):**
 
 A. **Determine Execution Path (PromptApp or Add-on):**
@@ -123,7 +139,7 @@ A. **Determine Execution Path (PromptApp or Add-on):**
                 *   Read the `component_instruction_content` from the resolved `path_to_component`.
                 *   Determine `base_path_of_resolved_component` (e.g., `prompts/add_ons/[component_name_to_load]/` or `prompts/apps/[Selected_PromptAppName]/`).
                 *   Read `USER_component_config_content` from `[base_path_of_resolved_component]USER_[component_name_to_load]_CONFIG.txt`. (Handle file not found gracefully for components that don't have one).
-                *   Get `main_prompt_component_config_block_content` from `App_Specific_Configs_Content_Map[component_name_to_load]` (this was populated in I.C.4.c.iii if a `[[USER_CONFIG_FOR_componentName]]` block exists in the main prompt).
+                *   Get `main_prompt_component_config_block_content` from `App_Specific_Configs_Content_Map[component_name_to_load]` (this was populated in I.D.4.c.iii if a `[[USER_CONFIG_FOR_componentName]]` block exists in the main prompt).
 
             x.   **Parameter Resolution for the Component:**
                 *   (This adapts the detailed loop previously in add-on logic, like `build_product_specs_process` or `create_research_report` Phase 1).
@@ -147,7 +163,7 @@ A. **Determine Execution Path (PromptApp or Add-on):**
     2.  **ELSE (No PromptApp selected or no actionable tasks in it; fallback to Add-on logic):**
         a.  INFO "No active promptApp. Proceeding with add-on execution logic."
         b.  **Process Active Primary Add-on (if any):** (This is the existing Section II.A logic)
-            i.  If `Active_Primary_Addon_AppName` (identified in I.C.4) is not null:
+            i.  If `Active_Primary_Addon_AppName` (identified in I.D.4) is not null:
                 *   Retrieve its primary instruction content from `All_Selected_Addons_Content_Map`.
                 *   Retrieve its app-specific config string from `App_Specific_Configs_Content_Map[Active_Primary_Addon_AppName]`.
                 *   Execute its instructions. The add-on parses its config string and uses `Inheritable_Addons_Content_Ordered_List`.
@@ -166,6 +182,8 @@ C. **Supporting Documentation (Core Utilities):**
     *   Create in 'Prompts Folder' (user-configured output path, or a default like `outputs/current_session_prompts/`).
 
 **IV. FINAL INSTRUCTION TO PLANNING AI & SELF-CORRECTION (Core):**
+
+A.  **(Placeholder for any pre-finalization general instructions)**
 
 B. **Final Commit Message by Planning AI:**
     Adhere to IEP (from `prompts/iep/Base_IEP.txt`).
@@ -187,9 +205,28 @@ B. **Final Commit Message by Planning AI:**
             *   Note if any selected add-on expected an app-specific config block but it was not found.
             *   Self-checks, confidence, etc.
 
-C. **Self-Correction and Learning:**
+C. **Update Handoff Notes (`framework_dev_docs/meta/HANDOFF_NOTES.md`):**
+    1.  **Review `Framework_Full_Handoff_Notes_Enabled` (determined in Section I.I).**
+    2.  **IF `Framework_Full_Handoff_Notes_Enabled` is `true`:**
+        a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/HANDOFF_NOTES.md`. This summary should include:
+            *   User feedback/requests you addressed.
+            *   A detailed account of changes made to MPS framework documents or other deliverables.
+            *   The state in which deliverables were left (e.g., specific commits, branches).
+            *   Any pending items or suggestions for the next Jules instance.
+        b.  IMPORTANT: Ensure the 'MPS Performance Feedback Log' section within `HANDOFF_NOTES.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'MPS Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
+    3.  **ELSE (if `Framework_Full_Handoff_Notes_Enabled` is `false`):**
+        a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/HANDOFF_NOTES.md`. This summary should focus *only* on:
+            *   Major architectural changes implemented.
+            *   Key decisions made that affect the framework's evolution.
+            *   The final state of key deliverables (e.g., new components created, significant refactoring of core files).
+        b.  Avoid detailed chronological accounts of your actions; aim for a high-level recap of critical developments.
+        c.  IMPORTANT: Ensure the 'MPS Performance Feedback Log' section within `HANDOFF_NOTES.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'MPS Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
+    4.  **General Note on Handoff Notes Archive:**
+        a.  Be aware that a more detailed historical archive of handoff notes might exist at `framework_dev_docs/meta/HANDOFF_NOTES_full_archive_20250602.md`.
+        b.  You should NOT read this archive file unless you determine it is critical for understanding specific historical context to fulfill the current user request AND you explicitly ask for and receive user permission to do so. Your primary source for ongoing handoff information is the main `HANDOFF_NOTES.md` file.
+
+D. **Self-Correction and Learning:**
     *   Review all warnings and errors generated during this session.
     *   If a component's `USER_..._CONFIG.txt` was updated due to AI-assisted parameter gathering, ensure this is noted.
     *   Reflect on any ambiguities in component instructions or the MPS framework itself.
-
-[end of prompts/iep/Core_Planning_Instructions.txt]
+    *   Consider if the handoff notes you just prepared (detailed or concise) accurately reflect the session's outcome and provide useful context for the next AI instance.
