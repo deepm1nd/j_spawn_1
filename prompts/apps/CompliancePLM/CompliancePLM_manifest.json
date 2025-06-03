@@ -1,0 +1,107 @@
+{
+  "promptAppDisplayName": "Compliance PLM Workflow",
+  "description": "A comprehensive workflow for managing product lifecycle compliance, from concept through retirement.",
+  "phases": [
+    {
+      "phaseName": "Concept Phase",
+      "tasks": [
+        {
+          "taskName": "Architectural Specification",
+          "description": "Generates the architectural specification document using the research report process.",
+          "componentName": "create_research_report",
+          "isIterable": true,
+          "defaultConfigOverrides": {
+            "REPORT_BASENAME": "ArchitecturalSpecification",
+            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Architectural Specification]",
+            "ITERATIVE_OUTPUT_DEPTH": "0"
+          }
+        },
+        {
+          "taskName": "Product Specification",
+          "description": "Generates the main product specification document using the research report process.",
+          "componentName": "create_research_report",
+          "isIterable": true,
+          "defaultConfigOverrides": {
+            "REPORT_BASENAME": "ProductSpecification",
+            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Product Specification]",
+            "ITERATIVE_OUTPUT_DEPTH": "0"
+          }
+        },
+        {
+          "taskName": "Product Requirements",
+          "description": "Generates the product requirements document using the research report process.",
+          "componentName": "create_research_report",
+          "isIterable": true,
+          "defaultConfigOverrides": {
+            "REPORT_BASENAME": "ProductRequirements",
+            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Product Requirements]",
+            "ITERATIVE_OUTPUT_DEPTH": "0"
+          }
+        },
+        {
+          "taskName": "Test Component Resolution",
+          "description": "Tests if the app-specific version of 'test_resolver_component' is correctly picked up.",
+          "componentName": "test_resolver_component",
+          "isIterable": false
+        }
+      ]
+    },
+    {
+      "phaseName": "Plan Phase",
+      "tasks": [
+        {
+          "taskName": "Development Planning",
+          "description": "Generates the development plan (task breakdown, schedule, resources).",
+          "componentName": "task_spawning_addon",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "MAIN_PROJECT_NAME": "CompliancePLM_Development"
+          }
+        },
+        {
+          "taskName": "Change Management Planning",
+          "description": "Generates the change management plan.",
+          "componentName": "create_research_report",
+          "isIterable": false,
+          "defaultConfigOverrides": {
+            "REPORT_BASENAME": "ChangeManagementPlan",
+            "PRIMARY_INPUT_DOC_PATH": "[User: Please specify Primary Input for Change Management Plan (e.g., project scope, organizational structure)]"
+          }
+        }
+      ]
+    },
+    {
+      "phaseName": "Development Phase",
+      "tasks": [
+        {
+          "taskName": "Not Yet Implemented Task",
+          "description": "This is a placeholder for a future task in the Development Phase.",
+          "componentName": "placeholder_component",
+          "isIterable": false
+        }
+      ]
+    },
+    {
+      "phaseName": "Release Phase",
+      "tasks": [
+        {
+          "taskName": "Not Yet Implemented Task",
+          "description": "This is a placeholder for a future task in the Release Phase.",
+          "componentName": "placeholder_component",
+          "isIterable": false
+        }
+      ]
+    },
+    {
+      "phaseName": "Retire Phase",
+      "tasks": [
+        {
+          "taskName": "Not Yet Implemented Task",
+          "description": "This is a placeholder for a future task in the Retire Phase.",
+          "componentName": "placeholder_component",
+          "isIterable": false
+        }
+      ]
+    }
+  ]
+}

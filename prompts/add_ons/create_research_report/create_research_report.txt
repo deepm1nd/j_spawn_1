@@ -1,0 +1,394 @@
+[[PROCESS_SPECIFICATION_FOR_create_research_report]]
+# Process Name: create_research_report
+# Add-on Version: 0.1
+# Description: Guides the AI through a multi-step, potentially iterative process to generate a comprehensive research report.
+# This involves analyzing provided input documents and web links, performing guided research (including following references
+# to a specified depth), iteratively generating content based on desired output depth, and structuring the final report.
+
+# Overall Process Flow:
+# Phase 1: Initialization and Configuration - Parse and validate all user-provided parameters.
+# Phase 2: Input Document Processing - Ingest and analyze all provided input documents and links.
+# Phase 3: Research and Content Generation - Perform research and generate content for each section of the report.
+# Phase 4: Report Structure Definition - Define or refine the Table of Contents for the report.
+# Phase 5: Iterative Report Assembly - Assemble the generated content into a structured report, iterating based on depth.
+# Phase 6: Finalization and Output - Save the final report documents.
+
+# --- START PHASE 1: Initialization and Configuration ---
+# Objective: Resolve all required parameters from the USER_CONFIG file and internal defaults.
+
+BEGIN_PHASE_1
+  INFO "Starting Phase 1: Initialization and Configuration for create_research_report."
+
+  # Define expected parameters and their sources
+  PARAMETER_DEFINITION_BLOCK PARAMS_TO_RESOLVE
+    # ParameterName | SourceType (USER_CONFIG or INTERNAL_DEFAULT) | DefaultValue (if SourceType is INTERNAL_DEFAULT) | IsRequired (true/false) | ValidationType (e.g., PATH_EXISTS, INTEGER_RANGE(0,3))
+    PROPOSED_TABLE_OF_CONTENTS | USER_CONFIG | "[No Table of Contents Provided]" | false | NONE
+    GUIDELINES_DOC_PATHS | USER_CONFIG | "[No Guidelines Provided]" | false | PATH_LIST_EXISTS_OR_URL_LIST
+    ADDITIONAL_WEB_LINKS_FILE | USER_CONFIG | "[No Additional Web Links File Provided]" | false | PATH_EXISTS_OR_URL
+    EXEMPLAR_DOCS | USER_CONFIG | "[No Exemplar Documents Provided]" | false | PATH_LIST_EXISTS_OR_URL_LIST
+    GENERAL_INPUT_DOCS | USER_CONFIG | "[Please provide paths to general input documents]" | true | PATH_LIST_EXISTS_OR_URL_LIST
+    PRIMARY_INPUT_DOC_PATH | USER_CONFIG | "[Please provide a path to the primary input document]" | true | PATH_EXISTS_OR_URL
+    ITERATIVE_OUTPUT_DEPTH | USER_CONFIG | "0" | true | INTEGER_RANGE(0,3)
+    REFERENCE_FOLLOWING_DEPTH | USER_CONFIG | "1" | true | INTEGER_RANGE(0,2)
+    PREVIOUS_ITERATION_OUTPUT_PATH | USER_CONFIG | "[Path to previous iteration output or N/A]" | false | PATH_EXISTS_OR_PLACEHOLDER_OR_NA # Conditional requirement handled below
+    REPORT_BASENAME | USER_CONFIG | "[Enter Report Basename]" | true | NON_EMPTY_STRING
+    REPORT_OUTPUT_PATH | USER_CONFIG | "[Enter Report Output Path]" | true | WRITABLE_PATH
+  END_PARAMETER_DEFINITION_BLOCK
+
+  # Resolve parameters using the standard loop
+  AI_TASK_REPEATING_SUB_PROCESS "Resolve Configuration Parameters"
+    INITIAL_STATE_FROM_SYSTEM_MEMORY "UNRESOLVED_PARAMS_LIST" from PARAMS_TO_RESOLVE # List of parameter names
+    ACTION_PER_ITEM "Resolve Parameter [ITEM_NAME]"
+      # Check if parameter is already resolved from a previous run (e.g., in iterative mode)
+      IF_SYSTEM_MEMORY_CONTAINS "ResolvedParam_[ITEM_NAME]" THEN
+        SET_INTERNAL_VARIABLE "[ITEM_NAME]" from "ResolvedParam_[ITEM_NAME]"
+        INFO "Parameter [ITEM_NAME] already resolved to: [GET_INTERNAL_VARIABLE [ITEM_NAME]]"
+        CONTINUE_LOOP
+      END_IF
+
+      # Get definition for current parameter
+      GET_PARAMETER_DEFINITION "[ITEM_NAME]" from PARAMS_TO_RESOLVE
+      # Returns: ParamName, SourceType, DefaultValue, IsRequired, ValidationType
+
+      IF "[ParamSourceType]" == "USER_CONFIG" THEN
+        # Attempt to get value from [[USER_CONFIG_FOR_create_research_report]]
+        GET_USER_CONFIG_VALUE "[ParamName]" from "[[USER_CONFIG_FOR_create_research_report]]" store_as "UserValue"
+        IF "[UserValue]" != "[ParamDefaultValue]" AND "[UserValue]" != "" THEN # User has provided a value
+          VALIDATE_PARAMETER "[UserValue]" against "[ParamValidationType]" store_as "ValidationResult"
+          IF "[ValidationResult]" == "VALID" THEN
+            SET_INTERNAL_VARIABLE "[ParamName]" to "[UserValue]"
+            INFO "Parameter [ParamName] resolved from USER_CONFIG to: [UserValue]"
+          ELSE
+            IF "[ParamIsRequired]" == "true" THEN
+              FAIL_PROCESS "Required parameter [ParamName] ([UserValue]) failed validation: [ValidationResult]."
+            ELSE
+              SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
+              INFO "Optional parameter [ParamName] ([UserValue]) failed validation. Using default: [ParamDefaultValue]."
+            END_IF
+          END_IF
+        ELSE # User has not provided a value or it's the default placeholder
+          IF "[ParamIsRequired]" == "true" THEN
+            # Specific check for conditionally required PREVIOUS_ITERATION_OUTPUT_PATH
+            IF "[ParamName]" == "PREVIOUS_ITERATION_OUTPUT_PATH" THEN
+              GET_INTERNAL_VARIABLE "ITERATIVE_OUTPUT_DEPTH" store_as "Internal_ITERATIVE_OUTPUT_DEPTH"
+              IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
+                 FAIL_PROCESS "Required parameter [ParamName] not provided and ITERATIVE_OUTPUT_DEPTH > 0."
+              ELSE
+                 SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
+                 INFO "Parameter [ParamName] not provided by user, but not required as ITERATIVE_OUTPUT_DEPTH is 0. Using default: [ParamDefaultValue]."
+              END_IF
+            ELSE
+              FAIL_PROCESS "Required parameter [ParamName] not provided by user."
+            END_IF
+          ELSE
+            SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
+            INFO "Optional parameter [ParamName] not provided by user. Using default: [ParamDefaultValue]."
+          END_IF
+        END_IF
+      ELSE IF "[ParamSourceType]" == "INTERNAL_DEFAULT" THEN
+        SET_INTERNAL_VARIABLE "[ParamName]" to "[ParamDefaultValue]"
+        INFO "Parameter [ParamName] resolved from INTERNAL_DEFAULT to: [ParamDefaultValue]"
+      END_IF
+      ADD_TO_SYSTEM_MEMORY "ResolvedParam_[ITEM_NAME]" with_value "[GET_INTERNAL_VARIABLE [ParamName]]"
+    END_ACTION_PER_ITEM
+    TERMINATION_CONDITION "All parameters in UNRESOLVED_PARAMS_LIST processed"
+  END_AI_TASK_REPEATING_SUB_PROCESS
+
+  # Store key configuration values for easy access
+  GET_INTERNAL_VARIABLE "ITERATIVE_OUTPUT_DEPTH" store_as "Internal_ITERATIVE_OUTPUT_DEPTH"
+  GET_INTERNAL_VARIABLE "REFERENCE_FOLLOWING_DEPTH" store_as "Internal_REFERENCE_FOLLOWING_DEPTH"
+  GET_INTERNAL_VARIABLE "REPORT_BASENAME" store_as "Internal_REPORT_BASENAME"
+  GET_INTERNAL_VARIABLE "REPORT_OUTPUT_PATH" store_as "Internal_REPORT_OUTPUT_PATH"
+  GET_INTERNAL_VARIABLE "PRIMARY_INPUT_DOC_PATH" store_as "Internal_PRIMARY_INPUT_DOC_PATH"
+  GET_INTERNAL_VARIABLE "GENERAL_INPUT_DOCS" store_as "Internal_GENERAL_INPUT_DOCS"
+  GET_INTERNAL_VARIABLE "GUIDELINES_DOC_PATHS" store_as "Internal_GUIDELINES_DOC_PATHS"
+  GET_INTERNAL_VARIABLE "EXEMPLAR_DOCS" store_as "Internal_EXEMPLAR_DOCS"
+  GET_INTERNAL_VARIABLE "ADDITIONAL_WEB_LINKS_FILE" store_as "Internal_ADDITIONAL_WEB_LINKS_FILE"
+  GET_INTERNAL_VARIABLE "PROPOSED_TABLE_OF_CONTENTS" store_as "Internal_PROPOSED_TABLE_OF_CONTENTS"
+  GET_INTERNAL_VARIABLE "PREVIOUS_ITERATION_OUTPUT_PATH" store_as "Internal_PREVIOUS_ITERATION_OUTPUT_PATH"
+
+  # Validate PREVIOUS_ITERATION_OUTPUT_PATH if iteration depth > 0
+  IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
+    VALIDATE_PARAMETER "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" against "PATH_EXISTS_OR_PLACEHOLDER_OR_NA" store_as "PrevIterPathVal"
+    IF "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]" == "[Path to previous iteration output or N/A]" OR "[PrevIterPathVal]" != "VALID" THEN
+      FAIL_PROCESS "PREVIOUS_ITERATION_OUTPUT_PATH must be a valid path if ITERATIVE_OUTPUT_DEPTH > 0. Current value: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
+    END_IF
+    INFO "Previous iteration output path set to: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
+  END_IF
+
+  INFO "Phase 1: Initialization and Configuration COMPLETED."
+  SAVE_CURRENT_STATE_TO_MEMORY "Phase1_State"
+END_PHASE_1
+# --- END PHASE 1 ---
+
+# --- START PHASE 2: Input Document Processing ---
+# Objective: Ingest, analyze, and summarize all provided input documents and links.
+
+BEGIN_PHASE_2
+  INFO "Starting Phase 2: Input Document Processing."
+  LOAD_STATE_FROM_MEMORY "Phase1_State" # Ensure parameters are available
+
+  # Create a working directory for ingested content if needed
+  CREATE_DIRECTORY "[Internal_REPORT_OUTPUT_PATH]/working_temp" store_as "WorkDir"
+
+  # Process Primary Input Document
+  INFO "Processing Primary Input Document: [Internal_PRIMARY_INPUT_DOC_PATH]"
+  AI_TASK_SUB_PROCESS "Analyze Primary Document"
+    DESCRIPTION "Ingest and analyze the primary input document."
+    INPUT_PARAM "DocumentPath" from "Internal_PRIMARY_INPUT_DOC_PATH"
+    INPUT_PARAM "StoragePath" from "WorkDir"
+    OUTPUT_TO_SYSTEM_MEMORY "AnalyzedPrimaryDoc" # This would contain summary, key entities, structure etc.
+    # Actual processing logic:
+    # 1. Read content (handle URL or local path)
+    # 2. Basic NLP (summarization, keyword extraction)
+    # 3. Store processed version in WorkDir
+  END_AI_TASK_SUB_PROCESS
+  INFO "Primary Input Document processed."
+
+  # Process General Input Documents
+  INFO "Processing General Input Documents: [Internal_GENERAL_INPUT_DOCS]"
+  AI_TASK_REPEATING_SUB_PROCESS "Analyze General Documents"
+    INITIAL_STATE_FROM_INTERNAL_VARIABLE "Internal_GENERAL_INPUT_DOCS" as_list_of_paths_or_urls
+    ACTION_PER_ITEM "Process Document [ITEM_VALUE]"
+      AI_TASK_SUB_PROCESS "Analyze Document [ITEM_VALUE]"
+        DESCRIPTION "Ingest and analyze a general input document/URL."
+        INPUT_PARAM "DocumentPath" from "[ITEM_VALUE]"
+        INPUT_PARAM "StoragePath" from "WorkDir"
+        OUTPUT_TO_SYSTEM_MEMORY "AnalyzedDoc_[ITEM_INDEX]"
+      END_AI_TASK_SUB_PROCESS
+    END_ACTION_PER_ITEM
+    TERMINATION_CONDITION "All documents processed"
+  END_AI_TASK_REPEATING_SUB_PROCESS
+  INFO "General Input Documents processed."
+
+  # Process Exemplar Documents (similar ingestion, focus on style/structure)
+  IF_CONDITION "[Internal_EXEMPLAR_DOCS]" != "[No Exemplar Documents Provided]" THEN
+    INFO "Processing Exemplar Documents: [Internal_EXEMPLAR_DOCS]"
+    # Similar processing loop as General Input Docs, focusing on style, tone, structure.
+    # Store analysis results in system memory (e.g., "AnalyzedExemplar_StyleGuide")
+  END_IF
+
+  # Process Guidelines Documents
+  IF_CONDITION "[Internal_GUIDELINES_DOC_PATHS]" != "[No Guidelines Provided]" THEN
+    INFO "Processing Guidelines Documents: [Internal_GUIDELINES_DOC_PATHS]"
+    # Similar processing loop, focus on extracting explicit instructions.
+    # Store analysis results in system memory (e.g., "ExtractedGuidelines")
+  END_IF
+
+  # Process Additional Web Links File
+  IF_CONDITION "[Internal_ADDITIONAL_WEB_LINKS_FILE]" != "[No Additional Web Links File Provided]" THEN
+    INFO "Processing Additional Web Links File: [Internal_ADDITIONAL_WEB_LINKS_FILE]"
+    READ_FILE "[Internal_ADDITIONAL_WEB_LINKS_FILE]" store_as "WebLinksContent"
+    # Parse WebLinksContent, line by line, add to a list in system memory: "AdditionalWebResearchLinks"
+  END_IF
+
+  # If Iterative Depth > 0, load previous iteration's output
+  IF_CONDITION "[Internal_ITERATIVE_OUTPUT_DEPTH]" > "0" THEN
+    INFO "Loading previous iteration output from: [Internal_PREVIOUS_ITERATION_OUTPUT_PATH]"
+    # This would involve listing files in Internal_PREVIOUS_ITERATION_OUTPUT_PATH,
+    # reading relevant files (e.g., the main report file from the previous iteration),
+    # and storing its content/structure in system memory for refinement.
+    # E.g., READ_FILE "[Internal_PREVIOUS_ITERATION_OUTPUT_PATH]/[Internal_REPORT_BASENAME]_D[Internal_ITERATIVE_OUTPUT_DEPTH - 1].md" store_as "PreviousReportContent"
+    AI_TASK_SUB_PROCESS "Load Previous Iteration Data"
+        DESCRIPTION "Load and parse the output from the previous iteration."
+        INPUT_PARAM "PreviousOutputPath" from "Internal_PREVIOUS_ITERATION_OUTPUT_PATH"
+        INPUT_PARAM "ReportBasename" from "Internal_REPORT_BASENAME"
+        INPUT_PARAM "PreviousDepth" as_integer_math "[Internal_ITERATIVE_OUTPUT_DEPTH] - 1"
+        OUTPUT_TO_SYSTEM_MEMORY "PreviousIterationData" # Structure, content sections, etc.
+    END_AI_TASK_SUB_PROCESS
+  END_IF
+
+  INFO "Phase 2: Input Document Processing COMPLETED."
+  SAVE_CURRENT_STATE_TO_MEMORY "Phase2_State"
+END_PHASE_2
+# --- END PHASE 2 ---
+
+# --- START PHASE 3: Research and Content Generation ---
+# Objective: Perform research and generate content for each section of the report, guided by the iteration depth and reference depth.
+
+BEGIN_PHASE_3
+  INFO "Starting Phase 3: Research and Content Generation."
+  LOAD_STATE_FROM_MEMORY "Phase2_State"
+
+  # Get or define Table of Contents (ToC)
+  GET_INTERNAL_VARIABLE "Internal_PROPOSED_TABLE_OF_CONTENTS" store_as "ToC"
+  IF "[ToC]" == "[No Table of Contents Provided]" THEN
+    INFO "No proposed Table of Contents. Deriving from Primary Input Document."
+    # Use "AnalyzedPrimaryDoc" (from Phase 2) to generate a draft ToC.
+    # Or, if ITERATIVE_OUTPUT_DEPTH > 0, use ToC from "PreviousIterationData".
+    AI_TASK_SUB_PROCESS "Generate Draft ToC"
+      DESCRIPTION "Generate a draft Table of Contents based on primary input or previous iteration."
+      INPUT_PARAM "AnalyzedPrimaryDoc" from_memory "AnalyzedPrimaryDoc" (optional)
+      INPUT_PARAM "PreviousIterationData" from_memory "PreviousIterationData" (optional)
+      OUTPUT_TO_SYSTEM_MEMORY "DraftToC" # e.g., a list of headings
+    END_AI_TASK_SUB_PROCESS
+    GET_FROM_SYSTEM_MEMORY "DraftToC" store_as "ToC"
+  ELSE
+    # If ToC is a file path, read it. If inline, use as is.
+    # Parse ToC into a list of headings.
+    AI_TASK_SUB_PROCESS "Parse Proposed ToC"
+      DESCRIPTION "Parse the user-provided Table of Contents."
+      INPUT_PARAM "ProposedToCInput" from "ToC"
+      OUTPUT_TO_SYSTEM_MEMORY "ParsedToC" # e.g., a list of headings
+    END_AI_TASK_SUB_PROCESS
+    GET_FROM_SYSTEM_MEMORY "ParsedToC" store_as "ToC"
+  END_IF
+  STORE_IN_SYSTEM_MEMORY "FinalToC" from "ToC"
+
+  # Iterate through each heading in the ToC to generate content
+  AI_TASK_REPEATING_SUB_PROCESS "Generate Content per Heading"
+    INITIAL_STATE_FROM_SYSTEM_MEMORY "FinalToC" # List of headings
+    ACTION_PER_ITEM "Generate content for heading: [ITEM_VALUE]"
+      SET_INTERNAL_VARIABLE "CurrentHeading" to "[ITEM_VALUE]"
+      INFO "Processing Heading: [CurrentHeading]"
+
+      # Content generation logic depends on Internal_ITERATIVE_OUTPUT_DEPTH
+      # Iteration 0: Outline (Headings are already the outline. May add sub-bullets or key points)
+      # Iteration 1: Basic Content (Draft initial paragraphs for each heading)
+      # Iteration 2: Expert Elaboration (Expand, add detail, cite sources)
+      # Iteration 3: AI Unique Insights (Synthesize, critique, offer novel perspectives)
+
+      AI_TASK_SUB_PROCESS "Generate Section Content for [CurrentHeading]"
+        DESCRIPTION "Generate content for the current section based on iteration depth and research."
+        INPUT_PARAM "Heading" from "CurrentHeading"
+        INPUT_PARAM "IterationDepth" from "Internal_ITERATIVE_OUTPUT_DEPTH"
+        INPUT_PARAM "ReferenceDepth" from "Internal_REFERENCE_FOLLOWING_DEPTH"
+        INPUT_PARAM "PrimaryInputAnalysis" from_memory "AnalyzedPrimaryDoc"
+        INPUT_PARAM "GeneralInputsAnalysis" from_memory "AnalyzedDoc_*" (glob pattern)
+        INPUT_PARAM "AdditionalWebLinks" from_memory "AdditionalWebResearchLinks" (optional)
+        INPUT_PARAM "ExemplarStyles" from_memory "AnalyzedExemplar_StyleGuide" (optional)
+        INPUT_PARAM "Guidelines" from_memory "ExtractedGuidelines" (optional)
+        INPUT_PARAM "PreviousSectionContent" from_memory "PreviousIterationData.ContentFor.[CurrentHeading]" (optional)
+
+        # Research steps within this sub-process:
+        # 1. Gather relevant snippets from all ingested inputs related to "CurrentHeading".
+        # 2. If "ReferenceDepth" > 0:
+        #    - Identify references/links within those snippets.
+        #    - Fetch content for those references (depth 1).
+        #    - If "ReferenceDepth" > 1: Fetch content for references within those references (depth 2).
+        #    - This involves web searches or local file access. Use appropriate tools.
+        #    - Be mindful of scope and avoid excessive fetching.
+        # 3. Perform "Level 0 Code Analysis" if code snippets are found and relevant:
+        #    - This means basic understanding of code purpose, inputs/outputs, language. Not deep execution.
+        # 4. Synthesize gathered information based on "IterationDepth":
+        #    - Depth 0: Key bullet points, questions to answer.
+        #    - Depth 1: Draft paragraphs, factual statements.
+        #    - Depth 2: Detailed explanations, supporting evidence, counter-arguments.
+        #    - Depth 3: Novel connections, implications, strategic insights.
+        OUTPUT_TO_SYSTEM_MEMORY "GeneratedContent_[CurrentHeading]" # Text content for the section
+      END_AI_TASK_SUB_PROCESS
+      INFO "Content generated for heading: [CurrentHeading]"
+    END_ACTION_PER_ITEM
+    TERMINATION_CONDITION "All headings processed"
+  END_AI_TASK_REPEATING_SUB_PROCESS
+
+  INFO "Phase 3: Research and Content Generation COMPLETED."
+  SAVE_CURRENT_STATE_TO_MEMORY "Phase3_State"
+END_PHASE_3
+# --- END PHASE 3 ---
+
+# --- START PHASE 4: Report Structure Definition ---
+# Objective: Confirm and finalize the report structure (Table of Contents).
+# This phase might seem redundant if ToC is fixed early, but it's a good checkpoint,
+# especially if Phase 3 revealed reasons to adjust the structure.
+
+BEGIN_PHASE_4
+  INFO "Starting Phase 4: Report Structure Definition."
+  LOAD_STATE_FROM_MEMORY "Phase3_State"
+
+  GET_FROM_SYSTEM_MEMORY "FinalToC" store_as "CurrentToC"
+  INFO "Current Table of Contents: [CurrentToC]"
+
+  # Optional: AI reviews the generated content previews and ToC for coherence and completeness.
+  # AI_TASK_SUB_PROCESS "Review ToC and Content Coherence"
+  #   DESCRIPTION "Review the ToC against generated content summaries and suggest improvements."
+  #   INPUT_PARAM "ToC" from "CurrentToC"
+  #   INPUT_PARAM "ContentSummaries" from_memory "GeneratedContent_*" (summaries of each section)
+  #   OUTPUT_TO_SYSTEM_MEMORY "RevisedToC" (optional)
+  # END_AI_TASK_SUB_PROCESS
+  # IF_SYSTEM_MEMORY_CONTAINS "RevisedToC" THEN
+  #   GET_FROM_SYSTEM_MEMORY "RevisedToC" store_as "FinalToC"
+  #   STORE_IN_SYSTEM_MEMORY "FinalToC" from "FinalToC"
+  #   INFO "Table of Contents revised."
+  # END_IF
+
+  # For now, we assume the ToC from Phase 3 is final.
+  INFO "Report structure confirmed with [COUNT_ITEMS [CurrentToC]] sections."
+  INFO "Phase 4: Report Structure Definition COMPLETED."
+  SAVE_CURRENT_STATE_TO_MEMORY "Phase4_State"
+END_PHASE_4
+# --- END PHASE 4 ---
+
+# --- START PHASE 5: Iterative Report Assembly ---
+# Objective: Assemble the generated content into a coherent report document.
+
+BEGIN_PHASE_5
+  INFO "Starting Phase 5: Iterative Report Assembly."
+  LOAD_STATE_FROM_MEMORY "Phase4_State"
+
+  GET_FROM_SYSTEM_MEMORY "FinalToC" store_as "ReportToC"
+  GET_INTERNAL_VARIABLE "Internal_REPORT_BASENAME" store_as "BaseName"
+  GET_INTERNAL_VARIABLE "Internal_ITERATIVE_OUTPUT_DEPTH" store_as "Depth"
+
+  SET_INTERNAL_VARIABLE "ReportFileName" to "[BaseName]_D[Depth].md"
+  INFO "Assembling report: [ReportFileName]"
+
+  CREATE_FILE_CONTENT "AssembledReport"
+    # Add Title
+    APPEND_TO_CONTENT "AssembledReport" "# Research Report: [BaseName]\n\n"
+    APPEND_TO_CONTENT "AssembledReport" "## Table of Contents\n"
+    # Add ToC items
+    LOOP_THROUGH_LIST "ReportToC" as "HeadingItem"
+      APPEND_TO_CONTENT "AssembledReport" "- [[HeadingItem]](#[URL_ENCODE [HeadingItem]])\n" # Simple anchor link
+    END_LOOP
+    APPEND_TO_CONTENT "AssembledReport" "\n---\n\n"
+
+    # Add content for each section
+    LOOP_THROUGH_LIST "ReportToC" as "HeadingItem"
+      APPEND_TO_CONTENT "AssembledReport" "## [HeadingItem]\n\n"
+      GET_FROM_SYSTEM_MEMORY "GeneratedContent_[HeadingItem]" store_as "SectionContent"
+      APPEND_TO_CONTENT "AssembledReport" "[SectionContent]\n\n"
+    END_LOOP
+  END_CREATE_FILE_CONTENT
+
+  STORE_IN_SYSTEM_MEMORY "AssembledReportContent" from_content "AssembledReport"
+  INFO "Report content assembled in memory."
+  INFO "Phase 5: Iterative Report Assembly COMPLETED."
+  SAVE_CURRENT_STATE_TO_MEMORY "Phase5_State"
+END_PHASE_5
+# --- END PHASE 5 ---
+
+# --- START PHASE 6: Finalization and Output ---
+# Objective: Save the assembled report to the specified output path.
+
+BEGIN_PHASE_6
+  INFO "Starting Phase 6: Finalization and Output."
+  LOAD_STATE_FROM_MEMORY "Phase5_State"
+
+  GET_INTERNAL_VARIABLE "Internal_REPORT_OUTPUT_PATH" store_as "OutputPath"
+  GET_INTERNAL_VARIABLE "ReportFileName" store_as "FileName" # From Phase 5
+  GET_FROM_SYSTEM_MEMORY "AssembledReportContent" store_as "FinalReportContent"
+
+  # Ensure output directory exists
+  CREATE_DIRECTORY "[OutputPath]"
+
+  WRITE_FILE "[OutputPath]/[FileName]" with_content "[FinalReportContent]"
+  INFO "Report successfully saved to: [OutputPath]/[FileName]"
+
+  # Optional: Generate a metadata file about the report generation process
+  # CREATE_FILE_CONTENT "MetadataReport"
+  #   APPEND_TO_CONTENT "MetadataReport" "Report Generation Metadata\n"
+  #   APPEND_TO_CONTENT "MetadataReport" "Basename: [Internal_REPORT_BASENAME]\n"
+  #   APPEND_TO_CONTENT "MetadataReport" "Iteration Depth: [Internal_ITERATIVE_OUTPUT_DEPTH]\n"
+  #   APPEND_TO_CONTENT "MetadataReport" "Reference Depth: [Internal_REFERENCE_FOLLOWING_DEPTH]\n"
+  #   APPEND_TO_CONTENT "MetadataReport" "Primary Input: [Internal_PRIMARY_INPUT_DOC_PATH]\n"
+  #   APPEND_TO_CONTENT "MetadataReport" "Generated on: [CURRENT_TIMESTAMP]\n"
+  # END_CREATE_FILE_CONTENT
+  # WRITE_FILE "[OutputPath]/[Internal_REPORT_BASENAME]_metadata_D[Internal_ITERATIVE_OUTPUT_DEPTH].txt" from_content "MetadataReport"
+
+  INFO "Phase 6: Finalization and Output COMPLETED."
+  INFO "create_research_report process finished successfully."
+END_PHASE_6
+# --- END PHASE 6 ---
+
+[[END_PROCESS_SPECIFICATION_FOR_create_research_report]]

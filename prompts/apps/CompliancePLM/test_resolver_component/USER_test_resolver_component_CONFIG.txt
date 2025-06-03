@@ -1,0 +1,6 @@
+[[USER_CONFIG_FOR_test_resolver_component]]
+# Requirement: Optional | DefaultType: Accepted
+# Description: A dummy parameter for the app-specific version.
+# Default: app_specific_default
+DUMMY_PARAM: [USER_VALUE_START] app_specific_default [USER_VALUE_END]
+[[END_USER_CONFIG_FOR_test_resolver_component]]
