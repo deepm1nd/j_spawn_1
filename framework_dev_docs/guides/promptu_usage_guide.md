@@ -189,22 +189,60 @@ Guidance for extending the Promptu Framework.
 
 ## 5. Framework Operational Notes
 
-Notes on logging and history.
+Notes on logging, history, and file management.
 
-**A. Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`)**
+**A. Handoff Notes and Archival (`framework_dev_docs/meta/handoff_notes.md` & `framework_dev_docs/meta/archive/handoff_notes/`)**
 
-*   **Verbosity Control:** Use `[[USER_FRAMEWORK_SETTINGS]]` in `post_promptu.txt` to manage AI (Jules) logging detail in `handoff_notes.md`.
+The Promptu framework employs an automated system for managing and archiving handoff notes to ensure stability and maintain a comprehensive history.
+
+*   **Automated Archival Process:**
+    *   **At Session Start (Fallback for Previous Session):** If `framework_dev_docs/meta/handoff_notes.md` contains content from a previous, unterminated session, the AI will automatically:
+        1.  Create a new timestamped archive file (e.g., `handoff_notes_YYYYMMDDHHMMSS.md`) in `framework_dev_docs/meta/archive/handoff_notes/`. (The AI will create these directories if they don't exist in the workspace).
+        2.  Copy the stale content from `handoff_notes.md` to this new archive file.
+        3.  Empty `handoff_notes.md` in the workspace.
+    *   **At Normal Session End (User-Requested Termination):** Before appending the current session's summary, the AI will:
+        1.  Create a new timestamped archive file in `framework_dev_docs/meta/archive/handoff_notes/`.
+        2.  Copy any content from the current `handoff_notes.md` (which would typically be notes from the start of the session if it's a resumed session, or empty if it's a clean start) to this new archive file.
+        3.  Empty `handoff_notes.md` in the workspace.
+    *   The AI will then append its summary for the *current* session to the now-empty `framework_dev_docs/meta/handoff_notes.md`. This means `handoff_notes.md` should ideally only contain the notes from the most recent session when a new session begins.
+
+*   **Historical Context:** The AI is instructed to read all files from `framework_dev_docs/meta/archive/handoff_notes/*.*` at the start of a session to gain historical context.
+
+*   **Verbosity Control:** You can still control the detail level of the AI's session summary appended to `handoff_notes.md` using the `[[USER_FRAMEWORK_SETTINGS]]` block in `post_promptu.txt`:
     *   `[ ] Full_Handoff_Notes_Logging_Enabled`:
         *   `[x]` (Checked): Detailed session summaries.
         *   `[ ]` (Unchecked - default): Concise summaries.
 
-*   **"Performance Feedback Log" Status:** This section was removed from `handoff_notes.md` to simplify it. Detailed feedback logging mechanisms are under review.
+*   **"Performance Feedback Log" Status:** This specific section was removed from active `handoff_notes.md` updates. The archival process maintains all historical data within the timestamped files.
 
-**B. Handoff Notes Archive**
+**B. Legacy Handoff Notes Archive File**
 
-*   Older, verbose notes might be in `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
-*   Jules is instructed by `core_planning_instructions.txt` **not to read this archive** normally.
-*   Access only if critical for a current request and with explicit user permission.
-*   Primary reference is the current `framework_dev_docs/meta/handoff_notes.md`.
+*   An older, potentially very large, manual archive file might exist at `framework_dev_docs/meta/handoff_notes_full_archive_20250602.md`.
+*   The AI (Jules) is instructed by `core_planning_instructions.txt` **not to read this specific legacy archive file** during its normal context gathering from the new `framework_dev_docs/meta/archive/handoff_notes/` directory.
+*   Access to this legacy file should only occur if deemed critical for a very specific historical request and with explicit user permission.
+*   The primary source for ongoing and future historical handoff notes is the directory: `framework_dev_docs/meta/archive/handoff_notes/`.
+
+**C. File Operations Guideline ("File Operations Restriction")**
+
+The Promptu framework includes a specific guideline on how the AI (Jules) handles file system operations:
+
+*   **Allowed Operations (Workspace Preparation for Commit):**
+    *   Jules **IS ALLOWED** to perform **create, read, and modify** operations on files directly within its workspace. These actions are considered necessary for preparing content that will be included in a commit.
+
+*   **Restricted Operations (User Approval Needed):**
+    *   Jules **MUST AVOID** direct `copy` and `move` file system commands/operations without explicit user approval for each specific instance.
+    *   Direct deletion of files by Jules also requires user confirmation for each instance.
+
+*   **Emulating `copy`:** To replicate content to a new location (achieve a copy-like effect), Jules will:
+    1.  Create a new file in the target location within the workspace.
+    2.  Read the full content of the source file.
+    3.  Write this content into the newly created file.
+    4.  Save the new file in the workspace.
+
+*   **Emulating `move`:** To replicate content to a new location with the intent of removing the source, Jules will:
+    1.  Follow the same 'create new, read source, write to new, save new' method as for emulating `copy`.
+    2.  If the source file is then intended to be deleted, Jules **MUST recommend** this deletion to the user for their explicit confirmation and action.
+
+*   **Purpose:** This guideline ensures that while Jules can autonomously prepare content and structure for commits, the user retains oversight and control over potentially destructive or complex file system manipulations like direct moves, copies, or deletions.
 
 The Promptu Framework, with its `pre_promptu.txt` and `post_promptu.txt` structure, offers enhanced modularity and flexibility for AI-driven project planning and execution.
