@@ -127,6 +127,26 @@ I. **Parse User Framework Settings:**
 
 A. **Determine Execution Path (PromptApp or Add-on):**
 
+    -1. **Initialize Handoff Notes Archive and Context:**
+        a.  Define `handoff_notes_path = "framework_dev_docs/meta/handoff_notes.md"`.
+        b.  Define `handoff_archive_dir = "framework_dev_docs/meta/archive/"`.
+        c.  Define `handoff_notes_archive_subdir = handoff_archive_dir + "handoff_notes/"`.
+        d.  AI SHOULD: Check if `handoff_notes_path` exists in the workspace and contains content.
+        e.  IF `handoff_notes_path` exists AND has content that appears to be from a *previous session* (e.g., it's not empty at the very beginning of a new session processing sequence):
+            i.   INFO "Stale `handoff_notes.md` detected. Archiving previous session content."
+            ii.  AI SHOULD: Read the entire content of `handoff_notes_path` into a variable `stale_notes_content`.
+            iii. AI SHOULD: Generate a `session_date_time` marker string (e.g., based on current UTC timestamp in YYYYMMDDHHMMSS format, or try to parse a timestamp from `stale_notes_content` if reliable).
+            iv.  AI SHOULD: Ensure the directory `handoff_notes_archive_subdir` exists in the workspace. If not, create it. (This also implies creating `handoff_archive_dir` if it doesn't exist).
+            v.   Define `archive_file_path = handoff_notes_archive_subdir + "handoff_notes_" + session_date_time + ".md"`.
+            vi.  AI SHOULD: Create the new file `archive_file_path` in the workspace.
+            vii. AI SHOULD: Write `stale_notes_content` into `archive_file_path`.
+            viii.AI SHOULD: Modify `handoff_notes_path` in the workspace to make it empty.
+            ix.  INFO "Successfully archived stale notes to " + `archive_file_path` + " and emptied " + `handoff_notes_path`.
+        f.  ELSE (if `handoff_notes_path` does not exist or is already empty):
+            i.   INFO "`handoff_notes.md` is clean or does not exist. No prior session archival needed from it."
+        g.  AI SHOULD: Read all files from `handoff_notes_archive_subdir` (e.g., `framework_dev_docs/meta/archive/handoff_notes/*.*`) to load historical context. Store this consolidated historical context internally.
+        h.  AI SHOULD: Read the current content of `handoff_notes_path` (which should now be empty if it was archived, or non-existent/empty if it started that way) to prepare for new entries for the *current* session.
+
     0.  **Determine Invocation Context and Handle Special Empty States:**
         *   Assume a variable `Invocation_Context` is available, set by the system to either 'PRE_PROMPTU' (if `pre_promptu.txt` is the entry point) or 'POST_PROMPTU' (if `post_promptu.txt` is the entry point). If unavailable, default to 'POST_PROMPTU' and issue a warning.
         *   Check `User_High_Level_Project_Goal` (from Section I.A), `Selected_PromptAppName` (from Section I.H), `Active_Primary_Addon_AppName` (from Section I.D), and `Inheritable_Addons_Content_Ordered_List` (from Section I.D).
@@ -216,7 +236,18 @@ C. **Supporting Documentation (Core Utilities):**
 
 **IMPORTANT FRAMEWORK GUIDELINES:**
 As a Planning AI using this framework, you MUST adhere to the following operational guidelines:
-- **File Operations:** File operations (creation, deletion, modification, renaming) should NOT be performed directly by you (the Jules instance) during the execution of these instructions. The framework is designed for you to prepare content and instructions. If physical file system changes are needed based on your processing (e.g., renaming files/folders, creating new components from your output), you MUST explicitly instruct the user to perform these changes externally. After the user confirms completion, they can re-invoke you or start a new relevant task. This ensures data integrity and user oversight of repository modifications.
+- **File Operations Restriction:**
+    - Jules instances ARE ALLOWED to perform **create, read, and modify** operations on files directly within their workspace when these operations are necessary to prepare for a commit. These workspace changes will be part of the commit submitted by Jules.
+    - Jules instances MUST **AVOID** direct `copy` and `move` file system operations without explicit user approval for each instance of such an operation.
+    - To achieve a `copy`-like effect (replicating content to a new location):
+        1. Create a new file in the target location within the workspace.
+        2. Read the full content of the source file.
+        3. Write (paste) this content into the newly created file.
+        4. Save the new file in the workspace.
+    - To achieve a `move`-like effect (replicating content to a new location with the intent of removing the source):
+        1. Follow the same 'create new, read source, write to new, save new' method as for `copy`.
+        2. If the source file is then intended to be deleted, Jules MUST recommend this deletion to the user for their explicit confirmation and action. Direct deletion of files by Jules should also be avoided without user confirmation for each instance.
+    - Adherence to these file operation guidelines is crucial for maintaining data integrity and ensuring user oversight of repository modifications, even as Jules prepares content for commits.
 
 A.  **(Placeholder for any pre-finalization general instructions)**
 
@@ -241,16 +272,33 @@ B. **Final Commit Message by Planning AI:**
             *   Self-checks, confidence, etc.
 
 C. **Update Handoff Notes (`framework_dev_docs/meta/handoff_notes.md`):**
+    0. **Archive Current Handoff Notes Before Appending New Summary:**
+        a.  INFO "Preparing to archive handoff notes before appending current session summary."
+        b.  Define `handoff_notes_path = "framework_dev_docs/meta/handoff_notes.md"`.
+        c.  Define `handoff_archive_dir = "framework_dev_docs/meta/archive/"`.
+        d.  Define `handoff_notes_archive_subdir = handoff_archive_dir + "handoff_notes/"`.
+        e.  AI SHOULD: Check if `handoff_notes_path` exists in the workspace and contains content.
+        f.  IF `handoff_notes_path` exists AND has content:
+            i.   AI SHOULD: Read the entire content of `handoff_notes_path` into a variable `current_notes_content`.
+            ii.  AI SHOULD: Generate a `current_session_date_time` marker string (e.g., based on current UTC timestamp in YYYYMMDDHHMMSS format).
+            iii. AI SHOULD: Ensure the directory `handoff_notes_archive_subdir` exists in the workspace. If not, create it. (This implies creating `handoff_archive_dir` if it doesn't exist).
+            iv.  Define `archive_file_path = handoff_notes_archive_subdir + "handoff_notes_" + current_session_date_time + ".md"`.
+            v.   AI SHOULD: Create the new file `archive_file_path` in the workspace.
+            vi.  AI SHOULD: Write `current_notes_content` into `archive_file_path`.
+            vii. AI SHOULD: Modify `handoff_notes_path` in the workspace to make it empty.
+            viii.INFO "Successfully archived current notes to " + `archive_file_path` + " and emptied " + `handoff_notes_path` + ". Ready for new session summary."
+        g.  ELSE (if `handoff_notes_path` does not exist or is already empty):
+            i.   INFO "`handoff_notes.md` is already empty or does not exist. No archival needed before appending new summary."
     1.  **Review `Framework_Full_Handoff_Notes_Enabled` (determined in Section I.I).**
     2.  **IF `Framework_Full_Handoff_Notes_Enabled` is `true`:**
-        a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should include:
+        a.  At the end of your session, you MUST append a detailed session summary to `framework_dev_docs/meta/handoff_notes.md` (which should now be empty following the archival in step IV.C.0). This summary should include:
             *   User feedback/requests you addressed.
             *   A detailed account of changes made to this framework's documents or other deliverables (e.g., `core_planning_instructions.txt`, `available_add_ons_manifest.md`, `compliance_plm_manifest.json`).
             *   The state in which deliverables were left (e.g., specific commits, branches).
             *   Any pending items or suggestions for the next Jules instance.
         b.  IMPORTANT: Ensure the 'Framework Performance Feedback Log' section within `handoff_notes.md` is NOT included or appended to in this file. Your new summary block should be appended after existing session summaries but before any 'Framework Performance Feedback Log' section if one accidentally exists. The goal is to phase out direct updates to that specific log section from this file.
     3.  **ELSE (if `Framework_Full_Handoff_Notes_Enabled` is `false`):**
-        a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/handoff_notes.md`. This summary should focus *only* on:
+        a.  At the end of your session, you MUST append a *concise* session summary to `framework_dev_docs/meta/handoff_notes.md` (which should now be empty following the archival in step IV.C.0). This summary should focus *only* on:
             *   Major architectural changes implemented.
             *   Key decisions made that affect the framework's evolution.
             *   The final state of key deliverables (e.g., new components created, significant refactoring of core files like `core_planning_instructions.txt`).
